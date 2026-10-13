@@ -38,8 +38,14 @@ const $=id=>document.getElementById(id), val=id=>$(id).value.trim(),num=id=>{let
 const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // 只接受固定允許的網址參數；可分享問卷人姓名與電話，勿在網址放入受訪者健康資料。
 const qs=new URLSearchParams(location.search);
-if(qs.has('interviewer'))$('interviewer').value=qs.get('interviewer').slice(0,80);
-if(qs.has('phone'))$('phone').value=qs.get('phone').slice(0,40);
+// 支援網址 ?interviewer=姓名&phone=電話，也支援中文參數名稱。
+function queryValue(keys){for(const key of keys){const value=qs.get(key);if(value!==null && value.trim())return value.trim()}return ''}
+const interviewerFromURL=queryValue(['interviewer','問卷人','問卷者','姓名']);
+const phoneFromURL=queryValue(['phone','tel','電話']);
+if(interviewerFromURL)$('interviewer').value=interviewerFromURL.slice(0,80);
+if(phoneFromURL)$('phone').value=phoneFromURL.slice(0,40);
+// 預設值直接寫入欄位；產生圖片時也從相同欄位取得問卷人資料。
+
 function wrap(ctx,s,x,y,max,line=25){let words=Array.from(String(s||'未填寫'));let row='',yy=y;for(let ch of words){if(ctx.measureText(row+ch).width>max){ctx.fillText(row,x,yy);row=ch;yy+=line}else row+=ch}ctx.fillText(row,x,yy);return yy+line}
 function report(){
 let sex=val('sex'), fruit=num('fruit'),veg=num('veg'),protein=num('protein'),grain=num('grain');
