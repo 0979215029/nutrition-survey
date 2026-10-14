@@ -2,7 +2,20 @@
 紐崔萊蔬果營養補充品：不能取代蔬菜水果
 紐崔萊綜合維生素礦物質：視飲食缺口評估</textarea></label><label>每餐會員價（元；自行輸入實際價格）<input id="mealPrice" type="number" min="0" step="1" placeholder="未填則不顯示"></label></fieldset><div class="actions"><button onclick="render()">產生飲食評估圖</button><button class="secondary" onclick="downloadJpg()">下載 JPG 圖片</button></div><canvas id="preview" width="1500" height="1120"></canvas><p><small>注意：飲食評估為教育性估算，不能單憑飲食紀錄推定疾病；有慢性病、用藥或不適時，應由醫師／營養師確認補充品適用性。</small></p></main><script>
 const $=id=>document.getElementById(id), v=id=>$(id).value, num=id=>Math.max(0,Number(v(id))||0),canvas=$('preview'),ctx=canvas.getContext('2d');
-function estimate(){let s=[v('breakfast'),v('lunch'),v('dinner'),v('snack')].join('、');let count=(re)=>[...s.matchAll(re)].length;let fruit=num('fruit');$('protein').value=(count(/雞肉|雞腿|魚|鮭魚|豆腐|豆干|牛肉|豬肉|蛋|蝦|海鮮|豆漿/g)*2).toFixed(1);$('grain').value=(count(/飯|麵|吐司|麵包|燕麥|饅頭|地瓜|水餃/g)*0.8+count(/餅乾/g)*0.2).toFixed(1);$('produce').value=(fruit+count(/青菜|蔬菜|高麗菜|花椰菜|菠菜|沙拉|番茄|水果/g)).toFixed(1);$('fat').value=(count(/炒|炸|煎|油|堅果|餅乾|雞腿|鮭魚/g)*1.5).toFixed(1);render()}
+function estimate(){
+  let s=[v('breakfast'),v('lunch'),v('dinner'),v('snack')].join('、');
+  const count=re=>[...s.matchAll(re)].length;
+  // 完整餐點優先換算，避免「雞腿便當」只辨識到雞腿，或重複計入飯菜。
+  const bentos=count(/雞腿便當/g);
+  const other=s.replace(/雞腿便當/g,'');
+  const otherCount=re=>[...other.matchAll(re)].length;
+  const fruit=num('fruit');
+  $('protein').value=(bentos*3+otherCount(/雞肉|雞腿|魚|鮭魚|豆腐|豆干|牛肉|豬肉|蛋|蝦|海鮮|豆漿/g)*2).toFixed(1);
+  $('grain').value=(bentos*1+otherCount(/飯|麵|吐司|麵包|燕麥|饅頭|地瓜|水餃/g)*0.8+otherCount(/餅乾/g)*0.2).toFixed(1);
+  $('produce').value=(fruit+bentos*1+otherCount(/青菜|蔬菜|高麗菜|花椰菜|菠菜|沙拉|番茄|水果/g)).toFixed(1);
+  $('fat').value=(bentos*3+otherCount(/炒|炸|煎|油|堅果|餅乾|雞腿|鮭魚/g)*1.5).toFixed(1);
+  render();
+}
 function text(t,x,y,size=24,color='#222',bold=false){ctx.fillStyle=color;ctx.font=`${bold?'bold ':''}${size}px Arial, 'Noto Sans TC', sans-serif`;ctx.fillText(String(t),x,y)}
 function lines(t,x,y,maxWidth=390,size=22,step=31,maxLines=4){ctx.font=`${size}px Arial, sans-serif`;let out=[],line='';for(let ch of String(t)){if(ctx.measureText(line+ch).width>maxWidth){out.push(line);line=ch}else line+=ch}if(line)out.push(line);out.slice(0,maxLines).forEach((a,i)=>text(a,x,y+i*step,size));return Math.min(out.length,maxLines)*step}
 function rule(x,y,w){ctx.strokeStyle='#aaa';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+w,y);ctx.stroke()}
