@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>健康飲食金字塔｜飲食問卷</title><style>body{font-family:Arial,'Noto Sans TC',sans-serif;background:#f3f6f3;margin:0;color:#24332b}main{max-width:1050px;margin:auto;padding:18px}h1{color:#b72e29}fieldset{border:1px solid #cbd8c8;border-radius:12px;background:white;margin:15px 0;padding:16px}legend{font-weight:bold;color:#29753d}label{display:block;margin:8px 0}input,select,textarea{box-sizing:border-box;width:100%;padding:9px;border:1px solid #b9c5ba;border-radius:6px;font-size:16px}textarea{min-height:60px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:10px}.actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}button{background:#287944;color:white;border:0;padding:12px 20px;border-radius:7px;font-size:16px;cursor:pointer}button.secondary{background:#46647a}#preview{width:100%;background:white;border:1px solid #ddd}small{color:#53645a}.note{background:#fff6dc;padding:10px;border-radius:7px} </style></head><body><main><h1>健康飲食金字塔｜一週飲食問卷</h1><p>請填寫過去一週每天最常吃的食物，完成後可產生並下載橫式 JPG 飲食評估表。</p><fieldset><legend>一、受訪者資料</legend><div class="grid"><label>姓名<input id="name" placeholder="姓名"></label><label>性別<select id="sex"><option>男</option><option>女</option></select></label><label>年齡<input id="age" type="number" value="42"></label><label>身高（公分）<input id="height" type="number" value="168"></label><label>體重（公斤）<input id="weight" type="number" value="70"></label><label>每日喝水量（cc）<input id="water" type="number" value="2200"></label></div><label>慢性用藥（選填）<input id="med" placeholder="例如：血壓藥；無則留白"></label><label>目前不適（選填）<input id="symptom" placeholder="例如：容易疲倦；無則留白"></label></fieldset><fieldset><legend>二、一週內每天最常吃的飲食</legend><div class="grid"><label>早餐<textarea id="breakfast">鮭魚、美式咖啡</textarea></label><label>午餐<textarea id="lunch">白飯1碗、雞肉、蛋1顆、青菜0.5碗</textarea></label><label>晚餐<textarea id="dinner">滷雞腿、豆腐、炒青菜、水果</textarea></label><label>下午茶／宵夜<textarea id="snack">餅乾</textarea></label></div><label>每日水果（份；1份約一個拳頭大小）<input id="fruit" type="number" min="0" step="0.5" value="1"></label></fieldset><fieldset><legend>三、每日實際攝取量（可手動修正估算值）</legend><p><small>按「依飲食文字粗估」會從上方文字辨識常見食物；辨識不完整時請手動修正。份數是示意換算，不是精密營養分析。</small></p><button class="secondary" onclick="estimate()">依飲食文字粗估</button><p id="estimateStatus" style="color:#516b55;font-size:14px" aria-live="polite">餐點資料庫為預設份數，請依實際份量修正。</p><div class="grid"><label>油脂類（份）<input id="fat" type="number" min="0" step="0.5" value="6.5"></label><label>蛋白質類（份）<input id="protein" type="number" min="0" step="0.5" value="12.5"></label><label>蔬果類（份）<input id="produce" type="number" min="0" step="0.5" value="3"></label><label>全穀雜糧類（碗）<input id="grain" type="number" min="0" step="0.1" value="1.3"></label></div><p class="note">蔬果建議量：依性別與年齡採用簡化的「蔬果579」規則，未滿12歲5份、成年女性7份、成年男性9份。實際需求應依個別健康狀況調整。</p></fieldset><fieldset><legend>四、問卷人與營養補充建議</legend><div class="grid"><label>問卷人姓名<input id="interviewer" placeholder="問卷人"></label><label>聯絡電話<input id="phone" placeholder="電話"></label></div><label>紐崔萊建議（最多5項，每行一項，可自行修改）<textarea id="supplements">紐崔萊優質蛋白素：視每日蛋白質不足量補充
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>健康飲食金字塔｜飲食問卷</title><style>body{font-family:Arial,'Noto Sans TC',sans-serif;background:#f3f6f3;margin:0;color:#24332b}main{max-width:1050px;margin:auto;padding:18px}h1{color:#b72e29}fieldset{border:1px solid #cbd8c8;border-radius:12px;background:white;margin:15px 0;padding:16px}legend{font-weight:bold;color:#29753d}label{display:block;margin:8px 0}input,select,textarea{box-sizing:border-box;width:100%;padding:9px;border:1px solid #b9c5ba;border-radius:6px;font-size:16px}textarea{min-height:60px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:10px}.actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}button{background:#287944;color:white;border:0;padding:12px 20px;border-radius:7px;font-size:16px;cursor:pointer}button.secondary{background:#46647a}#preview{width:100%;background:white;border:1px solid #ddd}small{color:#53645a}.note{background:#fff6dc;padding:10px;border-radius:7px} </style></head><body><main><h1>健康飲食金字塔｜一週飲食問卷</h1><p>請填寫過去一週每天最常吃的食物，完成後可產生並下載橫式 JPG 飲食評估表。</p><fieldset><legend>一、受訪者資料</legend><div class="grid"><label>姓名<input id="name" placeholder="姓名"></label><label>性別<select id="sex"><option>男</option><option>女</option></select></label><label>年齡<input id="age" type="number" value="42"></label><label>身高（公分）<input id="height" type="number" value="168"></label><label>體重（公斤）<input id="weight" type="number" value="70"></label><label>每日喝水量（cc）<input id="water" type="number" value="2200"></label></div><label>慢性用藥（選填）<input id="med" placeholder="例如：血壓藥；無則留白"></label><label>目前不適（選填）<input id="symptom" placeholder="例如：容易疲倦；無則留白"></label></fieldset><fieldset><legend>二、一週內每天最常吃的飲食</legend><div class="grid"><label>早餐<textarea id="breakfast">鮭魚、美式咖啡</textarea></label><label>午餐<textarea id="lunch">白飯1碗、雞肉、蛋1顆、青菜0.5碗</textarea></label><label>晚餐<textarea id="dinner">滷雞腿、豆腐、炒青菜、水果</textarea></label><label>下午茶／宵夜<textarea id="snack">餅乾</textarea></label></div><label>每日水果（份；1份約一個拳頭大小）<input id="fruit" type="number" min="0" step="0.5" value="1"></label></fieldset><fieldset><legend>三、每日實際攝取量（可手動修正估算值）</legend><p><small>按「依飲食文字粗估」會從上方文字辨識常見食物；辨識不完整時請手動修正。份數是示意換算，不是精密營養分析。</small></p><button class="secondary" onclick="estimate()">依飲食文字粗估</button><p id="estimateStatus" style="color:#516b55;font-size:14px" aria-live="polite">餐點資料庫為一般份量粗估，含夜市小吃；糖分、鈉含量不在四類份數內，請依實際份量修正。</p><div class="grid"><label>油脂類（份）<input id="fat" type="number" min="0" step="0.5" value="6.5"></label><label>蛋白質類（份）<input id="protein" type="number" min="0" step="0.5" value="12.5"></label><label>蔬果類（份）<input id="produce" type="number" min="0" step="0.5" value="3"></label><label>全穀雜糧類（碗）<input id="grain" type="number" min="0" step="0.1" value="1.3"></label></div><p class="note">蔬果建議量：依性別與年齡採用簡化的「蔬果579」規則，未滿12歲5份、成年女性7份、成年男性9份。實際需求應依個別健康狀況調整。</p></fieldset><fieldset><legend>四、問卷人與營養補充建議</legend><div class="grid"><label>問卷人姓名<input id="interviewer" placeholder="問卷人"></label><label>聯絡電話<input id="phone" placeholder="電話"></label></div><label>紐崔萊建議（最多5項，每行一項，可自行修改）<textarea id="supplements">紐崔萊優質蛋白素：視每日蛋白質不足量補充
 紐崔萊蔬果營養補充品：不能取代蔬菜水果
 紐崔萊綜合維生素礦物質：視飲食缺口評估</textarea></label><label>每餐會員價（元；自行輸入實際價格）<input id="mealPrice" type="number" min="0" step="1" placeholder="未填則不顯示"></label></fieldset><div class="actions"><button onclick="render()">產生飲食評估圖</button><button class="secondary" onclick="downloadJpg()">下載 JPG 圖片</button></div><canvas id="preview" width="1500" height="1120"></canvas><p><small>注意：飲食評估為教育性估算，不能單憑飲食紀錄推定疾病；有慢性病、用藥或不適時，應由醫師／營養師確認補充品適用性。</small></p></main><script>
 const $=id=>document.getElementById(id), v=id=>$(id).value, num=id=>Math.max(0,Number(v(id))||0),canvas=$('preview'),ctx=canvas.getContext('2d');
@@ -192,22 +192,125 @@ const mealRules=[
   ["蝦",[1,2,0,0]],
   ["蛋",[0.5,1,0,0]]
 ];
+// 泡麵以一包／一碗標準份量粗估；蔬果不含乾燥調味蔬菜。
+// [油脂份, 蛋白質份, 蔬果份, 全穀雜糧碗]，不同品牌與包裝差異很大。
+const instantNoodleRules=[
+  ["統一肉燥風味麵",[3,1,0,1.5]], ["統一肉燥麵",[3,1,0,1.5]],
+  ["統一鮮蝦麵",[3,1,0,1.5]], ["統一蔥燒牛肉麵",[3,1,0,1.5]],
+  ["維力炸醬麵",[4,1,0,1.5]], ["維力炸醬",[4,1,0,1.5]],
+  ["維力一度贊",[4,1,0,2]], ["一度贊",[4,1,0,2]],
+  ["滿漢大餐",[4,2,0,2]], ["來一客",[2,0.5,0,1]],
+  ["科學麵",[2,0.5,0,1]], ["王子麵",[2,0.5,0,1]],
+  ["阿Q桶麵",[4,1,0,2]], ["阿Q桶",[4,1,0,2]],
+  ["味味A排骨雞麵",[3,1,0,1.5]], ["味味A",[3,1,0,1.5]],
+  ["味味麵",[3,1,0,1.5]], ["味王泡麵",[3,1,0,1.5]],
+  ["台酒花雕雞麵",[4,2,0,2]], ["花雕雞麵",[4,2,0,2]],
+  ["台酒麻油雞麵",[4,2,0,2]], ["麻油雞麵泡麵",[4,2,0,2]],
+  ["辛拉麵",[2.5,1,0,1.5]], ["辛杯麵",[2,0.5,0,1]],
+  ["不倒翁拉麵",[2.5,1,0,1.5]], ["安城湯麵",[2.5,1,0,1.5]],
+  ["三養火雞麵",[3,1,0,1.5]], ["火雞辣麵",[3,1,0,1.5]],
+  ["出前一丁",[3,1,0,1.5]], ["日清杯麵",[2,0.5,0,1]],
+  ["合味道",[2,0.5,0,1]], ["一平夜店炒麵",[4,1,0,2]],
+  ["印尼炒麵",[3,1,0,1.5]], ["營多麵",[3,1,0,1.5]],
+  ["泡菜泡麵",[3,1,0,1.5]], ["海鮮泡麵",[3,1,0,1.5]],
+  ["牛肉泡麵",[3,1,0,1.5]], ["排骨雞泡麵",[3,1,0,1.5]],
+  ["豚骨泡麵",[3,1,0,1.5]], ["麻辣泡麵",[3,1,0,1.5]],
+  ["乾拌泡麵",[4,1,0,1.5]], ["碗裝泡麵",[3,1,0,1.5]],
+  ["杯裝泡麵",[2,0.5,0,1]], ["泡麵",[3,1,0,1.5]],
+  ["速食麵",[3,1,0,1.5]], ["方便麵",[3,1,0,1.5]],
+  ["杯麵",[2,0.5,0,1]], ["桶麵",[4,1,0,2]],
+  ["泡麵加蛋",[3.5,2,0,1.5]], ["泡麵加青菜",[3,1,1,1.5]]
+];
+mealRules.push(...instantNoodleRules);
+// 烘焙與餅乾：以常見單次食用量估算，非品牌營養標示；[油脂,蛋白質,蔬果,穀類碗]。
+// 餅乾基準約3片、吐司1片、小餐包1個；遇數量會依單位換算。
+const bakeryRules=[
+ ["巧克力夾心餅乾",[2,0,0,0.5]], ["奶油夾心餅乾",[2,0,0,0.5]],
+ ["夾心餅乾",[2,0,0,0.5]], ["消化餅乾",[1.5,0,0,0.5]],
+ ["蘇打餅乾",[1,0,0,0.5]], ["全麥餅乾",[1,0,0,0.5]],
+ ["奶油餅乾",[2,0,0,0.5]], ["曲奇餅乾",[2,0,0,0.5]],
+ ["巧克力餅乾",[2,0,0,0.5]], ["蛋捲",[2,0.5,0,0.5]],
+ ["米餅",[0.5,0,0,0.5]], ["仙貝",[0.5,0,0,0.5]],
+ ["洋芋片",[2,0,0,0.5]], ["餅乾",[1.5,0,0,0.5]],
+ ["菠蘿麵包",[3,1,0,1]], ["奶酥麵包",[3,1,0,1]],
+ ["肉鬆麵包",[2.5,1.5,0,1]], ["紅豆麵包",[1.5,0.5,0,1]],
+ ["克林姆麵包",[2,0.5,0,1]], ["奶油麵包",[2.5,0.5,0,1]],
+ ["起司麵包",[2,1.5,0,1]], ["火腿麵包",[2,1.5,0,1]],
+ ["可頌",[3,0.5,0,1]], ["牛角麵包",[3,0.5,0,1]],
+ ["甜甜圈",[3,0.5,0,1]], ["丹麥麵包",[3,0.5,0,1]],
+ ["全麥吐司",[0.5,0,0,0.5]], ["白吐司",[0.5,0,0,0.5]],
+ ["厚片吐司",[1,0,0,1]], ["吐司",[0.5,0,0,0.5]],
+ ["法國麵包",[0.5,0,0,0.5]], ["全麥麵包",[0.5,0,0,1]],
+ ["雜糧麵包",[1,0.5,0,1]], ["餐包",[1,0,0,0.5]],
+ ["貝果",[0.5,0.5,0,1]], ["麵包",[1.5,0.5,0,1]]
+];
+// 取代既有同名規則，防止重複匹配。
+for(const [name,servings] of bakeryRules){const idx=mealRules.findIndex(row=>row[0]===name);if(idx>=0)mealRules.splice(idx,1);mealRules.push([name,servings]);}
+
+// 日式料理：預設一般餐廳單份，數值依序為油脂、蛋白質、蔬果、穀類（碗）。
+// 生魚片基準為5片；壽司基準為1貫，握壽司與卷壽司以名稱區分。
+const japaneseRules=[
+ ['鮭魚生魚片',[1.5,3,0,0]],['鮪魚生魚片',[0.5,3,0,0]],['旗魚生魚片',[0.5,3,0,0]],
+ ['鯛魚生魚片',[0.5,3,0,0]],['綜合生魚片',[1,3,0,0]],['生魚片',[1,3,0,0]],
+ ['炙燒鮭魚握壽司',[0.5,0.5,0,0.25]],['鮭魚握壽司',[0.3,0.5,0,0.25]],
+ ['鮪魚握壽司',[0.1,0.5,0,0.25]],['蝦握壽司',[0.1,0.5,0,0.25]],
+ ['玉子握壽司',[0.2,0.5,0,0.25]],['握壽司',[0.2,0.5,0,0.25]],
+ ['鮭魚壽司',[0.3,0.5,0,0.25]],['稻荷壽司',[0.5,0.5,0,0.5]],
+ ['豆皮壽司',[0.5,0.5,0,0.5]],['花壽司',[1,1,0.5,1]],
+ ['加州卷',[1,1,0.5,1]],['海苔壽司卷',[0.5,1,0.5,1]],['壽司卷',[0.5,1,0.5,1]],
+ ['鮭魚丼飯',[2,3,0.5,1]],['海鮮丼飯',[1.5,3,0.5,1]],['生魚片丼飯',[1.5,3,0.5,1]],
+ ['親子丼',[2,3,0.5,1]],['牛丼',[2.5,3,0.5,1]],['豬排丼',[3.5,3,0.5,1]],
+ ['炸豬排定食',[4,3,1,1]],['烤鯖魚定食',[2.5,3,1,1]],['照燒雞腿定食',[3,3,1,1]],
+ ['日式咖哩飯',[3,2,0.5,1]],['豬排咖哩飯',[4,3,0.5,1]],
+ ['豚骨拉麵',[3.5,3,0.5,1.5]],['醬油拉麵',[2,2,0.5,1.5]],
+ ['味噌拉麵',[2.5,2,0.5,1.5]],['日式拉麵',[2.5,2,0.5,1.5]],
+ ['烏龍麵',[1,1,0.5,1.5]],['蕎麥麵',[0.5,1,0.5,1.5]],
+ ['炸蝦天婦羅',[3,2,0,0.5]],['蔬菜天婦羅',[3,0.5,1,0.5]],['天婦羅',[3,2,0.5,0.5]],
+ ['章魚燒',[2,1,0,1]],['大阪燒',[3,2,1,1]],['日式煎餃',[2,2,0.5,1]],
+ ['茶碗蒸',[0.5,1.5,0,0]],['味噌湯',[0.5,0.5,0.5,0]],
+ ['涼拌海帶芽',[0.5,0,0.5,0]],['胡麻豆腐',[1.5,1.5,0,0]],
+ ['日式炸雞',[3,3,0,0.5]],['唐揚雞',[3,3,0,0.5]],
+ ['鹽烤鯖魚',[2,3,0,0]],['鹽烤鮭魚',[2,3,0,0]],['照燒雞腿',[2.5,3,0,0]],
+ ['烤雞肉串',[1.5,2,0,0]],['烤牛肉串',[1.5,2,0,0]],
+ ['抹茶冰淇淋',[2,1,0,0.5]],['日式銅鑼燒',[1.5,0.5,0,1]],['大福',[0.5,0,0,1]]
+];
+for(const [name,servings] of japaneseRules){const idx=mealRules.findIndex(row=>row[0]===name);if(idx>=0)mealRules.splice(idx,1);mealRules.push([name,servings]);}
+const sashimiNames=new Set(japaneseRules.filter(([n])=>n.includes('生魚片')&&!n.includes('丼')).map(([n])=>n));
+const nigiriNames=new Set(japaneseRules.filter(([n])=>n.includes('握壽司')||n==='鮭魚壽司').map(([n])=>n));
+
+// 台灣夜市、傳統小吃、飲料等新增預設值；同名項目以此處為準。
+const taiwanStreetRules=[["炸雞排",[4,4,0,0.5]],["雞排",[4,4,0,0.5]],["炸雞腿",[3,1,0,0.5]],["炸雞翅",[3,1,0,0.5]],["炸雞塊",[3,1,0,0.5]],["雞米花",[3,1,0,0.5]],["鹹酥雞",[4,3,0,0.5]],["鹽酥雞",[4,3,0,0.5]],["無骨鹹酥雞",[4,3,0,0.5]],["炸魷魚",[3,3,0,0.5]],["炸花枝",[3,1,0,0.5]],["炸甜不辣",[3,1,0,0.5]],["炸米血",[3,1,0,0.5]],["炸豆腐",[3,1,0,0.5]],["炸杏鮑菇",[3,1,0,0.5]],["炸四季豆",[3,1,0,0.5]],["炸香菇",[3,1,0,0.5]],["炸雞皮",[3,1,0,0.5]],["炸雞屁股",[3,1,0,0.5]],["炸雞心",[3,1,0,0.5]],["炸雞胗",[3,1,0,0.5]],["炸雞軟骨",[3,1,0,0.5]],["炸排骨",[3,1,0,0.5]],["炸蝦",[3,1,0,0.5]],["炸魚排",[3,1,0,0.5]],["炸蚵仔",[3,1,0,0.5]],["炸地瓜",[3,1,0,0.5]],["炸芋頭",[3,1,0,0.5]],["炸湯圓",[3,1,0,0.5]],["炸銀絲卷",[3,1,0,0.5]],["炸饅頭",[3,1,0,0.5]],["薯條",[3,0,0,1]],["脆薯",[3,0,0,1]],["波浪薯條",[3,0,0,1]],["地瓜薯條",[3,1,0,0.5]],["地瓜球",[3,0,0,1]],["甜不辣",[3,1,0,0.5]],["百頁豆腐",[3,1,0,0.5]],["蚵仔煎",[3,2,0.5,1]],["蝦仁煎",[2,2,0.5,1]],["蛋煎",[2,2,0.5,1]],["臭豆腐",[3,2,0.5,0.5]],["麻辣臭豆腐",[2,2,0.5,1]],["大腸包小腸",[3,2,0,1]],["烤香腸",[2,2,0,0]],["糯米腸",[2,2,0.5,1]],["大腸麵線",[2,2,0.5,1]],["蚵仔麵線",[2,2,0.5,1]],["肉圓",[2,2,0.5,1]],["清蒸肉圓",[2,2,0.5,1]],["油飯",[2,2,0.5,1]],["筒仔米糕",[2,2,0.5,1]],["米糕",[2,2,0.5,1]],["碗粿",[2,2,0.5,1]],["肉粽",[2,2,0.5,1]],["菜粽",[2,2,0.5,1]],["鹼粽",[2,2,0.5,1]],["割包",[2,2,0.5,1]],["刈包",[2,2,0.5,1]],["潤餅",[2,2,0.5,1]],["春捲",[2,2,0.5,1]],["炸春捲",[2,2,0.5,1]],["棺材板",[2,2,0.5,1]],["蔥油餅",[2,2,0.5,1]],["蔥抓餅",[2,2,0.5,1]],["蚵嗲",[2,2,0.5,1]],["韭菜盒",[2,2,0.5,1]],["胡椒餅",[2,2,0.5,1]],["水煎包",[2,2,0.5,1]],["生煎包",[2,2,0.5,1]],["鍋貼",[2,2,0.5,1]],["小籠包",[2,2,0.5,1]],["蒸餃",[2,2,0.5,1]],["米粉炒",[2,2,0.5,1]],["炒麵",[2,2,0.5,1]],["炒米粉",[2,2,0.5,1]],["炒粄條",[2,2,0.5,1]],["肉羹",[2,2,0.5,1]],["肉羹麵",[2,2,0.5,1]],["肉羹飯",[2,2,0.5,1]],["魷魚羹",[2,2,0.5,1]],["花枝羹",[2,2,0.5,1]],["土魠魚羹",[2,2,0.5,1]],["土魠魚羹麵",[2,2,0.5,1]],["當歸鴨麵線",[2,2,0.5,1]],["鴨肉飯",[2,2,0.5,1]],["火雞肉飯",[2,2,0.5,1]],["雞肉飯",[2,2,0.5,1]],["滷肉飯",[2,2,0.5,1]],["豬腳飯",[2,2,0.5,1]],["控肉飯",[2,2,0.5,1]],["焢肉飯",[2,2,0.5,1]],["爌肉飯",[2,2,0.5,1]],["咖哩飯",[2,2,0.5,1]],["炸醬麵",[2,2,0.5,1]],["麻醬麵",[2,2,0.5,1]],["麻辣燙",[2,2,0.5,1]],["麻辣鴨血",[1,1,0,0]],["麻辣豆腐",[2,2,0,0]],["烤雞翅",[1.5,2,0,0]],["烤雞腿",[1.5,2,0,0]],["烤雞肉串",[1.5,2,0,0]],["烤豬肉串",[1.5,2,0,0]],["烤牛肉串",[1.5,2,0,0]],["烤羊肉串",[1.5,2,0,0]],["烤魷魚",[1.5,2,0,0]],["烤花枝",[1.5,2,0,0]],["烤甜不辣",[1.5,2,0,0]],["烤米血",[1.5,2,0,0]],["烤玉米",[1,0,0,1]],["烤杏鮑菇",[1,0,1,0]],["烤青椒",[1,0,1,0]],["烤四季豆",[1,0,1,0]],["烤豆干",[1.5,2,0,0]],["烤豆皮",[1.5,2,0,0]],["烤香菇",[1.5,2,0,0]],["烤魚",[1.5,2,0,0]],["烤秋刀魚",[1.5,2,0,0]],["烤鯖魚",[1.5,2,0,0]],["滷味",[1.5,2,0,0]],["滷雞翅",[1.5,2,0,0]],["滷雞腿",[1.5,2,0,0]],["滷蛋",[0.5,1,0,0]],["茶葉蛋",[0.5,1,0,0]],["滷豆干",[1.5,2,0,0]],["滷豆腐",[1.5,2,0,0]],["滷海帶",[1.5,2,0,0]],["滷米血",[1.5,2,0,0]],["滷甜不辣",[1.5,2,0,0]],["滷百頁",[1.5,2,0,0]],["滷雞胗",[1.5,2,0,0]],["滷雞心",[1.5,2,0,0]],["滷大腸",[1.5,2,0,0]],["滷豬耳朵",[1.5,2,0,0]],["滷豬腳",[1.5,2,0,0]],["滷牛腱",[1.5,2,0,0]],["滷牛肚",[1.5,2,0,0]],["滷花生",[1.5,2,0,0]],["燙青菜",[0.5,0,1,0]],["炒青菜",[1,0,1,0]],["炒高麗菜",[0,0,1,0]],["炒空心菜",[0,0,1,0]],["炒菠菜",[0,0,1,0]],["炒地瓜葉",[0,0,1,0]],["涼拌小黃瓜",[0,0,1,0]],["涼拌木耳",[0,0,1,0]],["涼拌海帶",[0,0,1,0]],["涼拌海帶芽",[0,0,1,0]],["涼拌苦瓜",[0,0,1,0]],["生菜沙拉",[0.5,0,1,0]],["水果沙拉",[0,0,1,0]],["水果切盤",[0,0,1,0]],["芭樂",[0,0,1,0]],["西瓜",[0,0,1,0]],["木瓜",[0,0,1,0]],["鳳梨",[0,0,1,0]],["芒果",[0,0,1,0]],["香蕉",[0,0,1,0]],["蘋果",[0,0,1,0]],["橘子",[0,0,1,0]],["柳丁",[0,0,1,0]],["葡萄",[0,0,1,0]],["火龍果",[0,0,1,0]],["奇異果",[0,0,1,0]],["草莓",[0,0,1,0]],["蓮霧",[0,0,1,0]],["釋迦",[0,0,1,0]],["百香果",[0,0,1,0]],["番茄",[0,0,1,0]],["小番茄",[0,0,1,0]],["甘蔗",[0,0,1,0]],["雞蛋糕",[1,1,0,1]],["車輪餅",[1,0.5,0,0.5]],["紅豆餅",[1,0.5,0,0.5]],["奶油車輪餅",[1,0,0,1]],["鯛魚燒",[1,0,0,1]],["章魚燒",[1,0,0,1]],["雞蛋仔",[1,0,0,1]],["格子鬆餅",[1,0,0,1]],["鬆餅",[1,0,0,1]],["可麗餅",[1,0,0,1]],["雞蛋布丁",[1,0,0,1]],["豆花",[1,0,0,1]],["花生豆花",[1,0,0,1]],["粉圓豆花",[1,0,0,1]],["仙草",[1,0,0,1]],["愛玉",[1,0,0,1]],["燒仙草",[1,0,0,1]],["紅豆湯",[1,0,0,1]],["綠豆湯",[1,0,0,1]],["花生湯",[1,0,0,1]],["芋圓",[1,0,0,1]],["地瓜圓",[1,0,0,1]],["湯圓",[1,0,0,1]],["紅豆湯圓",[1,0,0,1]],["芝麻湯圓",[1,0,0,1]],["花生湯圓",[1,0,0,1]],["麻糬",[1,0,0,1]],["草仔粿",[1,0,0,1]],["紅龜粿",[1,0,0,1]],["芋粿巧",[1,0,0,1]],["米苔目",[1,0,0,1]],["甜不辣冰",[1,0,0,1]],["冰淇淋",[1,0,0,1]],["霜淇淋",[1,0,0,1]],["雪花冰",[1,0,0,1]],["剉冰",[1,0,0,1]],["刨冰",[1,0,0,1]],["芒果冰",[1,0,0,1]],["八寶冰",[1,0,0,1]],["黑糖粉粿",[1,0,0,1]],["麻花捲",[1,0,0,1]],["沙琪瑪",[1,0,0,1]],["珍珠奶茶",[2,1,0,1]],["波霸奶茶",[2,1,0,1]],["奶茶",[1.5,0.5,0,0.5]],["紅茶",[0,0,0,0]],["綠茶",[0,0,0,0]],["青茶",[0,0,0,0]],["烏龍茶",[0,0,0,0]],["冬瓜茶",[0,0,0,0]],["冬瓜檸檬",[0,0,0,0]],["檸檬紅茶",[0,0,0,0]],["檸檬綠茶",[0,0,0,0]],["多多綠",[0,0,0,0]],["養樂多",[0,0,0,0]],["綠豆沙牛奶",[0,0,0,0]],["木瓜牛奶",[0,0,0,0]],["香蕉牛奶",[0,0,0,0]],["鮮奶茶",[0,0,0,0]],["黑糖珍珠鮮奶",[2,1,0,1]],["珍珠鮮奶",[2,1,0,1]],["黑糖鮮奶",[0,0,0,0]],["豆漿",[0.5,1,0,0]],["米漿",[1,0.5,0,1]],["杏仁茶",[0,0,0,0]],["酸梅湯",[0,0,0,0]],["楊桃汁",[0,0,0,0]],["甘蔗汁",[0,0,0,0]],["西瓜汁",[0,0,0,0]],["柳橙汁",[0,0,0,0]],["柳丁汁",[0,0,0,0]],["葡萄汁",[0,0,0,0]],["芭樂汁",[0,0,0,0]],["芒果汁",[0,0,0,0]],["椰子水",[0,0,0,0]],["咖啡",[0,0,0,0]],["美式咖啡",[0,0,0,0]],["拿鐵",[1,1,0,0]],["卡布奇諾",[0,0,0,0]],["可樂",[0,0,0,0]],["汽水",[0,0,0,0]],["沙士",[0,0,0,0]],["運動飲料",[0,0,0,0]],["關東煮",[1,2,0.5,0.5]],["魚丸",[1,2,0,0]],["貢丸",[1,2,0,0]],["花枝丸",[1,2,0,0]],["甜不辣片",[1,2,0,0]],["黑輪",[1,2,0,0]],["黑輪片",[1,2,0,0]],["米血糕",[1,2,0,0]],["豬血糕",[1,2,0,0]],["大腸",[1,2,0,0]],["豬血湯",[1,2,0,0]],["四神湯",[1,2,0,0]],["藥燉排骨",[2,3,0,0]],["薑母鴨",[1,2,0,0]],["羊肉爐",[1,2,0,0]],["麻油雞",[1,2,0,0]],["麻油腰子",[1,2,0,0]],["麻油麵線",[1,2,0,0]],["蛤蜊湯",[1,2,0,0]],["蚵仔湯",[1,2,0,0]],["魚丸湯",[1,2,0,0]],["貢丸湯",[1,2,0,0]],["酸辣湯",[1,2,0,0]],["玉米濃湯",[1,2,0,0]],["蘿蔔湯",[1,2,0,0]],["排骨酥湯",[1,2,0,0]],["苦瓜排骨湯",[1,2,0,0]],["牛肉湯",[1,2,0,0]],["羊肉湯",[1,2,0,0]],["虱目魚肚湯",[1,2,0,0]],["魚皮湯",[1,2,0,0]],["豬肝湯",[1,2,0,0]]];
+for(const [name,servings] of taiwanStreetRules){const idx=mealRules.findIndex(row=>row[0]===name);if(idx>=0)mealRules.splice(idx,1);mealRules.push([name,servings]);}
+// 長名稱優先，避免「泡麵加蛋」被「泡麵」先截斷。
+mealRules.sort((a,b)=>b[0].length-a[0].length);
 const mealRegex=new RegExp(mealRules.map(([name])=>name).join("|"),"g");
 const mealLookup=new Map(mealRules);
 function estimate(){
-  const source=[v('breakfast'),v('lunch'),v('dinner'),v('snack')].join('、');
-  const totals=[0,0,num('fruit'),0];
-  const matched=[];
-  const remaining=source.replace(mealRegex, name=>{
-    const servings=mealLookup.get(name);
-    servings.forEach((value,i)=>totals[i]+=value);
-    matched.push(name);
-    return ' '.repeat(name.length);
-  });
-  ['fat','protein','produce','grain'].forEach((id,i)=>$(id).value=(Math.round(totals[i]*10)/10).toFixed(1));
-  const unknown=remaining.replace(/[\s、，,。；;／/：:\d０-９份碗杯個顆片根匙]+/g,'').trim();
-  $('estimateStatus').textContent=`已辨識 ${matched.length} 項：${matched.join('、')||'無'}。${unknown?'未辨識內容：'+unknown+'（請手動確認份數）':'請依實際份量修正估算。'}`;
-  render();
+ const source=[v('breakfast'),v('lunch'),v('dinner'),v('snack')].join('、');
+ const totals=[0,0,num('fruit'),0], matched=[];
+ // 完整餐點優先；辨識「餅乾6片」「2片吐司」「麵包2個」等數量。
+ const bakeryNames=new Set(bakeryRules.map(row=>row[0]));
+ const pieceBase=name=>name.includes('餅乾')||['蛋捲','米餅','仙貝','洋芋片'].includes(name)?3:1;
+ const quantityRegex=new RegExp('(?:([0-9]+(?:\\.[0-9]+)?)\\s*(片|個|顆|包|份|條|塊|貫|串|支|碗|杯)\\s*)?('+mealRules.map(([n])=>n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')(?:\\s*([0-9]+(?:\\.[0-9]+)?)\\s*(片|個|顆|包|份|條|塊|貫|串|支|碗|杯))?','g');
+ const remaining=source.replace(quantityRegex,(full,before,unitBefore,name,after,unitAfter)=>{
+   const servings=mealLookup.get(name);let multiplier=1;
+   if(bakeryNames.has(name)){
+     const qty=Number(before||after||0), unit=unitBefore||unitAfter||'';
+     if(qty){multiplier=qty/(unit==='片'||unit==='塊'||unit==='條'?pieceBase(name):1);}
+   } else if(sashimiNames.has(name)||nigiriNames.has(name)){
+     const qty=Number(before||after||0),unit=unitBefore||unitAfter||'';
+     if(qty && ['片','貫','個','份'].includes(unit))multiplier=qty/(sashimiNames.has(name)&&unit==='片'?5:1);
+   } else if(before||after){ // 其他食物保留原有單份估算，避免誤把「1碗」當份數。
+     const qty=Number(before||after); if(qty>0 && ['份','個','顆','串','支','碗','杯','包'].includes(unitBefore||unitAfter))multiplier=qty;
+   }
+   servings.forEach((value,i)=>totals[i]+=value*multiplier);
+   matched.push(name+(multiplier!==1?' ×'+Math.round(multiplier*100)/100:''));
+   return ' '.repeat(full.length);
+ });
+ ['fat','protein','produce','grain'].forEach((id,i)=>$(id).value=(Math.round(totals[i]*10)/10).toFixed(1));
+ const unknown=remaining.replace(/[\s、，,。；;／/：:\d０-９份碗杯個顆片根匙條塊包]+/g,'').trim();
+ $('estimateStatus').textContent=`已辨識 ${matched.length} 項：${matched.join('、')||'無'}。${unknown?'未辨識內容：'+unknown+'（請手動確認份數）':'請依實際份量修正估算。'} 餅乾預設3片、吐司預設1片；不同品牌、重量及內餡差異大，請依實際份量調整。`;
+ render();
 }
 function text(t,x,y,size=24,color='#222',bold=false){ctx.fillStyle=color;ctx.font=`${bold?'bold ':''}${size}px Arial, 'Noto Sans TC', sans-serif`;ctx.fillText(String(t),x,y)}
 function lines(t,x,y,maxWidth=390,size=22,step=31,maxLines=4){ctx.font=`${size}px Arial, sans-serif`;let out=[],line='';for(let ch of String(t)){if(ctx.measureText(line+ch).width>maxWidth){out.push(line);line=ch}else line+=ch}if(line)out.push(line);out.slice(0,maxLines).forEach((a,i)=>text(a,x,y+i*step,size));return Math.min(out.length,maxLines)*step}
