@@ -16,5 +16,14 @@ bounds.forEach((b,i)=>{let x0=left(b.y0),x1=left(b.y1),r0=right(b.y0),r1=right(b
 let waterGoal=Math.round(weight*35),water=num('water'),wx=405,wy=646,ww=450;c.strokeStyle='#222';c.lineWidth=3;c.strokeRect(wx,wy,ww,42);c.fillStyle='#91d2f5';c.fillRect(wx+2,wy+2,(ww-4)*Math.min(1,water/Math.max(1,waterGoal)),38);text(`水分建議：${waterGoal} cc／日`,405,725,25,'#bb332b',true);text(`實際 ${water} cc　差額 ${water-waterGoal>=0?'+':''}${water-waterGoal} cc`,405,765,23);
 let food=[['早',v('breakfast')],['中',v('lunch')],['晚',v('dinner')],['茶／宵夜',v('snack')]];food.forEach(([a,b],i)=>{let y=145+i*105;text(a+'：',1025,y,23);lines(b,1105,y,345,21,29,3);rule(1025,y+75,420)});text('【統計】',1180,600,28,'#26783a',true);c.fillStyle='#d3e4b5';c.fillRect(1025,618,425,55);text('類別',1065,655,23);text('實際攝取',1285,655,23);labels.forEach((a,i)=>{let y=700+i*57;text(a.length>9?a.slice(0,9):a,1035,y,20);text(`${actual[i]} ${i===3?'碗':'份'}`,1300,y,21);rule(1025,y+15,425)});
 let bmi=num('height')?fmt(weight/(num('height')/100)**2):0;text(`BMI ${bmi}（僅供參考）`,48,840,20,'#555');text('【營養補充建議】',48,885,25,'#26783a',true);let supp=v('supplements').split('\n').filter(Boolean).slice(0,5);supp.forEach((s,i)=>lines(`${i+1}. ${s}`,48,918+i*36,900,19,25,1));let price=v('mealPrice');if(price)text(`會員價：每餐約 NT$ ${num('mealPrice')}（自行填報）`,48,1090,19);c.fillStyle='#e3edf9';c.fillRect(1025,925,425,115);text(`問卷人：${v('interviewer')||'未填寫'}`,1040,965,23);text(`電話：${v('phone')||'未填寫'}`,1040,1005,23);text('飲食估算不等於醫療診斷；補充品請確認與用藥交互作用。',48,1055,17,'#666');return canvas}
+// 從網址參數自動帶入問卷人資料；不改動其他問卷或繪圖功能。
+function loadInterviewerFromUrl(){
+  const params=new URLSearchParams(window.location.search);
+  const interviewer=params.get('interviewer');
+  const phone=params.get('phone');
+  if(interviewer!==null) $('interviewer').value=interviewer;
+  if(phone!==null) $('phone').value=phone;
+}
+loadInterviewerFromUrl();
 function downloadJpg(){render();let a=document.createElement('a');a.download=`健康飲食金字塔_${v('name')||'受訪者'}.jpg`;a.href=canvas.toDataURL('image/jpeg',0.95);document.body.appendChild(a);a.click();a.remove()}render();
 </script></body></html>
