@@ -365,7 +365,7 @@ function loadInterviewerFromUrl(){
 loadInterviewerFromUrl();
 // Excel 2003 HTML 格式：副檔名 .xls，無需第三方程式庫。
 // 收件信箱由網址 email 參數帶入；寄送前請確認問卷人信箱正確。
-const SURVEY_WEB_APP_URL=''; // 部署「問卷寄信後端.gs」後，填入 Apps Script /exec 網址
+const SURVEY_WEB_APP_URL='https://script.google.com/macros/s/AKfycbzQhjQI4yjWtGqws6QFpidO5r0HUDtZlUZEOqMuwgOZPm_IicNwb_bhhq4fZVYhOpZVTQ/exec'; // 部署「問卷寄信後端.gs」後，填入 Apps Script /exec 網址
 function surveyRecipient(){return v('email').trim().toLowerCase()}
 function validRecipient(){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(surveyRecipient())}
 function surveyRows(){
