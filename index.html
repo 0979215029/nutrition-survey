@@ -320,18 +320,18 @@ function calculateNutritionPlan(){
  const age=num('age'), weight=num('weight'), pg=age<12?5:(v('sex')==='男'?9:7);
  const proteinGap=Math.max(0,weight/7-num('protein'));
  const produceGap=Math.max(0,pg-num('produce'));
- // 僅成年問卷使用示範搭配；未成年不自動建議用量。
+ // 僅成年問卷使用搭配；未成年不自動建議用量。
  const adult=age>=18;
- const proteinSpoons=adult&&proteinGap>0?Math.min(2,Math.max(1,Math.ceil(proteinGap/2))):0;
- const doubleServings=adult&&produceGap>0?1:0;
+ const proteinSpoons=adult&&proteinGap>0?Math.min(3,Math.max(1,Math.ceil(proteinGap/2))):0;
+ const doubleServings=adult?(num('produce')>pg/2?1:2):0; // 問卷自訂規則：蔬果攝取超過建議量一半，早餐1份；否則早晚各1份
  const rows=[];
- if(proteinSpoons)rows.push({name:'紐崔萊優質蛋白素－全植物配方',morning:proteinSpoons,evening:proteinSpoons,unit:'份(15g)',price:1890,units:60});
- if(doubleServings)rows.push({name:'紐崔萊 DOUBLE X 蔬果綜合營養片',morning:1,evening:0,unit:'份(3錠)',price:2300,units:62});
+ if(proteinSpoons)rows.push({name:'紐崔萊優質蛋白素－全植物配方',morning:proteinSpoons,evening:proteinSpoons,unit:'匙',price:1890,units:60});
+ if(doubleServings)rows.push({name:'紐崔萊 DOUBLE X 蔬果綜合營養片',morning:1,evening:doubleServings===2?1:0,unit:'份（3顆）',price:2300,units:62});
  const money=(items)=>items.every(r=>r.price>0&&r.units>0)?items.reduce((sum,r)=>sum+r.price/r.units*(r.qty||0),0):null;
  const breakfast=money(rows.map(r=>({...r,qty:r.morning})).filter(r=>r.qty));
  const dinner=money(rows.map(r=>({...r,qty:r.evening})).filter(r=>r.qty));
  const fmtPrice=n=>n===null?'無法計算':'NT$ '+n.toFixed(1);
- return {rows,breakfast,dinner,description:rows.length?rows.map(r=>`${r.name}：每份NT$${(r.price/r.units).toFixed(2)}；早餐 ${r.morning}${r.unit}、晚餐 ${r.evening}${r.unit}`).join('\n'):'目前無建議商品'};
+ return {rows,breakfast,dinner,description:rows.length?rows.map(r=>`${r.name}：每${r.unit==='匙'?'匙':'份'}NT$${(r.price/r.units).toFixed(2)}；早餐 ${r.morning}${r.unit}、晚餐 ${r.evening}${r.unit}`).join('\n'):'目前無建議商品'};
 }
 function updateNutritionPlan(){
  const plan=calculateNutritionPlan();
