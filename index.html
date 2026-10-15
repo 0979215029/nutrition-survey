@@ -91,7 +91,7 @@
 <label>全穀雜糧類（碗）<input id="grain" type="number" min="0" step="0.1" value="1.3">
 </label>
 </div>
-<p class="note">蔬果建議量：依性別與年齡採用簡化的「蔬果579」規則，未滿12歲5份、成年女性7份、成年男性9份。實際需求應依個別健康狀況調整。</p>
+<p class="note">每日建議基準：油脂 3 茶匙（每份 1 茶匙）；蛋白質份數＝體重（公斤）÷7；蔬果未滿12歲5份、成年女性7份、成年男性9份；五穀雜糧依工作性質計算（輕3碗、中4碗、重5碗）。實際需求仍應依個別健康狀況調整。</p>
 </div>
 </fieldset>
 <fieldset id="generateSection" hidden>
@@ -5406,7 +5406,7 @@ function estimate(){
 // 四、按下產生按鈕後，計算建議、繪圖並顯示結果。
 
 // 需求量：依工作強度取得全穀雜糧份數。
-function grainGoal(){return {light:2,medium:3,heavy:5}[v('workload')]||2;}
+function grainGoal(){return {light:3,medium:4,heavy:5}[v('workload')]||3;}
 
 // 營養建議：依年齡、體重及飲食分析計算。
 function calculateNutritionPlan(){
@@ -5450,14 +5450,14 @@ function polygon(points,color){ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.l
 // 七、啟動：網址帶入 → 填寫問卷 → 飲食粗估 → 產生圖表與建議 → 下載 JPG。
 
 // 評估圖：繪出金字塔、餐點、健康資料及營養建議。
-function render(){let c=ctx;c.fillStyle='white';c.fillRect(0,0,1500,1120);let weight=num('weight'),age=num('age'),male=v('sex')==='男',pg=age<12?5:(male?9:7),goals=[4,Math.max(1,fmt(weight/7)),pg,grainGoal()],actual=[num('fat'),num('protein'),num('produce'),num('grain')],colors=['#ffe477','#f49cc1','#9dd78d','#ffc879'];text('健康飲食金字塔',45,75,44,'#bd302b',true);rule(45,94,325);text(v('name')||'受訪者',490,65,36,'#222',true);text(`${age}歲　${v('sex')}　${num('height')}公分　${weight}公斤`,490,111,25);text(`評估日期 ${new Date().toLocaleDateString('zh-TW')}`,750,68,20,'#555');text('【你一天的飲食】',1125,88,28,'#26783a',true);
+function render(){let c=ctx;c.fillStyle='white';c.fillRect(0,0,1500,1120);let weight=num('weight'),age=num('age'),male=v('sex')==='男',pg=age<12?5:(male?9:7),goals=[3,fmt(weight/7),pg,grainGoal()],actual=[num('fat'),num('protein'),num('produce'),num('grain')],colors=['#ffe477','#f49cc1','#9dd78d','#ffc879'];text('健康飲食金字塔',45,75,44,'#bd302b',true);rule(45,94,325);text(v('name')||'受訪者',490,65,36,'#222',true);text(`${age}歲　${v('sex')}　${num('height')}公分　${weight}公斤`,490,111,25);text(`評估日期 ${new Date().toLocaleDateString('zh-TW')}`,750,68,20,'#555');text('【你一天的飲食】',1125,88,28,'#26783a',true);
 const labels=['油脂類','蛋白質、豆魚蛋肉類','蔬果類','全穀雜糧類'],ys=[170,277,403,540],notes=[`建議 ${goals[0]} 份　吃了 ${actual[0]} 份`,`建議 ${goals[1]} 份　吃了 ${actual[1]} 份`,`建議 ${pg} 份　吃了 ${actual[2]} 份`,`需求 ${goals[3]} 份　吃了 ${actual[3]} 碗`];labels.forEach((a,i)=>{text(a,48,ys[i],25,'#bf302b',true);text(notes[i],48,ys[i]+37,21);if((i===1||i===2)&&actual[i]<goals[i])text(`-${fmt(goals[i]-actual[i])} 份`,48,ys[i]+67,21,'#b36b15',true)});
 text(`工作：${$('workload').selectedOptions[0].text}；穀類1份＝1碗`,48,615,17,'#555');
 // 每層虛線分格為個人需求；彩色與藍線表示實際攝取，多出部分向右延伸。
 let bounds=[{y0:165,y1:258},{y0:258,y1:366},{y0:366,y1:486},{y0:486,y1:605}],left=y=>590-(y-165)*.43,right=y=>590+(y-165)*.44;
 bounds.forEach((b,i)=>{
  const x0=left(b.y0),x1=left(b.y1),r0=right(b.y0),r1=right(b.y1);
- const fraction=Math.min(1,actual[i]/goals[i]);
+ const fraction=goals[i]>0?Math.min(1,actual[i]/goals[i]):0;
  const at=(y,f)=>left(y)+(right(y)-left(y))*f;
  // 使用同一份數比例填色，確保缺少份數與空白格相符。
  polygon([[x0,b.y0],[at(b.y0,fraction),b.y0],[at(b.y1,fraction),b.y1],[x1,b.y1]],colors[i]);
