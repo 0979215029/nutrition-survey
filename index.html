@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>健康飲食金字塔｜飲食問卷</title>
-<style>body{font-family:Arial,'Noto Sans TC',sans-serif;background:#f3f6f3;margin:0;color:#24332b}main{max-width:1050px;margin:auto;padding:18px}h1{color:#b72e29}fieldset{border:1px solid #cbd8c8;border-radius:12px;background:white;margin:15px 0;padding:16px}legend{font-weight:bold;color:#29753d}label{display:block;margin:8px 0}input,select,textarea{box-sizing:border-box;width:100%;padding:9px;border:1px solid #b9c5ba;border-radius:6px;font-size:19px}textarea{min-height:60px}input::placeholder,textarea::placeholder{color:#7a827d;opacity:1}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:10px}.actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}button{background:#287944;color:white;border:0;padding:12px 20px;border-radius:7px;font-size:19px;cursor:pointer}button.secondary{background:#46647a}#preview{width:100%;background:white;border:1px solid #ddd}small{color:#53645a}.note{background:#fff6dc;padding:10px;border-radius:7px} .order-bar{display:block;text-align:center;background:#287944;color:#fff;text-decoration:none;padding:16px 20px;border-radius:8px;font-size:22px;font-weight:bold}.order-note{line-height:1.8}.order-note p{margin:10px 0}</style>
+<style>body{font-family:Arial,'Noto Sans TC',sans-serif;background:#f3f6f3;margin:0;color:#24332b}main{max-width:1050px;margin:auto;padding:18px}h1{color:#b72e29}fieldset{border:1px solid #cbd8c8;border-radius:12px;background:white;margin:15px 0;padding:16px}legend{font-weight:bold;color:#29753d}label{display:block;margin:8px 0}input,select,textarea{box-sizing:border-box;width:100%;padding:9px;border:1px solid #b9c5ba;border-radius:6px;font-size:19px}textarea{min-height:60px}input::placeholder,textarea::placeholder{color:#7a827d;opacity:1}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:10px}.actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}button{background:#287944;color:white;border:0;padding:12px 20px;border-radius:7px;font-size:19px;cursor:pointer}button.secondary{background:#46647a}#preview{width:100%;background:white;border:1px solid #ddd}small{color:#53645a}.note{background:#fff6dc;padding:10px;border-radius:7px}input[aria-invalid="true"]{border:2px solid #c62828;background:#fff8f8}.order-bar{display:block;text-align:center;background:#287944;color:#fff;text-decoration:none;padding:16px 20px;border-radius:8px;font-size:22px;font-weight:bold}.order-note{line-height:1.8}.order-note p{margin:10px 0}</style>
 </head>
 <body>
 <main>
@@ -16,7 +16,7 @@
 <fieldset>
 <legend>一、受訪者資料</legend>
 <div class="grid">
-<label>姓名<input id="name" placeholder="姓名">
+<label>姓名<input id="name" placeholder="姓名" required>
 </label>
 <label>性別<select id="sex">
 <option>男</option>
@@ -25,9 +25,9 @@
 </label>
 <label>年齡<input id="age" type="number" placeholder="例如：42">
 </label>
-<label>身高（公分）<input id="height" type="number" placeholder="例如：168">
+<label>身高（公分）<input id="height" type="number" placeholder="例如：168" required>
 </label>
-<label>體重（公斤）<input id="weight" type="number" placeholder="例如：70">
+<label>體重（公斤）<input id="weight" type="number" placeholder="例如：70" required>
 </label>
 <label>工作強度<select id="workload">
 <option value="">請選擇工作強度</option>
@@ -35,11 +35,12 @@
 <option value="medium">中（站著）</option>
 <option value="heavy">重（走動搬運）</option>
 </select>
-<small>全穀雜糧需求：輕2份、中3份、重5份（本問卷1份＝1碗）。</small>
+<small>全穀雜糧需求：輕3碗、中4碗、重5碗。</small>
 </label>
 <label>每日喝水量（cc）<input id="water" type="number" placeholder="例如：2200">
 </label>
 </div>
+<p id="requiredProfileStatus" class="note" role="status" aria-live="polite" hidden></p>
 <label>慢性用藥（選填）<input id="med" placeholder="例如：血壓藥；無則留白">
 </label>
 <label>目前不適（選填）<input id="symptom" placeholder="例如：容易疲倦；無則留白">
@@ -5370,8 +5371,35 @@ function loadOrderLinkFromUrl() {
 
 // 三、讀取飲食文字，顯示可手動修正的分析表。
 
+// 開始估算前，姓名、身高及體重必須填寫；有空白時移至第一個缺漏欄位。
+function validateRequiredProfile(moveToMissingField){
+ const fields=[{id:'name',label:'姓名'},{id:'height',label:'身高'},{id:'weight',label:'體重'}];
+ const missing=fields.filter(field=>!v(field.id).trim());
+ const status=$('requiredProfileStatus');
+ fields.forEach(field=>{
+   if(missing.some(item=>item.id===field.id))$(field.id).setAttribute('aria-invalid','true');
+   else $(field.id).removeAttribute('aria-invalid');
+ });
+ if(!missing.length){status.hidden=true;status.textContent='';return true;}
+ status.hidden=false;
+ status.textContent=`請先填寫：${missing.map(field=>field.label).join('、')}。`;
+ if(moveToMissingField){
+   const first=$(missing[0].id);
+   first.focus({preventScroll:true});
+   first.scrollIntoView({behavior:'smooth',block:'center'});
+ }
+ return false;
+}
+
 // 飲食分析：辨識輸入餐點並計算四類食物份數。
 function estimate(){
+ if(!validateRequiredProfile(true)){
+   $('analysisSection').hidden=true;
+   $('generateSection').hidden=true;
+   $('recommendationsSection').hidden=true;
+   $('resultSection').hidden=true;
+   return;
+ }
  const source=[v('breakfast'),v('lunch'),v('dinner'),v('snack')].join('、');
  const totals=[0,0,num('fruit'),0], matched=[];
  // 完整餐點優先；辨識「餅乾6片」「2片吐司」「麵包2個」等數量。
@@ -5527,6 +5555,9 @@ function initialize() {
   loadInterviewerFromUrl();
   loadOrderLinkFromUrl();
   $('estimateButton').addEventListener('click', estimate);
+  ['name','height','weight'].forEach(id=>$(id).addEventListener('input',()=>{
+    if(!$('requiredProfileStatus').hidden)validateRequiredProfile(false);
+  }));
   $('generateButton').addEventListener('click', generateImage);
   $('downloadButton').addEventListener('click', downloadJpg);
   ['weight', 'sex', 'age', 'protein', 'produce', 'workload'].forEach(id => {
