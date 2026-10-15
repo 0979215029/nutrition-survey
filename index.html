@@ -126,12 +126,12 @@
 </p>
 <fieldset id="orderSection">
 <legend>安麗商品訂購</legend>
-<a id="orderLink" class="order-bar" href="https://shop.amway.com.tw/category/p1000?d=CA6E18962B6519C773C9EBAFD9D251AF" target="_blank" rel="noopener noreferrer">紐崔萊營養品網路商城</a>
+<a id="orderLink" class="order-bar" href="http://shop.amway.com.tw/?d=70A10EF7BDCFC29141D9ED34A1BA8580" target="_blank" rel="noopener noreferrer">紐崔萊營養品網路商城</a>
 <div class="order-note">
 <p>
 <strong>400多種安麗優質商品：</strong>
 <br>左上≡是總目錄、中上👤是送貨進度、右上 (購物車)是結帳<br>首次使用先免費註冊，以後只要手機號碼認證即可宅配、商店取貨、刷卡或貨到付款。</p>
-<p>☆找我辦會員另有優惠<br>★只有這連結網址能訂貨。</p>
+<p>☆找我辦會員另有優惠<br>★只有這連結網址能訂貨，請放記事本存好。</p>
 </div>
 </fieldset>
 </main>
@@ -5347,10 +5347,13 @@ function loadInterviewerFromUrl(){
   if(interviewer!==null) $('interviewer').value=interviewer;
   if(phone!==null) $('phone').value=phone;
 }
-function loadOrderLinkFromUrl(){
- const raw=new URLSearchParams(window.location.search).get('shop');
- if(!raw)return;
- try{const url=new URL(raw);if(url.protocol==='https:'||url.protocol==='http:')$('orderLink').href=url.href;}catch(e){/* 無效網址保留原訂貨連結 */}
+function loadOrderLinkFromUrl() {
+  const code = new URLSearchParams(window.location.search).get('shop') || '';
+  const defaultLink = 'http://shop.amway.com.tw/?d=70A10EF7BDCFC29141D9ED34A1BA8580';
+  // shop 僅填 d= 後面的32個字元；其餘情況使用預設連結。
+  $('orderLink').href = Array.from(code).length === 32
+    ? 'https://shop.amway.com.tw/category/p1000?d=' + encodeURIComponent(code)
+    : defaultLink;
 }
 
 // 三、讀取飲食文字，顯示可手動修正的分析表。
