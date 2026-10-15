@@ -50,6 +50,7 @@
 <legend>二、一週內每天最常吃的飲食</legend>
 <p class="note"><strong>份量換算基準：</strong>油脂 1 份＝1 茶匙（5 mL）；蛋白質 1 份＝約三根手指的長、寬、厚，約 1 兩；蔬菜 1 份＝煮熟半碗；五穀雜糧 1 份＝1 平碗。</p>
 <p><small>輸入肉圓、豬血糕、菜頭粿等台灣傳統美食時，請連同吃的個數或碗數一起填寫。系統會按一般攤販份量粗估，實際大小、配料和烹調用油不同，請在第三項檢查並修正。</small></p>
+<p><small>餐點份量可用分數輸入，例如「1/2碗白飯」會算作0.5碗，「白飯1/3碗」會算作0.333碗；估算結果保留至小數第三位。</small></p>
 <div class="grid">
 <label>早餐<textarea id="breakfast" placeholder="例如：蛋餅1份、無糖豆漿1杯">
 </textarea>
@@ -83,13 +84,13 @@
 <h3>飲食分析表（可手動修正估算值）</h3>
 <p id="estimateStatus" style="color:#516b55;font-size:14px" aria-live="polite">餐點資料庫為一般份量粗估，含夜市小吃；糖分、鈉含量不在四類份數內，請依實際份量修正。</p>
 <div class="grid">
-<label>油脂類（份）<input id="fat" type="number" min="0" step="0.5" value="6.5">
+<label>油脂類（份）<input id="fat" type="number" min="0" step="0.001" value="6.5">
 </label>
-<label>蛋白質類（份）<input id="protein" type="number" min="0" step="0.5" value="12.5">
+<label>蛋白質類（份）<input id="protein" type="number" min="0" step="0.001" value="12.5">
 </label>
-<label>蔬果類（份）<input id="produce" type="number" min="0" step="0.5" value="3">
+<label>蔬果類（份）<input id="produce" type="number" min="0" step="0.001" value="3">
 </label>
-<label>全穀雜糧類（碗）<input id="grain" type="number" min="0" step="0.1" value="1.3">
+<label>全穀雜糧類（碗）<input id="grain" type="number" min="0" step="0.001" value="1.3">
 </label>
 </div>
 <p class="note">每日建議基準：油脂 3 茶匙（每份 1 茶匙）；蛋白質份數＝體重（公斤）÷7；蔬果未滿12歲5份、成年女性7份、成年男性9份；五穀雜糧依工作性質計算（輕3碗、中4碗、重5碗）。實際需求仍應依個別健康狀況調整。</p>
@@ -5405,23 +5406,25 @@ function estimate(){
  // 完整餐點優先；辨識「餅乾6片」「2片吐司」「麵包2個」等數量。
 
  const pieceBase=name=>name.includes('餅乾')||['蛋捲','米餅','仙貝','洋芋片'].includes(name)?3:1;
- const quantityRegex=new RegExp('(?:([0-9]+(?:\\.[0-9]+)?)\\s*(片|個|顆|包|份|條|塊|貫|串|支|碗|杯|根)\\s*)?('+[...mealRules].sort((a,b)=>b[0].length-a[0].length).map(([n])=>n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')(?:\\s*([0-9]+(?:\\.[0-9]+)?)\\s*(片|個|顆|包|份|條|塊|貫|串|支|碗|杯|根))?','g');
+ const toQuantity=value=>{if(!value)return 0;const parts=String(value).replace(/\s/g,'').split('/');if(parts.length===1)return Number(parts[0])||0;const numerator=Number(parts[0]),denominator=Number(parts[1]);return Number.isFinite(numerator)&&Number.isFinite(denominator)&&denominator!==0?numerator/denominator:0;};
+ const amountPattern='(?:[0-9]+(?:\\.[0-9]+)?|[0-9]+\\s*\\/\\s*[0-9]+)';
+ const quantityRegex=new RegExp('(?:('+amountPattern+')\\s*(片|個|顆|包|份|條|塊|貫|串|支|碗|杯|根)\\s*)?('+[...mealRules].sort((a,b)=>b[0].length-a[0].length).map(([n])=>n.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&')).join('|')+')(?:\\s*('+amountPattern+')\\s*(片|個|顆|包|份|條|塊|貫|串|支|碗|杯|根))?','g');
  const remaining=source.replace(quantityRegex,(full,before,unitBefore,name,after,unitAfter)=>{
    const servings=mealLookup.get(name);let multiplier=1;
    if(bakeryNames.has(name)){
-     const qty=Number(before||after||0), unit=unitBefore||unitAfter||'';
+     const qty=toQuantity(before||after||0), unit=unitBefore||unitAfter||'';
      if(qty){multiplier=qty/(unit==='片'||unit==='塊'||unit==='條'?pieceBase(name):1);}
    } else if(sashimiNames.has(name)||nigiriNames.has(name)){
-     const qty=Number(before||after||0),unit=unitBefore||unitAfter||'';
+     const qty=toQuantity(before||after||0),unit=unitBefore||unitAfter||'';
      if(qty && ['片','貫','個','份'].includes(unit))multiplier=qty/(sashimiNames.has(name)&&unit==='片'?5:1);
    } else if(before||after){ // 其他食物保留原有單份估算，避免誤把「1碗」當份數。
-     const qty=Number(before||after); if(qty>0 && ['份','個','顆','串','支','碗','杯','包','塊','片','條','根'].includes(unitBefore||unitAfter))multiplier=qty;
+     const qty=toQuantity(before||after); if(qty>0 && ['份','個','顆','串','支','碗','杯','包','塊','片','條','根'].includes(unitBefore||unitAfter))multiplier=qty;
    }
    servings.forEach((value,i)=>totals[i]+=value*multiplier);
-   matched.push(name+(multiplier!==1?' ×'+Math.round(multiplier*100)/100:''));
+   matched.push(name+(multiplier!==1?' ×'+Math.round(multiplier*1000)/1000:''));
    return ' '.repeat(full.length);
  });
- ['fat','protein','produce','grain'].forEach((id,i)=>$(id).value=(Math.round(totals[i]*10)/10).toFixed(1));
+ ['fat','protein','produce','grain'].forEach((id,i)=>$(id).value=Number((Math.round(totals[i]*1000)/1000).toFixed(3)));
  const unknown=remaining.replace(/[\s、，,。；;／/：:\d０-９份碗杯個顆片根匙條塊包]+/g,'').trim();
  $('estimateStatus').textContent=`已辨識 ${matched.length} 項：${matched.join('、')||'無'}。${unknown?'未辨識內容：'+unknown+'（請手動確認份數）':'請依實際份量修正估算。'} 餅乾預設3片、吐司預設1片；不同品牌、重量及內餡差異大，請依實際份量調整。`;
  $('analysisSection').hidden=false;
