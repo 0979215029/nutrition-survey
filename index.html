@@ -126,19 +126,19 @@
 </p>
 <fieldset id="orderSection">
 <legend>安麗商品訂購</legend>
-<a id="orderLink" class="order-bar" href="http://shop.amway.com.tw/?d=70A10EF7BDCFC29141D9ED34A1BA8580" target="_blank" rel="noopener noreferrer">紐崔萊營養品網路商城</a>
+<a id="orderLink" class="order-bar" href="http://shop.amway.com.tw/?d=70A10EF7BDCFC29141D9ED34A1BA8580" target="_blank" rel="noopener noreferrer">紐崔萊營養品<br>網路商城</a>
 <div class="order-note">
 <p>
 <strong>400多種安麗優質商品：</strong>
 <br>左上≡是總目錄、中上👤是送貨進度、右上 (購物車)是結帳<br>首次使用先免費註冊，以後只要手機號碼認證即可宅配、商店取貨、刷卡或貨到付款。</p>
-<p>☆找我辦會員另有優惠<br>★只有這連結網址能訂貨，請放記事本存好。</p>
+<p>☆找我辦會員另有優惠<br>★只有這網址能訂貨</p>
 </div>
 </fieldset>
 </main>
 <script>
 'use strict';
 
-// 一、共用工具與餐點資料：先準備資料，最後才啟動頁面。
+// 一、準備共用工具與餐點資料。
 const $ = id => document.getElementById(id);
 const v = id => $(id).value;
 const num = id => Math.max(0, Number(v(id)) || 0);
@@ -5489,7 +5489,7 @@ function rule(x,y,w){ctx.strokeStyle='#aaa';ctx.lineWidth=1;ctx.beginPath();ctx.
 
 function polygon(points,color){ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fillStyle=color;ctx.fill()}
 
-// 七、所有資料與函式準備完成，依序啟動頁面。
+// 七、啟動：網址帶入 → 填寫問卷 → 飲食粗估 → 產生圖表與建議 → 下載 JPG。
 initialize();
 
 </script>
