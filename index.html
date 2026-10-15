@@ -131,11 +131,12 @@
 <p>
 <strong>400多種安麗優質商品：</strong>
 <br>左上≡是總目錄、中上👤是送貨進度、右上 (購物車)是結帳<br>首次使用先免費註冊，以後只要手機號碼認證即可宅配、商店取貨、刷卡或貨到付款。</p>
-<p>☆找我辦會員另有優惠<br>★只有這網址能訂貨</p>
+<p>☆找我辦會員另有優惠</p>
 </div>
 </fieldset>
 </main>
 <script>
+
 'use strict';
 
 // 一、準備共用工具與餐點資料。
@@ -5328,18 +5329,8 @@ const sashimiNames = new Set(["鮭魚生魚片","鮪魚生魚片","旗魚生魚�
 const nigiriNames = new Set(["炙燒鮭魚握壽司","鮭魚握壽司","鮪魚握壽司","蝦握壽司","玉子握壽司","握壽司","鮭魚壽司"]);
 
 // 二、頁面初始化：帶入問卷者、電話、商城網址，綁定各階段按鈕。
-function initialize() {
-  loadInterviewerFromUrl();
-  loadOrderLinkFromUrl();
-  $('estimateButton').addEventListener('click', estimate);
-  $('generateButton').addEventListener('click', generateImage);
-  $('downloadButton').addEventListener('click', downloadJpg);
-  ['weight', 'sex', 'age', 'protein', 'produce', 'workload'].forEach(id => {
-    $(id).addEventListener('input', () => {
-      if (!$('resultSection').hidden) render();
-    });
-  });
-}
+
+// 初始化：從網址帶入問卷者姓名及電話。
 function loadInterviewerFromUrl(){
   const params=new URLSearchParams(window.location.search);
   const interviewer=params.get('interviewer');
@@ -5347,6 +5338,8 @@ function loadInterviewerFromUrl(){
   if(interviewer!==null) $('interviewer').value=interviewer;
   if(phone!==null) $('phone').value=phone;
 }
+
+// 初始化：shop 參數須為32字元，否則使用預設商城網址。
 function loadOrderLinkFromUrl() {
   const code = new URLSearchParams(window.location.search).get('shop') || '';
   const defaultLink = 'http://shop.amway.com.tw/?d=70A10EF7BDCFC29141D9ED34A1BA8580';
@@ -5357,6 +5350,8 @@ function loadOrderLinkFromUrl() {
 }
 
 // 三、讀取飲食文字，顯示可手動修正的分析表。
+
+// 飲食分析：辨識輸入餐點並計算四類食物份數。
 function estimate(){
  const source=[v('breakfast'),v('lunch'),v('dinner'),v('snack')].join('、');
  const totals=[0,0,num('fruit'),0], matched=[];
@@ -5390,16 +5385,11 @@ function estimate(){
 }
 
 // 四、按下產生按鈕後，計算建議、繪圖並顯示結果。
-function generateImage(){
- const status=$('imageStatus');
- if(!v('workload')){status.textContent='請先選擇工作強度（輕／中／重）。';return}
- if(!v('name').trim()){status.textContent='請先填寫受訪者姓名。';return}
- render();$('resultSection').hidden=false;
- $('recommendationsSection').hidden=false;
- $('saveImageArea').hidden=true;
- status.textContent='評估圖已產生，請下載 JPG 圖片。下載後請回傳給問卷者，以方便交作業。';
-}
+
+// 需求量：依工作強度取得全穀雜糧份數。
 function grainGoal(){return {light:2,medium:3,heavy:5}[v('workload')]||2;}
+
+// 營養建議：依年齡、體重及飲食分析計算。
 function calculateNutritionPlan(){
  const age=num('age'), weight=num('weight'), pg=age<12?5:(v('sex')==='男'?9:7);
  const proteinGap=Math.max(0,weight/7-num('protein'));
@@ -5417,12 +5407,30 @@ function calculateNutritionPlan(){
  const fmtPrice=n=>n===null?'無法計算':'NT$ '+n.toFixed(1);
  return {rows,breakfast,dinner,description:rows.length?rows.map(r=>`${r.name}：每${r.unit==='匙'?'匙':'份'}NT$${(r.price/r.units).toFixed(2)}；早餐 ${r.morning}${r.unit}、晚餐 ${r.evening}${r.unit}`).join('\n'):'目前無建議商品'};
 }
+
+// 更新網頁上的營養品建議與費用。
 function updateNutritionPlan(){
  const plan=calculateNutritionPlan();
  $('supplements').value=plan.description;
  $('nutritionPlan').textContent=`早餐費用：${plan.rows.length?plan.breakfast===null?'無法計算': 'NT$ '+plan.breakfast.toFixed(1):'NT$ 0'}；晚餐費用：${plan.rows.length?plan.dinner===null?'無法計算':'NT$ '+plan.dinner.toFixed(1):'NT$ 0'}`;
  return plan;
 }
+
+// 繪圖工具：格式化數值。
+function fmt(n){return Math.round(n*10)/10}
+
+// 繪圖工具：繪製文字、換行、線段與多邊形。
+function text(t,x,y,size=24,color='#222',bold=false){size=Math.round(size*1.17);ctx.fillStyle=color;ctx.font=`${bold?'bold ':''}${size}px Arial, 'Noto Sans TC', sans-serif`;ctx.fillText(String(t),x,y,Math.max(80,canvas.width-x-22))}
+
+function lines(t,x,y,maxWidth=390,size=22,step=31,maxLines=4){ctx.font=`${Math.round(size*1.17)}px Arial, 'Noto Sans TC', sans-serif`;let out=[],line='';for(let ch of String(t)){if(ctx.measureText(line+ch).width>maxWidth){out.push(line);line=ch}else line+=ch}if(line)out.push(line);out.slice(0,maxLines).forEach((a,i)=>text(a,x,y+i*step,size));return Math.min(out.length,maxLines)*step}
+
+function rule(x,y,w){ctx.strokeStyle='#aaa';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+w,y);ctx.stroke()}
+
+function polygon(points,color){ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fillStyle=color;ctx.fill()}
+
+// 七、啟動：網址帶入 → 填寫問卷 → 飲食粗估 → 產生圖表與建議 → 下載 JPG。
+
+// 評估圖：繪出金字塔、餐點、健康資料及營養建議。
 function render(){let c=ctx;c.fillStyle='white';c.fillRect(0,0,1500,1120);let weight=num('weight'),age=num('age'),male=v('sex')==='男',pg=age<12?5:(male?9:7),goals=[4,Math.max(1,fmt(weight/7)),pg,grainGoal()],actual=[num('fat'),num('protein'),num('produce'),num('grain')],colors=['#ffe477','#f49cc1','#9dd78d','#ffc879'];text('健康飲食金字塔',45,75,44,'#bd302b',true);rule(45,94,325);text(v('name')||'受訪者',490,65,36,'#222',true);text(`${age}歲　${v('sex')}　${num('height')}公分　${weight}公斤`,490,111,25);text(`評估日期 ${new Date().toLocaleDateString('zh-TW')}`,750,68,20,'#555');text('【你一天的飲食】',1125,88,28,'#26783a',true);
 const labels=['油脂類','蛋白質、豆魚蛋肉類','蔬果類','全穀雜糧類'],ys=[170,277,403,540],notes=[`建議 ${goals[0]} 份　吃了 ${actual[0]} 份`,`建議 ${goals[1]} 份　吃了 ${actual[1]} 份`,`建議 ${pg} 份　吃了 ${actual[2]} 份`,`需求 ${goals[3]} 份　吃了 ${actual[3]} 碗`];labels.forEach((a,i)=>{text(a,48,ys[i],25,'#bf302b',true);text(notes[i],48,ys[i]+37,21);if((i===1||i===2)&&actual[i]<goals[i])text(`-${fmt(goals[i]-actual[i])} 份`,48,ys[i]+67,21,'#b36b15',true)});
 text(`工作：${$('workload').selectedOptions[0].text}；穀類1份＝1碗`,48,615,17,'#555');
@@ -5456,6 +5464,29 @@ text(`目前不適：${shortHealthValue(v('symptom'))}`,48,813,20,'#444');
 let bmi=num('height')?fmt(weight/(num('height')/100)**2):0;text(`BMI ${bmi}（僅供參考）`,48,840,20,'#555');text('【營養補充建議】',48,885,25,'#26783a',true);let plan=updateNutritionPlan();let supp=v('supplements').split('\n').filter(Boolean).slice(0,5);supp.forEach((s,i)=>lines(`${i+1}. ${s}`,48,918+i*36,900,19,25,1));text(`早餐費用：${plan.breakfast===null?'無法計算':'NT$ '+plan.breakfast.toFixed(1)}　晚餐費用：${plan.dinner===null?'無法計算':'NT$ '+plan.dinner.toFixed(1)}`,48,1090,19);c.fillStyle='#e3edf9';c.fillRect(1025,925,425,115);text(`問卷人：${v('interviewer')||'未填寫'}`,1040,965,23);text(`電話：${v('phone')||'未填寫'}`,1040,1005,23);text('飲食估算不等於醫療診斷',48,1055,17,'#666');return canvas}
 
 // 五、下載 JPG；內建瀏覽器不支援時顯示圖片供儲存。
+
+// 產生評估圖：檢查必填資料，繪圖並顯示結果。
+function generateImage(){
+ const status=$('imageStatus');
+ if(!v('workload')){status.textContent='請先選擇工作強度（輕／中／重）。';return}
+ if(!v('name').trim()){status.textContent='請先填寫受訪者姓名。';return}
+ render();$('resultSection').hidden=false;
+ $('recommendationsSection').hidden=false;
+ $('saveImageArea').hidden=true;
+ status.textContent='評估圖已產生，請下載 JPG 圖片。下載後請回傳給問卷者，以方便交作業。';
+}
+
+// 顯示圖片，供無法直接下載的瀏覽器儲存。
+function showSaveImage(){
+ render();
+ $('saveImage').src=canvas.toDataURL('image/jpeg',0.95);
+ $('saveImageArea').hidden=false;
+ $('saveImageArea').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// 六、繪圖共用工具。
+
+// 下載 JPG：處理一般瀏覽器與 LINE 內建瀏覽器。
 function downloadJpg(){
  render();
  const fileName=`健康飲食金字塔_${(v('name')||'受訪者').replace(/[\\/:*?"<>|]/g,'_')}.jpg`;
@@ -5471,27 +5502,23 @@ function downloadJpg(){
    $('saveImageArea').hidden=false;
  },'image/jpeg',0.95);
 }
-function showSaveImage(){
- render();
- $('saveImage').src=canvas.toDataURL('image/jpeg',0.95);
- $('saveImageArea').hidden=false;
- $('saveImageArea').scrollIntoView({behavior:'smooth',block:'start'});
+
+// 啟動：載入網址資料並綁定按鈕。
+function initialize() {
+  loadInterviewerFromUrl();
+  loadOrderLinkFromUrl();
+  $('estimateButton').addEventListener('click', estimate);
+  $('generateButton').addEventListener('click', generateImage);
+  $('downloadButton').addEventListener('click', downloadJpg);
+  ['weight', 'sex', 'age', 'protein', 'produce', 'workload'].forEach(id => {
+    $(id).addEventListener('input', () => {
+      if (!$('resultSection').hidden) render();
+    });
+  });
 }
 
-// 六、繪圖共用工具。
-function fmt(n){return Math.round(n*10)/10}
-
-function text(t,x,y,size=24,color='#222',bold=false){size=Math.round(size*1.17);ctx.fillStyle=color;ctx.font=`${bold?'bold ':''}${size}px Arial, 'Noto Sans TC', sans-serif`;ctx.fillText(String(t),x,y,Math.max(80,canvas.width-x-22))}
-
-function lines(t,x,y,maxWidth=390,size=22,step=31,maxLines=4){ctx.font=`${Math.round(size*1.17)}px Arial, 'Noto Sans TC', sans-serif`;let out=[],line='';for(let ch of String(t)){if(ctx.measureText(line+ch).width>maxWidth){out.push(line);line=ch}else line+=ch}if(line)out.push(line);out.slice(0,maxLines).forEach((a,i)=>text(a,x,y+i*step,size));return Math.min(out.length,maxLines)*step}
-
-function rule(x,y,w){ctx.strokeStyle='#aaa';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+w,y);ctx.stroke()}
-
-function polygon(points,color){ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fillStyle=color;ctx.fill()}
-
-// 七、啟動：網址帶入 → 填寫問卷 → 飲食粗估 → 產生圖表與建議 → 下載 JPG。
+// 執行頁面初始化。
 initialize();
-
 </script>
 </body>
 </html>
