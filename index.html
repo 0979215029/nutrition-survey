@@ -137,6 +137,16 @@
 </main>
 <script>
 
+// 初始化：shop 參數須為32字元，否則使用預設商城網址。
+function loadOrderLinkFromUrl() {
+  const code = new URLSearchParams(window.location.search).get('shop') || '';
+  const defaultLink = 'http://shop.amway.com.tw/?d=70A10EF7BDCFC29141D9ED34A1BA8580';
+  // shop 僅填 d= 後面的32個字元；其餘情況使用預設連結。
+  $('orderLink').href = Array.from(code).length === 32
+    ? 'https://shop.amway.com.tw/category/p1000?d=' + encodeURIComponent(code)
+    : defaultLink;
+}
+
 'use strict';
 
 // 一、準備共用工具與餐點資料。
@@ -5339,15 +5349,6 @@ function loadInterviewerFromUrl(){
   if(phone!==null) $('phone').value=phone;
 }
 
-// 初始化：shop 參數須為32字元，否則使用預設商城網址。
-function loadOrderLinkFromUrl() {
-  const code = new URLSearchParams(window.location.search).get('shop') || '';
-  const defaultLink = 'http://shop.amway.com.tw/?d=70A10EF7BDCFC29141D9ED34A1BA8580';
-  // shop 僅填 d= 後面的32個字元；其餘情況使用預設連結。
-  $('orderLink').href = Array.from(code).length === 32
-    ? 'https://shop.amway.com.tw/category/p1000?d=' + encodeURIComponent(code)
-    : defaultLink;
-}
 
 // 三、讀取飲食文字，顯示可手動修正的分析表。
 
