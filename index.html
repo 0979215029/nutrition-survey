@@ -5484,7 +5484,7 @@ function calculateNutritionPlan(){
  const proteinGap=Math.max(0,weight/7-num('protein'));
  const produceGap=Math.max(0,pg-num('produce'));
  // 僅成年問卷使用搭配；未成年不自動建議用量。
- const adult=age>=18;
+ const adult=!v('age').trim() || age>=18; // 年齡未填時仍顯示補充建議；明確未成年則不自動推薦
  const proteinSpoons=adult&&proteinGap>0?Math.ceil(proteinGap/2):0;
  const proteinMorning=Math.min(proteinSpoons,3);
  const proteinLunch=Math.max(0,proteinSpoons-3)*2;
@@ -5861,6 +5861,7 @@ function generateImage(){
  render();$('resultSection').hidden=false;
  $('recommendationsSection').hidden=false;
  $('saveImageArea').hidden=true;
+ $('recommendationsSection').scrollIntoView({behavior:'smooth',block:'nearest'});
  status.textContent='評估圖已產生，請下載 JPG 圖片。下載後請回傳給問卷者，以方便交作業。';
 }
 
