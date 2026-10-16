@@ -1,10 +1,10 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>健康飲食金字塔｜飲食問卷</title>
-<style>body{font-family:Arial,'Noto Sans TC',sans-serif;background:#f3f6f3;margin:0;color:#24332b}main{max-width:1050px;margin:auto;padding:18px}h1{color:#b72e29}fieldset{border:1px solid #cbd8c8;border-radius:12px;background:white;margin:15px 0;padding:16px}legend{font-weight:bold;color:#29753d}label{display:block;margin:8px 0}input,select,textarea{box-sizing:border-box;width:100%;padding:9px;border:1px solid #b9c5ba;border-radius:6px;font-size:19px}textarea{min-height:60px}input::placeholder,textarea::placeholder{color:#7a827d;opacity:1}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:10px}.actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}button{background:#287944;color:white;border:0;padding:12px 20px;border-radius:7px;font-size:19px;cursor:pointer}button.secondary{background:#46647a}#preview{width:100%;background:white;border:1px solid #ddd}small{color:#53645a}.note{background:#fff6dc;padding:10px;border-radius:7px}.deficiency-warning{margin:14px 0;color:#c00000;font-size:22px;font-weight:bold;text-align:center;animation:nutritionWarningBlink 1s steps(2,start) infinite}@keyframes nutritionWarningBlink{to{visibility:hidden}}@media(prefers-reduced-motion:reduce){.deficiency-warning{animation:none}}input[aria-invalid="true"]{border:2px solid #c62828;background:#fff8f8}.order-bar{display:block;text-align:center;background:#287944;color:#fff;text-decoration:none;padding:16px 20px;border-radius:8px;font-size:22px;font-weight:bold}.order-note{line-height:1.8}.order-note p{margin:10px 0}</style>
+<style>body{font-family:Arial,'Noto Sans TC',sans-serif;background:#f3f6f3;margin:0;color:#24332b}main{max-width:1050px;margin:auto;padding:18px}h1{color:#b72e29}fieldset{border:1px solid #cbd8c8;border-radius:12px;background:white;margin:15px 0;padding:16px}legend{font-weight:bold;color:#29753d}label{display:block;margin:8px 0}input,select,textarea{box-sizing:border-box;width:100%;padding:9px;border:1px solid #b9c5ba;border-radius:6px;font-size:19px}textarea{min-height:60px}input::placeholder,textarea::placeholder{color:#7a827d;opacity:1}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:10px}.actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}button{background:#287944;color:white;border:0;padding:12px 20px;border-radius:7px;font-size:19px;cursor:pointer}button.secondary{background:#46647a}#preview{width:100%;background:white;border:1px solid #ddd}small{color:#53645a}.note{background:#fff6dc;padding:10px;border-radius:7px}.deficiency-warning{margin:14px 0;color:#c00000;font-size:22px;font-weight:bold;text-align:center;animation:nutritionWarningBlink 1s steps(2,start) infinite}.deficiency-warning p{margin:8px 0}@keyframes nutritionWarningBlink{to{visibility:hidden}}@media(prefers-reduced-motion:reduce){.deficiency-warning{animation:none}}input[aria-invalid="true"]{border:2px solid #c62828;background:#fff8f8}.order-bar{display:block;text-align:center;background:#287944;color:#fff;text-decoration:none;padding:16px 20px;border-radius:8px;font-size:22px;font-weight:bold}.order-note{line-height:1.8}.order-note p{margin:10px 0}</style>
 </head>
 <body>
 <main>
@@ -122,7 +122,7 @@
 <div id="saveImageArea" hidden>
 <img id="saveImage" alt="飲食評估 JPG 圖片" style="width:100%;height:auto;border:1px solid #ddd">
 </div>
-<p id="deficiencyWarning" class="deficiency-warning" role="alert" aria-live="assertive" hidden>長期部分營養缺乏會導致生病</p>
+<div id="deficiencyWarning" class="deficiency-warning" role="alert" aria-live="assertive" hidden><p id="genericDeficiencyWarning">長期部分營養缺乏會導致生病</p><div id="deficiencyDetails"></div></div>
 </div>
 <p>
 <small>注意：飲食評估為教育性估算，不能單憑飲食紀錄推定疾病；有慢性病、用藥或不適時，應由醫師／營養師確認補充品適用性。</small>
@@ -5505,10 +5505,20 @@ function deficientCategories(){
  return checks.filter(([,goal,actual])=>goal>0&&actual<goal/2).map(([name])=>name);
 }
 
+function nutritionWarningData(){
+ const weight=num('weight'),age=num('age'),produceGoal=age<12?5:(v('sex')==='男'?9:7);
+ const proteinGoal=fmt(weight/7),fatActual=num('fat'),proteinActual=num('protein'),produceActual=num('produce');
+ const details=[];
+ if(fatActual<=3*.75)details.push('油脂攝取約為需求量75%以下：脂肪酸參與荷爾蒙調節與腦部正常功能，長期攝取不足可能影響健康。建議適量補充橄欖油或魚類；魚油補充品請依產品標示或醫師、營養師建議。');
+ if(proteinGoal>0&&proteinActual<=proteinGoal*.75)details.push('蛋白質攝取約為需求量75%以下：長期不足可能影響肌肉維持與免疫功能，並可能伴隨鬆弛、肌少、易感冒、虛胖或指甲變薄等狀況。建議增加豆、魚、蛋、肉、奶等食物；需要時可補充優質蛋白。');
+ if(produceGoal>0&&produceActual<=produceGoal*.75)details.push('蔬果攝取約為需求量75%以下：長期不足可能使纖維、維生素及礦物質攝取不夠。疲勞、腸道病變、發炎、抽筋或骨鬆可能有多種原因，並非蔬果不足就一定會發生。建議增加多樣蔬果；Double X可作補充，但不能取代蔬果或均衡飲食。');
+ return {general:deficientCategories().length>0,details};
+}
+
 // 七、啟動：網址帶入 → 填寫問卷 → 飲食粗估 → 產生圖表與建議 → 下載 JPG。
 
 // 評估圖：繪出金字塔、餐點、健康資料及營養建議。
-function render(){let c=ctx,deficient=deficientCategories();$('deficiencyWarning').hidden=deficient.length===0;c.fillStyle='white';c.fillRect(0,0,1500,1180);let weight=num('weight'),age=num('age'),male=v('sex')==='男',pg=age<12?5:(male?9:7),goals=[3,fmt(weight/7),pg,grainGoal()],actual=[num('fat'),num('protein'),num('produce'),num('grain')],colors=['#ffe477','#f49cc1','#9dd78d','#ffc879'];text('健康飲食金字塔',45,75,44,'#bd302b',true);rule(45,94,325);text(v('name')||'受訪者',490,65,36,'#222',true);text(`${age}歲　${v('sex')}　${num('height')}公分　${weight}公斤`,490,111,25);text(`評估日期 ${new Date().toLocaleDateString('zh-TW')}`,750,68,20,'#555');text('【你一天的飲食】',1125,88,28,'#26783a',true);
+function render(){let warning=nutritionWarningData(),warningBox=$('deficiencyWarning'),generalWarning=$('genericDeficiencyWarning'),detailsBox=$('deficiencyDetails');generalWarning.hidden=!warning.general;while(detailsBox.firstChild)detailsBox.removeChild(detailsBox.firstChild);warning.details.forEach(message=>{let p=document.createElement('p');p.textContent=message;detailsBox.appendChild(p)});warningBox.hidden=!(warning.general||warning.details.length);let c=ctx,warningY=1150,warningLineSets=warning.details.map(message=>{ctx.font="20px Arial, 'Noto Sans TC', sans-serif";let out=[],line='';for(const ch of message){if(ctx.measureText(line+ch).width>1400){out.push(line);line=ch}else line+=ch}if(line)out.push(line);return out});if(warning.general)warningY+=38;warningLineSets.forEach(lines=>warningY+=lines.length*25+5);canvas.height=Math.max(1180,warning.details.length||warning.general?warningY+20:1180);c.fillStyle='white';c.fillRect(0,0,canvas.width,canvas.height);let weight=num('weight'),age=num('age'),male=v('sex')==='男',pg=age<12?5:(male?9:7),goals=[3,fmt(weight/7),pg,grainGoal()],actual=[num('fat'),num('protein'),num('produce'),num('grain')],colors=['#ffe477','#f49cc1','#9dd78d','#ffc879'];text('健康飲食金字塔',45,75,44,'#bd302b',true);rule(45,94,325);text(v('name')||'受訪者',490,65,36,'#222',true);text(`${age}歲　${v('sex')}　${num('height')}公分　${weight}公斤`,490,111,25);text(`評估日期 ${new Date().toLocaleDateString('zh-TW')}`,750,68,20,'#555');text('【你一天的飲食】',1125,88,28,'#26783a',true);
 const labels=['油脂類','蛋白質、豆魚蛋肉類','蔬果類','全穀雜糧類'],ys=[170,277,403,540],notes=[`建議 ${goals[0]} 份　吃了 ${actual[0]} 份`,`建議 ${goals[1]} 份　吃了 ${actual[1]} 份`,`建議 ${pg} 份　吃了 ${actual[2]} 份`,`需求 ${goals[3]} 份　吃了 ${actual[3]} 碗`];labels.forEach((a,i)=>{text(a,48,ys[i],25,'#bf302b',true);text(notes[i],48,ys[i]+37,21);if((i===1||i===2)&&actual[i]<goals[i])text(`-${fmt(goals[i]-actual[i])} 份`,48,ys[i]+67,21,'#b36b15',true)});
 text(`工作：${$('workload').selectedOptions[0].text}；穀類1份＝1碗`,48,615,17,'#555');
 // 每層虛線分格為個人需求；彩色與藍線表示實際攝取，多出部分向右延伸。
@@ -5533,12 +5543,12 @@ bounds.forEach((b,i)=>{
 });
 text('虛線每格＝需求1份；彩色＝實際攝取',405,635,15,'#555');
 let waterGoal=Math.round(weight*35),water=num('water'),wx=405,wy=646,ww=450;c.strokeStyle='#222';c.lineWidth=3;c.strokeRect(wx,wy,ww,42);c.fillStyle='#91d2f5';c.fillRect(wx+2,wy+2,(ww-4)*Math.min(1,water/Math.max(1,waterGoal)),38);c.save();c.setLineDash([5,4]);c.strokeStyle='#737373';c.lineWidth=1;for(let n=1;n<waterGoal/240;n++){let x=wx+ww*n*240/waterGoal;c.beginPath();c.moveTo(x,wy);c.lineTo(x,wy+42);c.stroke();}c.restore();text(`水分建議：${waterGoal} cc／日`,405,725,25,'#bb332b',true);text('水格每格240cc，末格為剩餘需求',405,795,16,'#555');text(`實際 ${water} cc　差額 ${water-waterGoal>=0?'+':''}${water-waterGoal} cc`,405,765,23);
-let food=[['早',v('breakfast')],['中',v('lunch')],['晚',v('dinner')],['茶／宵夜',v('snack')]];food.forEach(([a,b],i)=>{let y=145+i*105;text(a+'：',1025,y,23);lines(b,1105,y,345,21,29,3);rule(1025,y+75,420)});text('【統計】',1180,600,28,'#26783a',true);c.fillStyle='#d3e4b5';c.fillRect(1025,618,425,55);text('類別',1065,655,23);text('實際攝取',1285,655,23);labels.forEach((a,i)=>{let y=700+i*57;text(a.length>9?a.slice(0,9):a,1035,y,20);text(`${actual[i]} ${i===3?'碗':'份'}`,1300,y,21);rule(1025,y+15,425)});
+let food=[['早',v('breakfast')],['中',v('lunch')],['晚',v('dinner')],['茶／宵夜',v('snack')]];food.forEach(([a,b],i)=>{let y=145+i*105;text(a+'：',1025,y,23);lines(b,1105,y,345,21,29,3);rule(1025,y+75,420)});text('【統計】',1180,555,25,'#26783a',true);c.fillStyle='#d3e4b5';c.fillRect(1025,568,425,30);text('類別',1065,590,15);text('實際攝取',1285,590,15);labels.forEach((a,i)=>{let y=615+i*20;text(a.length>9?a.slice(0,9):a,1035,y,14);text(`${actual[i]} ${i===3?'碗':'份'}`,1300,y,14);rule(1025,y+7,425)});
 // 將受訪者慢性用藥與目前不適顯示於 JPG 左下方 BMI 上方。
 function shortHealthValue(value, max=22){const s=String(value||'').trim();return s.length>max?s.slice(0,max-1)+'…':(s||'無');}
 text(`慢性用藥：${shortHealthValue(v('med'))}`,48,785,20,'#444');
 text(`目前不適：${shortHealthValue(v('symptom'))}`,48,813,20,'#444');
-let bmi=num('height')?fmt(weight/(num('height')/100)**2):0;text(`BMI ${bmi}（僅供參考）`,48,840,20,'#555');text('【營養補充建議】',48,885,25,'#26783a',true);let plan=updateNutritionPlan();let supp=v('supplements').split('\n').filter(Boolean).slice(0,5);supp.forEach((s,i)=>lines(`${i+1}. ${s}`,48,918+i*36,900,19,25,1));text(`早餐費用：${plan.breakfast===null?'無法計算':'NT$ '+plan.breakfast.toFixed(1)}　晚餐費用：${plan.dinner===null?'無法計算':'NT$ '+plan.dinner.toFixed(1)}`,48,1090,19);c.fillStyle='#e3edf9';c.fillRect(1025,925,425,115);text(`問卷人：${v('interviewer')||'未填寫'}`,1040,965,23);text(`電話：${v('phone')||'未填寫'}`,1040,1005,23);text('飲食估算不等於醫療診斷',48,1055,17,'#666');if(deficient.length){c.textAlign='center';text('長期部分營養缺乏會導致生病',750,1150,28,'#c00000',true);c.textAlign='start'}return canvas}
+let bmi=num('height')?fmt(weight/(num('height')/100)**2):0;text(`BMI ${bmi}（僅供參考）`,48,840,20,'#555');text('【營養補充建議】',48,885,25,'#26783a',true);let plan=updateNutritionPlan();let supp=v('supplements').split('\n').filter(Boolean).slice(0,5);supp.forEach((s,i)=>lines(`${i+1}. ${s}`,48,918+i*36,900,19,25,1));text(`早餐費用：${plan.breakfast===null?'無法計算':'NT$ '+plan.breakfast.toFixed(1)}　晚餐費用：${plan.dinner===null?'無法計算':'NT$ '+plan.dinner.toFixed(1)}`,48,1090,19);c.fillStyle='#e3edf9';c.fillRect(1025,692,425,103);text(`問卷人：${v('interviewer')||'未填寫'}`,1040,735,19);text(`電話：${v('phone')||'未填寫'}`,1040,779,19);text('飲食估算不等於醫療診斷',48,1055,17,'#666');let warningTextY=1150;if(warning.general){c.textAlign='center';text('長期部分營養缺乏會導致生病',750,warningTextY,26,'#c00000',true);c.textAlign='start';warningTextY+=38}warningLineSets.forEach(rows=>{rows.forEach(row=>{text(row,45,warningTextY,17,'#c00000',true);warningTextY+=25});warningTextY+=5});return canvas}
 
 // 五、下載 JPG；內建瀏覽器不支援時顯示圖片供儲存。
 
