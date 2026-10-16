@@ -5797,6 +5797,7 @@ function render() {
   c.fillRect(1025, 568, 425, 30);
   text('類別', 1065, 590, 15);
   text('實際攝取', 1285, 590, 15);
+  const labels = ['油脂類', '蛋白質、豆魚蛋肉類', '蔬果類', '全穀雜糧類'];
   labels.forEach((label, index) => {
     const y = 615 + index * 20;
     text(label.length > 9 ? label.slice(0, 9) : label, 1035, y, 14);
