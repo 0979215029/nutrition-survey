@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>健康飲食金字塔｜飲食問卷</title>
-<style>body{font-family:Arial,'Noto Sans TC',sans-serif;background:#f3f6f3;margin:0;color:#24332b}main{max-width:1050px;margin:auto;padding:18px}h1{color:#b72e29}fieldset{border:1px solid #cbd8c8;border-radius:12px;background:white;margin:15px 0;padding:16px}legend{font-weight:bold;color:#29753d}label{display:block;margin:8px 0}input,select,textarea{box-sizing:border-box;width:100%;padding:9px;border:1px solid #b9c5ba;border-radius:6px;font-size:19px}textarea{min-height:60px}input::placeholder,textarea::placeholder{color:#7a827d;opacity:1}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:10px}.actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}button{background:#287944;color:white;border:0;padding:12px 20px;border-radius:7px;font-size:19px;cursor:pointer}button.secondary{background:#46647a}#preview{width:100%;background:white;border:1px solid #ddd}small{color:#53645a}.note{background:#fff6dc;padding:10px;border-radius:7px}input[aria-invalid="true"]{border:2px solid #c62828;background:#fff8f8}.order-bar{display:block;text-align:center;background:#287944;color:#fff;text-decoration:none;padding:16px 20px;border-radius:8px;font-size:22px;font-weight:bold}.order-note{line-height:1.8}.order-note p{margin:10px 0}</style>
+<style>body{font-family:Arial,'Noto Sans TC',sans-serif;background:#f3f6f3;margin:0;color:#24332b}main{max-width:1050px;margin:auto;padding:18px}h1{color:#b72e29}fieldset{border:1px solid #cbd8c8;border-radius:12px;background:white;margin:15px 0;padding:16px}legend{font-weight:bold;color:#29753d}label{display:block;margin:8px 0}input,select,textarea{box-sizing:border-box;width:100%;padding:9px;border:1px solid #b9c5ba;border-radius:6px;font-size:19px}textarea{min-height:60px}input::placeholder,textarea::placeholder{color:#7a827d;opacity:1}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:10px}.actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}button{background:#287944;color:white;border:0;padding:12px 20px;border-radius:7px;font-size:19px;cursor:pointer}button.secondary{background:#46647a}#preview{width:100%;background:white;border:1px solid #ddd}small{color:#53645a}.note{background:#fff6dc;padding:10px;border-radius:7px}.deficiency-warning{margin:14px 0;color:#c00000;font-size:22px;font-weight:bold;text-align:center;animation:nutritionWarningBlink 1s steps(2,start) infinite}@keyframes nutritionWarningBlink{to{visibility:hidden}}@media(prefers-reduced-motion:reduce){.deficiency-warning{animation:none}}input[aria-invalid="true"]{border:2px solid #c62828;background:#fff8f8}.order-bar{display:block;text-align:center;background:#287944;color:#fff;text-decoration:none;padding:16px 20px;border-radius:8px;font-size:22px;font-weight:bold}.order-note{line-height:1.8}.order-note p{margin:10px 0}</style>
 </head>
 <body>
 <main>
@@ -117,11 +117,12 @@
 <button type="button" class="secondary" id="downloadButton">下載 JPG 圖片</button>
 </div>
 <p class="note" id="downloadNotice">如果用 LINE 可能無法下載，需用谷歌網頁（Chrome 瀏覽器）或螢幕拍照，完成後請回傳給問卷者，以繳交作業，謝謝您的合作。</p>
-<canvas id="preview" width="1500" height="1120">
+<canvas id="preview" width="1500" height="1180">
 </canvas>
 <div id="saveImageArea" hidden>
 <img id="saveImage" alt="飲食評估 JPG 圖片" style="width:100%;height:auto;border:1px solid #ddd">
 </div>
+<p id="deficiencyWarning" class="deficiency-warning" role="alert" aria-live="assertive" hidden>長期部分營養缺乏會導致生病</p>
 </div>
 <p>
 <small>注意：飲食評估為教育性估算，不能單憑飲食紀錄推定疾病；有慢性病、用藥或不適時，應由醫師／營養師確認補充品適用性。</small>
@@ -5486,10 +5487,22 @@ function rule(x,y,w){ctx.strokeStyle='#aaa';ctx.lineWidth=1;ctx.beginPath();ctx.
 
 function polygon(points,color){ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fillStyle=color;ctx.fill()}
 
+function deficientCategories(){
+ const weight=num('weight'),age=num('age'),pg=age<12?5:(v('sex')==='男'?9:7);
+ const checks=[
+  ['水',Math.round(weight*35),num('water')],
+  ['油脂',3,num('fat')],
+  ['蛋白質',fmt(weight/7),num('protein')],
+  ['蔬果',pg,num('produce')],
+  ['五穀雜糧',grainGoal(),num('grain')]
+ ];
+ return checks.filter(([,goal,actual])=>goal>0&&actual<goal/2).map(([name])=>name);
+}
+
 // 七、啟動：網址帶入 → 填寫問卷 → 飲食粗估 → 產生圖表與建議 → 下載 JPG。
 
 // 評估圖：繪出金字塔、餐點、健康資料及營養建議。
-function render(){let c=ctx;c.fillStyle='white';c.fillRect(0,0,1500,1120);let weight=num('weight'),age=num('age'),male=v('sex')==='男',pg=age<12?5:(male?9:7),goals=[3,fmt(weight/7),pg,grainGoal()],actual=[num('fat'),num('protein'),num('produce'),num('grain')],colors=['#ffe477','#f49cc1','#9dd78d','#ffc879'];text('健康飲食金字塔',45,75,44,'#bd302b',true);rule(45,94,325);text(v('name')||'受訪者',490,65,36,'#222',true);text(`${age}歲　${v('sex')}　${num('height')}公分　${weight}公斤`,490,111,25);text(`評估日期 ${new Date().toLocaleDateString('zh-TW')}`,750,68,20,'#555');text('【你一天的飲食】',1125,88,28,'#26783a',true);
+function render(){let c=ctx,deficient=deficientCategories();$('deficiencyWarning').hidden=deficient.length===0;c.fillStyle='white';c.fillRect(0,0,1500,1180);let weight=num('weight'),age=num('age'),male=v('sex')==='男',pg=age<12?5:(male?9:7),goals=[3,fmt(weight/7),pg,grainGoal()],actual=[num('fat'),num('protein'),num('produce'),num('grain')],colors=['#ffe477','#f49cc1','#9dd78d','#ffc879'];text('健康飲食金字塔',45,75,44,'#bd302b',true);rule(45,94,325);text(v('name')||'受訪者',490,65,36,'#222',true);text(`${age}歲　${v('sex')}　${num('height')}公分　${weight}公斤`,490,111,25);text(`評估日期 ${new Date().toLocaleDateString('zh-TW')}`,750,68,20,'#555');text('【你一天的飲食】',1125,88,28,'#26783a',true);
 const labels=['油脂類','蛋白質、豆魚蛋肉類','蔬果類','全穀雜糧類'],ys=[170,277,403,540],notes=[`建議 ${goals[0]} 份　吃了 ${actual[0]} 份`,`建議 ${goals[1]} 份　吃了 ${actual[1]} 份`,`建議 ${pg} 份　吃了 ${actual[2]} 份`,`需求 ${goals[3]} 份　吃了 ${actual[3]} 碗`];labels.forEach((a,i)=>{text(a,48,ys[i],25,'#bf302b',true);text(notes[i],48,ys[i]+37,21);if((i===1||i===2)&&actual[i]<goals[i])text(`-${fmt(goals[i]-actual[i])} 份`,48,ys[i]+67,21,'#b36b15',true)});
 text(`工作：${$('workload').selectedOptions[0].text}；穀類1份＝1碗`,48,615,17,'#555');
 // 每層虛線分格為個人需求；彩色與藍線表示實際攝取，多出部分向右延伸。
@@ -5519,7 +5532,7 @@ let food=[['早',v('breakfast')],['中',v('lunch')],['晚',v('dinner')],['茶／
 function shortHealthValue(value, max=22){const s=String(value||'').trim();return s.length>max?s.slice(0,max-1)+'…':(s||'無');}
 text(`慢性用藥：${shortHealthValue(v('med'))}`,48,785,20,'#444');
 text(`目前不適：${shortHealthValue(v('symptom'))}`,48,813,20,'#444');
-let bmi=num('height')?fmt(weight/(num('height')/100)**2):0;text(`BMI ${bmi}（僅供參考）`,48,840,20,'#555');text('【營養補充建議】',48,885,25,'#26783a',true);let plan=updateNutritionPlan();let supp=v('supplements').split('\n').filter(Boolean).slice(0,5);supp.forEach((s,i)=>lines(`${i+1}. ${s}`,48,918+i*36,900,19,25,1));text(`早餐費用：${plan.breakfast===null?'無法計算':'NT$ '+plan.breakfast.toFixed(1)}　晚餐費用：${plan.dinner===null?'無法計算':'NT$ '+plan.dinner.toFixed(1)}`,48,1090,19);c.fillStyle='#e3edf9';c.fillRect(1025,925,425,115);text(`問卷人：${v('interviewer')||'未填寫'}`,1040,965,23);text(`電話：${v('phone')||'未填寫'}`,1040,1005,23);text('飲食估算不等於醫療診斷',48,1055,17,'#666');return canvas}
+let bmi=num('height')?fmt(weight/(num('height')/100)**2):0;text(`BMI ${bmi}（僅供參考）`,48,840,20,'#555');text('【營養補充建議】',48,885,25,'#26783a',true);let plan=updateNutritionPlan();let supp=v('supplements').split('\n').filter(Boolean).slice(0,5);supp.forEach((s,i)=>lines(`${i+1}. ${s}`,48,918+i*36,900,19,25,1));text(`早餐費用：${plan.breakfast===null?'無法計算':'NT$ '+plan.breakfast.toFixed(1)}　晚餐費用：${plan.dinner===null?'無法計算':'NT$ '+plan.dinner.toFixed(1)}`,48,1090,19);c.fillStyle='#e3edf9';c.fillRect(1025,925,425,115);text(`問卷人：${v('interviewer')||'未填寫'}`,1040,965,23);text(`電話：${v('phone')||'未填寫'}`,1040,1005,23);text('飲食估算不等於醫療診斷',48,1055,17,'#666');if(deficient.length){c.textAlign='center';text('長期部分營養缺乏會導致生病',750,1150,28,'#c00000',true);c.textAlign='start'}return canvas}
 
 // 五、下載 JPG；內建瀏覽器不支援時顯示圖片供儲存。
 
@@ -5571,7 +5584,7 @@ function initialize() {
   }));
   $('generateButton').addEventListener('click', generateImage);
   $('downloadButton').addEventListener('click', downloadJpg);
-  ['weight', 'sex', 'age', 'protein', 'produce', 'workload'].forEach(id => {
+  ['weight', 'sex', 'age', 'water', 'fat', 'protein', 'produce', 'grain', 'workload'].forEach(id => {
     $(id).addEventListener('input', () => {
       if (!$('resultSection').hidden) render();
     });
