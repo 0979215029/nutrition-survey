@@ -117,11 +117,11 @@
 <p>
 <strong>營養食品建議及早晚餐會員價</strong>
 </p>
-<p id="nutritionPlan" class="note" aria-live="polite">
-</p>
 <label>營養食品與早晚餐用量<textarea id="supplements" readonly>
 </textarea>
 </label>
+<p id="nutritionPlan" class="note" aria-live="polite">
+</p>
 </div>
 </div>
 <p>
@@ -5559,9 +5559,9 @@ function nutritionWarningData(){
  const weight=num('weight'),age=num('age'),produceGoal=age<12?5:(v('sex')==='男'?9:7);
  const proteinGoal=fmt(weight/7),fatActual=num('fat'),proteinActual=num('protein'),produceActual=num('produce');
  const details=[];
- if(fatActual<=3*.75)details.push('油脂攝取約為需求量75%以下：脂肪酸參與荷爾蒙調節與腦部正常功能，長期攝取不足可能影響健康。建議適量補充橄欖油或魚類；魚油補充品請依產品標示或醫師、營養師建議。');
- if(proteinGoal>0&&proteinActual<=proteinGoal*.75)details.push('蛋白質攝取約為需求量75%以下：長期不足可能影響肌肉維持與免疫功能，並可能伴隨鬆弛、肌少、易感冒、虛胖或指甲變薄等狀況。建議增加豆、魚、蛋、肉、奶等食物；需要時可補充優質蛋白。');
- if(produceGoal>0&&produceActual<=produceGoal*.75)details.push('蔬果攝取約為需求量75%以下：長期不足可能使纖維、維生素及礦物質攝取不夠。疲勞、腸道病變、發炎、抽筋或骨鬆可能有多種原因，並非蔬果不足就一定會發生。建議增加多樣蔬果；Double X可作補充，但不能取代蔬果或均衡飲食。');
+ if(fatActual<=3*.75)details.push('油脂長期攝取不足可能影響荷爾蒙調節與腦部功能，建議適量補充橄欖油或魚油。');
+ if(proteinGoal>0&&proteinActual<=proteinGoal*.75)details.push('蛋白質長期攝取不足可能影響肌肉維持與免疫功能，並可能伴隨鬆弛、肌少、易感冒、虛胖或指甲變薄等狀況。建議可補充優質蛋白。');
+ if(produceGoal>0&&produceActual<=produceGoal*.75)details.push('蔬果長期攝取不足可能使纖維、維生素及礦物質攝取不夠。可能容易疲勞、腸道病變、發炎、抽筋或骨鬆等各種疾病。建議可補充Double X。');
  return {general:deficientCategories().length>0,details};
 }
 
