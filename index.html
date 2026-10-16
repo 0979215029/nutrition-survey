@@ -5389,9 +5389,9 @@ function loadOrderLinkFromUrl() {
 
 // 三、檢查問卷資料並估算飲食份數。
 
-// 開始估算前，姓名、身高及體重必須填寫；有空白時移至第一個缺漏欄位。
+// 開始估算前，姓名、身高、體重及每日喝水量必須填寫；有空白時移至第一個缺漏欄位。
 function validateRequiredProfile(moveToMissingField){
- const fields=[{id:'name',label:'姓名'},{id:'height',label:'身高'},{id:'weight',label:'體重'}];
+ const fields=[{id:'name',label:'姓名'},{id:'height',label:'身高'},{id:'weight',label:'體重'},{id:'water',label:'每日喝水量'}];
  const missing=fields.filter(field=>!v(field.id).trim());
  const status=$('requiredProfileStatus');
  fields.forEach(field=>{
@@ -5837,6 +5837,10 @@ function render() {
 
 // 按下「產生飲食評估圖」後執行。
 function generateImage(){
+ if(!validateRequiredProfile(true)){
+   $('imageStatus').textContent='請先補齊必填資料，再產生飲食評估圖。';
+   return;
+ }
  const status=$('imageStatus');
  if(!v('workload')){status.textContent='請先選擇工作強度（輕／中／重）。';return}
  if(!v('name').trim()){status.textContent='請先填寫受訪者姓名。';return}
@@ -5876,7 +5880,7 @@ function initialize() {
   loadInterviewerFromUrl();
   loadOrderLinkFromUrl();
   $('estimateButton').addEventListener('click', estimate);
-  ['name','height','weight'].forEach(id=>$(id).addEventListener('input',()=>{
+  ['name','height','weight','water'].forEach(id=>$(id).addEventListener('input',()=>{
     if(!$('requiredProfileStatus').hidden)validateRequiredProfile(false);
   }));
   $('generateButton').addEventListener('click', generateImage);
