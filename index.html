@@ -5821,7 +5821,17 @@ function render() {
   const plan = updateNutritionPlan();
   const supplements = v('supplements').split('\n').filter(Boolean).slice(0, 5);
   supplements.forEach((item, index) => {
-    lines(`${index + 1}. ${item}`, 48, supplementStartY + index * supplementRowHeight, canvas.width / 2 - 75, 19, 28, 3);
+    const y = supplementStartY + index * supplementRowHeight;
+    // 單價後的早餐／中餐／晚餐用量固定從下一行開始，避免右側文字被裁切。
+    const separator = item.indexOf('；');
+    if (separator >= 0) {
+      const pricePart = item.slice(0, separator + 1);
+      const mealPart = item.slice(separator + 1).trim();
+      lines(`${index + 1}. ${pricePart}`, 48, y, canvas.width - 100, 19, 28, 1);
+      lines(mealPart, 76, y + 32, canvas.width - 140, 19, 28, 2);
+    } else {
+      lines(`${index + 1}. ${item}`, 48, y, canvas.width - 100, 19, 28, 3);
+    }
   });
   text(
     `早餐費用：${plan.breakfast === null ? '無法計算' : 'NT$ ' + plan.breakfast.toFixed(1)}　中餐費用：${plan.lunch === null ? '無法計算' : 'NT$ ' + plan.lunch.toFixed(1)}　晚餐費用：${plan.dinner === null ? '無法計算' : 'NT$ ' + plan.dinner.toFixed(1)}`,
