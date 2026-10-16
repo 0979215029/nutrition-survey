@@ -5566,6 +5566,11 @@ function nutritionWarningData(){
 }
 
 // 六、繪製飲食評估圖及 JPG 提醒。
+function shortHealthValue(value, max = 22) {
+  const content = String(value || '').trim();
+  return content.length > max ? content.slice(0, max - 1) + '…' : (content || '無');
+}
+
 function render() {
   // 5-1. 更新網頁下方的缺乏提醒。
   const warning = nutritionWarningData();
