@@ -5466,7 +5466,7 @@ function estimate(){
  });
  ['fat','protein','produce','grain'].forEach((id,i)=>$(id).value=Number((Math.round(totals[i]*1000)/1000).toFixed(3)));
  const unknown=remaining.replace(/[\s、，,。；;／/：:\d０-９份碗杯個顆片根匙條塊包]+/g,'').trim();
- $('estimateStatus').textContent=`已辨識 ${matched.length} 項：${matched.join('、')||'無'}。${unknown?'未辨識內容：'+unknown+'（請手動確認份數）':'請依實際份量修正估算。'} 餅乾預設3片、吐司預設1片；不同品牌、重量及內餡差異大，請依實際份量調整。`;
+ $('estimateStatus').textContent=`已辨識 ${matched.length} 項：${matched.join('、')||'無'}。${unknown?'未辨識內容：'+unknown+'（請手動確認份數）':'請依實際份量修正估算。'} 不同品牌、重量及內餡差異大，請依實際份量調整。`;
  $('analysisSection').hidden=false;
  $('generateSection').hidden=false;
  $('recommendationsSection').hidden=true;
@@ -5623,14 +5623,18 @@ function render() {
     return rows;
   });
 
-  let warningY = 1150;
+  const supplementStartY = 933;
+  const supplementRowHeight = 90; // 每項最多三行，避免文字在 JPG 中被截斷
+  const supplementCount = Math.min(5, calculateNutritionPlan().rows.length);
+  const supplementCostY = Math.max(1105, supplementStartY + supplementCount * supplementRowHeight + 12);
+  const warningStartY = Math.max(1150, supplementCostY + 65);
+  let warningY = warningStartY;
   if (warning.general) warningY += 38;
   warningLineSets.forEach(rows => {
     warningY += rows.length * 25 + 5;
   });
   canvas.height = Math.max(
-    1180,
-    warning.details.length || warning.general ? warningY + 20 : 1180
+    1180, warningY + 20
   );
 
   // 5-2. 清空畫布並準備問卷資料。
@@ -5817,12 +5821,12 @@ function render() {
   const plan = updateNutritionPlan();
   const supplements = v('supplements').split('\n').filter(Boolean).slice(0, 5);
   supplements.forEach((item, index) => {
-    lines(`${index + 1}. ${item}`, 48, 933 + index * 36, 900, 19, 25, 1);
+    lines(`${index + 1}. ${item}`, 48, supplementStartY + index * supplementRowHeight, canvas.width / 2 - 75, 19, 28, 3);
   });
   text(
     `早餐費用：${plan.breakfast === null ? '無法計算' : 'NT$ ' + plan.breakfast.toFixed(1)}　中餐費用：${plan.lunch === null ? '無法計算' : 'NT$ ' + plan.lunch.toFixed(1)}　晚餐費用：${plan.dinner === null ? '無法計算' : 'NT$ ' + plan.dinner.toFixed(1)}`,
     48,
-    1105,
+    supplementCostY,
     19
   );
 
@@ -5833,7 +5837,7 @@ function render() {
   text('飲食估算不等於醫療診斷', 48, 1070, 17, '#666');
 
   // 5-7. 將缺乏提醒繪製在 JPG 最下方。
-  let warningTextY = 1150;
+  let warningTextY = warningStartY;
   if (warning.general) {
     c.textAlign = 'center';
     text('長期部分營養缺乏會導致生病', 750, warningTextY, 26, '#c00000', true);
