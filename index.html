@@ -5353,7 +5353,6 @@ const singleFoodRules = [
 for (const [name, portions] of singleFoodRules) {
   if (!mealRules.some(([existing]) => existing === name)) mealRules.push([name, portions]);
 }
-const mealLookup = new Map(mealRules);
 const bakeryNames = new Set(["巧克力夾心餅乾","奶油夾心餅乾","夾心餅乾","消化餅乾","蘇打餅乾","全麥餅乾","奶油餅乾","曲奇餅乾","巧克力餅乾","蛋捲","米餅","仙貝","洋芋片","餅乾","菠蘿麵包","奶酥麵包","肉鬆麵包","紅豆麵包","克林姆麵包","奶油麵包","起司麵包","火腿麵包","可頌","牛角麵包","甜甜圈","丹麥麵包","全麥吐司","白吐司","厚片吐司","吐司","土司","法國麵包","全麥麵包","雜糧麵包","餐包","貝果","麵包"]);
 const sashimiNames = new Set(["鮭魚生魚片","鮪魚生魚片","旗魚生魚片","鯛魚生魚片","綜合生魚片","生魚片"]);
 const nigiriNames = new Set(["炙燒鮭魚握壽司","鮭魚握壽司","鮪魚握壽司","蝦握壽司","玉子握壽司","握壽司","鮭魚壽司"]);
@@ -5412,14 +5411,21 @@ function estimate(){
  }
  const source=[v('breakfast'),v('lunch'),v('dinner'),v('snack')].join('、');
  const totals=[0,0,num('fruit'),0], matched=[];
+ const age=num('age'),produceGoal=age<12?5:(v('sex')==='男'?9:7);
+ const supplementRules=[
+  ['優質蛋白',[0,1,0,0]],['高蛋白',[0,1,0,0]],['蛋白質',[0,1,0,0]],['蛋白',[0,1,0,0]],['補體素',[0,1,0,0]],
+  ['銀寶善存',[0,0,produceGoal/2,0]],['Double X',[0,0,produceGoal/2,0]],['DoubleX',[0,0,produceGoal/2,0]],['DX',[0,0,produceGoal/2,0]],['善存',[0,0,produceGoal/2,0]],['得力',[0,0,produceGoal/4,0]]
+ ];
+ const estimateRules=[...mealRules,...supplementRules];
+ const estimateLookup=new Map(estimateRules.map(([name,portions])=>[name.toLowerCase(),portions]));
  // 完整餐點優先；辨識「餅乾6片」「2片吐司」「麵包2個」等數量。
 
  const pieceBase=name=>name.includes('餅乾')||['蛋捲','米餅','仙貝','洋芋片'].includes(name)?3:1;
  const toQuantity=value=>{if(!value)return 0;const parts=String(value).replace(/\s/g,'').split('/');if(parts.length===1)return Number(parts[0])||0;const numerator=Number(parts[0]),denominator=Number(parts[1]);return Number.isFinite(numerator)&&Number.isFinite(denominator)&&denominator!==0?numerator/denominator:0;};
  const amountPattern='(?:[0-9]+(?:\\.[0-9]+)?|[0-9]+\\s*\\/\\s*[0-9]+)';
- const quantityRegex=new RegExp('(?:('+amountPattern+')\\s*(片|個|顆|包|份|條|塊|貫|串|支|碗|杯|根)\\s*)?('+[...mealRules].sort((a,b)=>b[0].length-a[0].length).map(([n])=>n.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&')).join('|')+')(?:\\s*('+amountPattern+')\\s*(片|個|顆|包|份|條|塊|貫|串|支|碗|杯|根))?','g');
+ const quantityRegex=new RegExp('(?:('+amountPattern+')\\s*(片|個|顆|包|份|條|塊|貫|串|支|碗|杯|根)\\s*)?('+[...estimateRules].sort((a,b)=>b[0].length-a[0].length).map(([n])=>n.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&')).join('|')+')(?:\\s*('+amountPattern+')\\s*(片|個|顆|包|份|條|塊|貫|串|支|碗|杯|根))?','gi');
  const remaining=source.replace(quantityRegex,(full,before,unitBefore,name,after,unitAfter)=>{
-   const servings=mealLookup.get(name);let multiplier=1;
+   const servings=estimateLookup.get(name.toLowerCase());let multiplier=1;
    if(bakeryNames.has(name)){
      const qty=toQuantity(before||after||0), unit=unitBefore||unitAfter||'';
      if(qty){multiplier=qty/(unit==='片'||unit==='塊'||unit==='條'?pieceBase(name):1);}
