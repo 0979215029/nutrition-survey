@@ -5807,21 +5807,22 @@ function render() {
   });
 
   // 5-6. 健康資料、補充建議及問卷人資料。
-  text(`慢性用藥：${shortHealthValue(v('med'))}`, 48, 785, 20, '#444');
-  text(`目前不適：${shortHealthValue(v('symptom'))}`, 48, 813, 20, '#444');
+  // 健康資料下移，與右側統計／問卷人區塊底部對齊，保留水平分界空間。
+  text(`慢性用藥：${shortHealthValue(v('med'))}`, 48, 812, 20, '#444');
+  text(`目前不適：${shortHealthValue(v('symptom'))}`, 48, 840, 20, '#444');
   const bmi = num('height') ? fmt(weight / (num('height') / 100) ** 2) : 0;
-  text(`BMI ${bmi}（僅供參考）`, 48, 840, 20, '#555');
-  text('【營養補充建議】', 48, 885, 25, '#26783a', true);
+  text(`BMI ${bmi}（僅供參考）`, 48, 867, 20, '#555');
+  text('【營養補充建議】', 48, 900, 25, '#26783a', true);
 
   const plan = updateNutritionPlan();
   const supplements = v('supplements').split('\n').filter(Boolean).slice(0, 5);
   supplements.forEach((item, index) => {
-    lines(`${index + 1}. ${item}`, 48, 918 + index * 36, 900, 19, 25, 1);
+    lines(`${index + 1}. ${item}`, 48, 933 + index * 36, 900, 19, 25, 1);
   });
   text(
     `早餐費用：${plan.breakfast === null ? '無法計算' : 'NT$ ' + plan.breakfast.toFixed(1)}　中餐費用：${plan.lunch === null ? '無法計算' : 'NT$ ' + plan.lunch.toFixed(1)}　晚餐費用：${plan.dinner === null ? '無法計算' : 'NT$ ' + plan.dinner.toFixed(1)}`,
     48,
-    1090,
+    1105,
     19
   );
 
@@ -5829,7 +5830,7 @@ function render() {
   c.fillRect(1025, 692, 425, 103);
   text(`問卷人：${v('interviewer') || '未填寫'}`, 1040, 735, 19);
   text(`電話：${v('phone') || '未填寫'}`, 1040, 779, 19);
-  text('飲食估算不等於醫療診斷', 48, 1055, 17, '#666');
+  text('飲食估算不等於醫療診斷', 48, 1070, 17, '#666');
 
   // 5-7. 將缺乏提醒繪製在 JPG 最下方。
   let warningTextY = 1150;
