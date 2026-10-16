@@ -5654,21 +5654,23 @@ function render() {
   text(`評估日期 ${new Date().toLocaleDateString('zh-TW')}`, 750, 68, 20, '#555');
   text('【你一天的飲食】', 1125, 88, 28, '#26783a', true);
 
-  // 金字塔上方標題與左側四層需求說明；文字不進入三角形區域。
-  text('台灣衛生署', 430, 103, 25, '#222', true);
-  text('每天飲食金字塔', 410, 138, 27, '#222', true);
-  const pyramidSideLabels = [
-    ['油脂', '3  6  9'],
-    ['蛋白質', '體重/7'],
-    ['蔬果', '小孩5 女7 男9'],
-    ['五穀雜糧', '輕3 中4 重5']
+  const labels = ['油脂類', '蛋白質、豆魚蛋肉類', '蔬果類', '全穀雜糧類'];
+  const yPositions = [170, 277, 403, 540];
+  const notes = [
+    `建議 ${goals[0]} 份　吃了 ${actual[0]} 份`,
+    `建議 ${goals[1]} 份　吃了 ${actual[1]} 份`,
+    `建議 ${produceGoal} 份　吃了 ${actual[2]} 份`,
+    `需求 ${goals[3]} 份　吃了 ${actual[3]} 碗`
   ];
-  const sideY = [192, 298, 416, 544];
-  pyramidSideLabels.forEach(([label, amount], index) => {
-    text(label, 48, sideY[index], 27, '#bf302b', true);
-    text(amount, 48, sideY[index] + 32, 23, '#222', true);
+  labels.forEach((label, index) => {
+    text(label, 48, yPositions[index], 25, '#bf302b', true);
+    text(notes[index], 48, yPositions[index] + 37, 21);
+    if ((index === 1 || index === 2) && actual[index] < goals[index]) {
+      text(`-${fmt(goals[index] - actual[index])} 份`, 48, yPositions[index] + 67, 21, '#b36b15', true);
+    }
   });
-  // 受訪者的實際攝取與需求差額仍由三角圖及右側數值呈現。
+  text(`工作：${$('workload').selectedOptions[0].text}；穀類1份＝1碗`, 48, 615, 17, '#555');
+
   // 5-4. 依個人需求繪製四層金字塔及實際攝取量。
   const bounds = [
     { y0: 165, y1: 258 },
@@ -5797,7 +5799,6 @@ function render() {
   c.fillRect(1025, 568, 425, 30);
   text('類別', 1065, 590, 15);
   text('實際攝取', 1285, 590, 15);
-  const labels = ['油脂類', '蛋白質、豆魚蛋肉類', '蔬果類', '全穀雜糧類'];
   labels.forEach((label, index) => {
     const y = 615 + index * 20;
     text(label.length > 9 ? label.slice(0, 9) : label, 1035, y, 14);
