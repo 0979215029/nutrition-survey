@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
@@ -9,14 +9,14 @@
 <body>
 <main>
 <h1>健康飲食金字塔｜一週飲食問卷</h1>
-<p>請填寫過去一週每天最常吃的食物，完成後可產生並下載橫式 JPG 飲食評估表。</p>
+<p>請填寫過去一週，您每天最常吃的食物，完成後可產生衛生署的國人建議飲食指南比較，可以下載或截圖為圖檔。</p>
 <p class="note">
-<strong>下載後請回傳給問卷者，以方便交作業。</strong>
+<strong>最後的飲食評估圖片請回傳給問卷者交作業，也可以一起討論如何便宜的健康飲食。</strong>
 </p>
 <fieldset>
 <legend>一、受訪者資料</legend>
 <div class="grid">
-<label>姓名<input id="name" placeholder="姓名" required>
+<label>姓名或習慣稱呼<input id="name" placeholder="姓名" required>
 </label>
 <label>性別<select id="sex">
 <option>男</option>
@@ -5579,8 +5579,8 @@ function nutritionWarningData(){
  const proteinGoal=fmt(weight/7),fatActual=num('fat'),proteinActual=num('protein'),produceActual=num('produce');
  const details=[];
  if(fatActual<=3*.75)details.push('油脂長期攝取不足可能影響荷爾蒙調節與腦部功能，建議適量補充橄欖油或魚油。');
- if(proteinGoal>0&&proteinActual<=proteinGoal*.75)details.push('蛋白質長期攝取不足可能影響肌肉維持與免疫功能，並可能伴隨鬆弛、肌少、易感冒、虛胖或指甲變薄等狀況。建議可補充優質蛋白。');
- if(produceGoal>0&&produceActual<=produceGoal*.75)details.push('蔬果長期攝取不足可能使纖維、維生素及礦物質攝取不夠。可能容易疲勞、腸道病變、發炎、抽筋或骨鬆等各種疾病。建議可補充Double X。');
+ if(proteinGoal>0&&proteinActual<=proteinGoal*.75)details.push('蛋白質長期攝取不足可能影響肌肉維持與免疫功能，並可能容易肌肉鬆弛下垂、肌少、易感冒、虛胖或指甲變薄等狀況。建議可補充優質蛋白。');
+ if(produceGoal>0&&produceActual<=produceGoal*.75)details.push('蔬果長期攝取不足可能纖維、維生素及礦物質會攝取不夠。可能容易疲勞、腸道病變、發炎、抽筋或骨鬆等各種疾病。建議可補充Double X。');
  return {general:deficientCategories().length>0,details};
 }
 
@@ -5864,7 +5864,7 @@ function generateImage(){
  $('recommendationsSection').hidden=false;
  $('saveImageArea').hidden=true;
  $('recommendationsSection').scrollIntoView({behavior:'smooth',block:'nearest'});
- status.textContent='評估圖已產生，請下載 JPG 圖片。下載後請回傳給問卷者，以方便交作業。';
+ status.textContent='評估圖已產生，請拍照螢幕 飲食金字塔 圖片，並回傳給問卷者，以方便進一步提供飲食建議和交作業。';
 }
 
 // 顯示圖片，供無法直接下載的瀏覽器儲存。
@@ -5879,7 +5879,7 @@ function showSaveImage(){
 function downloadJpg(){
  render();
  const fileName=`健康飲食金字塔_${(v('name')||'受訪者').replace(/[\\/:*?"<>|]/g,'_')}.jpg`;
- // LINE 內建瀏覽器常會阻止程式觸發的下載，優先提供可長按儲存的 JPG。
+ // LINE 常會阻止輸出為圖檔，建議用螢幕拍照儲存。
  const inApp=/Line\//i.test(navigator.userAgent)||/\bLIFF\b/i.test(navigator.userAgent);
  if(inApp){showSaveImage();return;}
  canvas.toBlob(blob=>{
