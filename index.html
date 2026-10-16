@@ -5389,22 +5389,37 @@ function loadOrderLinkFromUrl() {
 
 // 三、檢查問卷資料並估算飲食份數。
 
-// 開始估算前，姓名、身高、體重及每日喝水量必須填寫；有空白時移至第一個缺漏欄位。
+// 必填：姓名、身高、體重、每日喝水量、工作強度，以及早午晚餐至少一欄。
+// 缺漏時停止執行並跳到第一個需要補填的欄位。
 function validateRequiredProfile(moveToMissingField){
- const fields=[{id:'name',label:'姓名'},{id:'height',label:'身高'},{id:'weight',label:'體重'},{id:'water',label:'每日喝水量'}];
+ const fields=[
+  {id:'name',label:'姓名'},
+  {id:'height',label:'身高'},
+  {id:'weight',label:'體重'},
+  {id:'water',label:'每日喝水量'},
+  {id:'workload',label:'工作強度'}
+ ];
  const missing=fields.filter(field=>!v(field.id).trim());
+ const meals=['breakfast','lunch','dinner'];
+ const missingMeals=meals.every(id=>!v(id).trim());
  const status=$('requiredProfileStatus');
  fields.forEach(field=>{
-   if(missing.some(item=>item.id===field.id))$(field.id).setAttribute('aria-invalid','true');
-   else $(field.id).removeAttribute('aria-invalid');
+  if(missing.some(item=>item.id===field.id))$(field.id).setAttribute('aria-invalid','true');
+  else $(field.id).removeAttribute('aria-invalid');
  });
- if(!missing.length){status.hidden=true;status.textContent='';return true;}
+ meals.forEach(id=>{
+  if(missingMeals)$(id).setAttribute('aria-invalid','true');
+  else $(id).removeAttribute('aria-invalid');
+ });
+ if(!missing.length&&!missingMeals){status.hidden=true;status.textContent='';return true;}
+ const labels=missing.map(field=>field.label);
+ if(missingMeals)labels.push('早餐、午餐或晚餐至少填寫一欄');
  status.hidden=false;
- status.textContent=`請先填寫：${missing.map(field=>field.label).join('、')}。`;
+ status.textContent=`請先完成：${labels.join('、')}。`;
  if(moveToMissingField){
-   const first=$(missing[0].id);
-   first.focus({preventScroll:true});
-   first.scrollIntoView({behavior:'smooth',block:'center'});
+  const first=$(missing.length?missing[0].id:'breakfast');
+  first.focus({preventScroll:true});
+  first.scrollIntoView({behavior:'smooth',block:'center'});
  }
  return false;
 }
@@ -5842,7 +5857,6 @@ function generateImage(){
    return;
  }
  const status=$('imageStatus');
- if(!v('workload')){status.textContent='請先選擇工作強度（輕／中／重）。';return}
  if(!v('name').trim()){status.textContent='請先填寫受訪者姓名。';return}
  render();$('resultSection').hidden=false;
  $('recommendationsSection').hidden=false;
@@ -5880,7 +5894,7 @@ function initialize() {
   loadInterviewerFromUrl();
   loadOrderLinkFromUrl();
   $('estimateButton').addEventListener('click', estimate);
-  ['name','height','weight','water'].forEach(id=>$(id).addEventListener('input',()=>{
+  ['name','height','weight','water','workload','breakfast','lunch','dinner'].forEach(id=>$(id).addEventListener('input',()=>{
     if(!$('requiredProfileStatus').hidden)validateRequiredProfile(false);
   }));
   $('generateButton').addEventListener('click', generateImage);
