@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>健康飲食金字塔｜飲食問卷</title>
-<style>body{font-family:Arial,'Noto Sans TC',sans-serif;background:#f3f6f3;margin:0;color:#24332b}main{max-width:1050px;margin:auto;padding:18px}h1{color:#b72e29}fieldset{border:1px solid #cbd8c8;border-radius:12px;background:white;margin:15px 0;padding:16px}legend{font-weight:bold;color:#29753d}label{display:block;margin:8px 0}input,select,textarea{box-sizing:border-box;width:100%;padding:10px;border:1px solid #b9c5ba;border-radius:6px;font-size:21px}textarea{min-height:60px}input::placeholder,textarea::placeholder{color:#7a827d;opacity:1}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:10px}.actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}button{background:#287944;color:white;border:0;padding:13px 21px;border-radius:7px;font-size:21px;cursor:pointer}button.secondary{background:#46647a}#preview{width:100%;background:white;border:1px solid #ddd}small{color:#53645a;font-size:17px}.note{background:#fff6dc;padding:12px;border-radius:7px;font-size:18px}.deficiency-warning{margin:14px 0;color:#c00000}.deficiency-warning p{margin:8px 0}#genericDeficiencyWarning{font-size:22px;font-weight:bold;text-align:center;animation:nutritionWarningBlink 1s steps(2,start) infinite}#deficiencyDetails{font-size:16px;font-weight:normal;line-height:1.5;text-align:left}#deficiencyDetails p{margin:6px 0}@keyframes nutritionWarningBlink{to{visibility:hidden}}@media(prefers-reduced-motion:reduce){#genericDeficiencyWarning{animation:none}}input[aria-invalid="true"]{border:2px solid #c62828;background:#fff8f8}.order-bar{display:block;text-align:center;background:#287944;color:#fff;text-decoration:none;padding:16px 20px;border-radius:8px;font-size:22px;font-weight:bold}.order-note{line-height:1.8}.order-note p{margin:10px 0} .step-hint{display:inline-block;color:#c00000;font-weight:bold;font-size:21px;margin-right:9px;vertical-align:middle}#estimateButton{vertical-align:middle}.actions{align-items:center}</style>
+<style>body{font-family:Arial,'Noto Sans TC',sans-serif;background:#f3f6f3;margin:0;color:#24332b}main{max-width:1050px;margin:auto;padding:18px}h1{color:#b72e29}fieldset{border:1px solid #cbd8c8;border-radius:12px;background:white;margin:15px 0;padding:16px}legend{font-weight:bold;color:#29753d}label{display:block;margin:8px 0}input,select,textarea{box-sizing:border-box;width:100%;padding:10px;border:1px solid #b9c5ba;border-radius:6px;font-size:21px}textarea{min-height:60px}input::placeholder,textarea::placeholder{color:#7a827d;opacity:1}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:10px}.actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}button{background:#287944;color:white;border:0;padding:13px 21px;border-radius:7px;font-size:21px;cursor:pointer}button.secondary{background:#46647a}#preview{width:100%;background:white;border:1px solid #ddd}small{color:#53645a;font-size:17px}.note{background:#fff6dc;padding:12px;border-radius:7px;font-size:18px}.deficiency-warning{margin:14px 0;color:#c00000}.deficiency-warning p{margin:8px 0}#genericDeficiencyWarning{font-size:22px;font-weight:bold;text-align:center;animation:nutritionWarningBlink 1s steps(2,start) infinite}#deficiencyDetails{font-size:18px;font-weight:normal;line-height:1.55;text-align:left}#deficiencyDetails p{margin:7px 0}@keyframes nutritionWarningBlink{to{visibility:hidden}}@media(prefers-reduced-motion:reduce){#genericDeficiencyWarning{animation:none}}input[aria-invalid="true"]{border:2px solid #c62828;background:#fff8f8}.order-bar{display:block;text-align:center;background:#287944;color:#fff;text-decoration:none;padding:16px 20px;border-radius:8px;font-size:22px;font-weight:bold}.order-note{line-height:1.8}.order-note p{margin:10px 0} .step-hint{display:inline-block;color:#c00000;font-weight:bold;font-size:21px;margin-right:9px;vertical-align:middle}#estimateButton{vertical-align:middle}.actions{align-items:center}</style>
 </head>
 <body>
 <main>
@@ -29,6 +29,8 @@
 </label>
 <label>體重（公斤）<input id="weight" type="number" placeholder="例如：70" required>
 </label>
+<label>每日喝水量（水 湯 茶 咖啡 飲料) cc <input id="water" type="number" placeholder="例如：2200">
+</label>
 <label>工作強度<select id="workload">
 <option value="">請選擇工作強度</option>
 <option value="light">輕（坐著）</option>
@@ -36,8 +38,6 @@
 <option value="heavy">重（走動搬運）</option>
 </select>
 <small>全穀雜糧需求：輕3碗、中4碗、重5碗。</small>
-</label>
-<label>每日喝水量（水 湯 茶 咖啡 飲料) cc <input id="water" type="number" placeholder="例如：2200">
 </label>
 </div>
 <p id="requiredProfileStatus" class="note" role="status" aria-live="polite" hidden></p>
@@ -5627,16 +5627,16 @@ function render() {
   });
 
   const supplementStartY = 1390;
-  const supplementRowHeight = 112; // 每項保留兩行用量文字與行距
+  const supplementRowHeight = 128; // 放大字體後保留兩行用量文字與行距
   const supplementCount = Math.min(5, calculateNutritionPlan().rows.length);
   // 費用列及診斷說明固定排在最後一項用量文字之後，避免互相覆蓋。
-  const supplementCostY = Math.max(1540, supplementStartY + Math.max(0, supplementCount - 1) * supplementRowHeight + 170);
-  const diagnosisNoticeY = supplementCostY - 52;
-  const warningStartY = Math.max(1615, supplementCostY + 75);
+  const supplementCostY = Math.max(1560, supplementStartY + Math.max(0, supplementCount - 1) * supplementRowHeight + 180);
+  const diagnosisNoticeY = supplementCostY - 60;
+  const warningStartY = Math.max(1645, supplementCostY + 85);
   let warningY = warningStartY;
-  if (warning.general) warningY += 42;
+  if (warning.general) warningY += 48;
   warningLineSets.forEach(rows => {
-    warningY += rows.length * 27 + 5;
+    warningY += rows.length * 32 + 5;
   });
   canvas.height = Math.max(
     1180, warningY + 20
@@ -5758,7 +5758,7 @@ function render() {
     }
   });
 
-  text('虛線每格＝需求1份；彩色＝實際攝取', 405, 635, 15, '#555');
+  text('虛線每格＝需求1份；彩色＝實際攝取', 405, 635, 18, '#555');
 
   // 5-5. 水分建議與每日飲食文字。
   const waterGoal = Math.round(weight * 35);
@@ -5785,7 +5785,7 @@ function render() {
   c.restore();
   text(`水分建議：${waterGoal} cc／日`, 405, 725, 25, '#bb332b', true);
   text(`實際 ${water} cc　差額 ${water - waterGoal >= 0 ? '+' : ''}${water - waterGoal} cc`, 405, 765, 23);
-  text('水格每格240cc，末格為剩餘需求', 405, 795, 16, '#555');
+  text('水格每格240cc，末格為剩餘需求', 405, 795, 18, '#555');
 
   // 右側共 11 行：兩個區段標題、四餐、統計表標頭及四項統計。
   // 使用相同列高、字級與置中基準線，避免餐點區與統計區看起來不一致。
@@ -5793,9 +5793,9 @@ function render() {
   const rightWidth = 425;
   const rightTop = 88;
   const rightRows = 11;
-  // 依照使用者標示的藍色橫線，將整個右側區塊收在約 y=845 之內。
-  const rightRowHeight = (845 - rightTop) / rightRows;
-  const rightBottom = rightTop + rightRowHeight * rightRows;
+  // 右側表格底線與左側上下區塊分隔線對齊，避免表格下方留下大段空白。
+  const rightBottom = 1135;
+  const rightRowHeight = (rightBottom - rightTop) / rightRows;
   const rightFont = 18;
   const rowBaseline = index => rightTop + index * rightRowHeight + rightRowHeight / 2 + 9;
   const rowTop = index => rightTop + index * rightRowHeight;
@@ -5878,11 +5878,11 @@ function render() {
 
   // 5-6. 健康資料與補充建議；橫線作為上下區塊分界。
   rule(45, 1135, 1405);
-  text(`慢性用藥：${shortHealthValue(v('med'))}`, 48, 1195, 20, '#444');
-  text(`目前不適：${shortHealthValue(v('symptom'))}`, 48, 1240, 20, '#444');
+  text(`慢性用藥：${shortHealthValue(v('med'))}`, 48, 1195, 24, '#444');
+  text(`目前不適：${shortHealthValue(v('symptom'))}`, 48, 1240, 24, '#444');
   const bmi = num('height') ? fmt(weight / (num('height') / 100) ** 2) : 0;
-  text(`BMI ${bmi}（僅供參考）`, 48, 1285, 20, '#555');
-  text('【營養補充建議】', 48, 1340, 25, '#26783a', true);
+  text(`BMI ${bmi}（僅供參考）`, 48, 1285, 24, '#555');
+  text('【營養補充建議】', 48, 1340, 30, '#26783a', true);
 
   const plan = updateNutritionPlan();
   const supplements = v('supplements').split('\n').filter(Boolean).slice(0, 5);
@@ -5893,33 +5893,33 @@ function render() {
     if (separator >= 0) {
       const pricePart = item.slice(0, separator + 1);
       const mealPart = item.slice(separator + 1).trim();
-      lines(`${index + 1}. ${pricePart}`, 48, y, canvas.width - 100, 22, 32, 1);
-      lines(mealPart, 76, y + 34, canvas.width - 140, 22, 34, 2);
+      lines(`${index + 1}. ${pricePart}`, 48, y, canvas.width - 100, 25, 36, 1);
+      lines(mealPart, 76, y + 38, canvas.width - 140, 25, 38, 2);
     } else {
-      lines(`${index + 1}. ${item}`, 48, y, canvas.width - 100, 22, 34, 3);
+      lines(`${index + 1}. ${item}`, 48, y, canvas.width - 100, 25, 38, 3);
     }
   });
   text(
     `早餐費用：${plan.breakfast === null ? '無法計算' : 'NT$ ' + plan.breakfast.toFixed(1)}　中餐費用：${plan.lunch === null ? '無法計算' : 'NT$ ' + plan.lunch.toFixed(1)}　晚餐費用：${plan.dinner === null ? '無法計算' : 'NT$ ' + plan.dinner.toFixed(1)}`,
     48,
     supplementCostY,
-    22
+    25
   );
 
-  text('飲食估算不等於醫療診斷', 48, diagnosisNoticeY, 20, '#666');
+  text('飲食估算不等於醫療診斷', 48, diagnosisNoticeY, 24, '#666');
 
   // 5-7. 將缺乏提醒繪製在 JPG 最下方。
   let warningTextY = warningStartY;
   if (warning.general) {
     c.textAlign = 'center';
-    text('長期部分營養缺乏會導致生病', 750, warningTextY, 26, '#c00000', true);
+    text('長期部分營養缺乏會導致生病', 750, warningTextY, 30, '#c00000', true);
     c.textAlign = 'start';
-    warningTextY += 42;
+    warningTextY += 48;
   }
   warningLineSets.forEach(rows => {
     rows.forEach(row => {
-      text(row, 45, warningTextY, 14, '#c00000');
-      warningTextY += 27;
+      text(row, 45, warningTextY, 16, '#c00000');
+      warningTextY += 32;
     });
     warningTextY += 5;
   });
