@@ -5518,7 +5518,10 @@ function text(t, x, y, size = 24, color = '#222', bold = false) {
   size = Math.round(size * 1.45);
   ctx.fillStyle = color;
   ctx.font = `${bold ? 'bold ' : ''}${size}px Arial, 'Noto Sans TC', sans-serif`;
-  ctx.fillText(String(t), x, y, Math.max(80, canvas.width - x - 22));
+  const maxWidth = ctx.textAlign === 'center'
+    ? Math.max(80, Math.min(x, canvas.width - x) * 2 - 22)
+    : Math.max(80, canvas.width - x - 22);
+  ctx.fillText(String(t), x, y, maxWidth);
 }
 
 function lines(t, x, y, maxWidth = 390, size = 22, step = 31, maxLines = 4) {
@@ -5623,13 +5626,13 @@ function render() {
     return rows;
   });
 
-  const supplementStartY = 1060;
+  const supplementStartY = 1390;
   const supplementRowHeight = 112; // 每項保留兩行用量文字與行距
   const supplementCount = Math.min(5, calculateNutritionPlan().rows.length);
   // 費用列及診斷說明固定排在最後一項用量文字之後，避免互相覆蓋。
-  const supplementCostY = Math.max(1210, supplementStartY + Math.max(0, supplementCount - 1) * supplementRowHeight + 170);
+  const supplementCostY = Math.max(1540, supplementStartY + Math.max(0, supplementCount - 1) * supplementRowHeight + 170);
   const diagnosisNoticeY = supplementCostY - 52;
-  const warningStartY = Math.max(1260, supplementCostY + 75);
+  const warningStartY = Math.max(1615, supplementCostY + 75);
   let warningY = warningStartY;
   if (warning.general) warningY += 42;
   warningLineSets.forEach(rows => {
@@ -5658,24 +5661,25 @@ function render() {
   text(v('name') || '受訪者', 490, 65, 36, '#222', true);
   text(`${age}歲　${v('sex')}　${num('height')}公分　${weight}公斤`, 490, 111, 25);
   text(`評估日期 ${new Date().toLocaleDateString('zh-TW')}`, 750, 68, 20, '#555');
-  text('【你一天的飲食】', 1125, 88, 28, '#26783a', true);
+  c.textAlign = 'center';
+  text('【你一天的飲食】', 1237, 88, 30, '#26783a', true);
+  c.textAlign = 'start';
 
   const labels = ['油脂類', '蛋白質、豆魚蛋肉類', '蔬果類', '全穀雜糧類'];
-  const yPositions = [170, 277, 403, 540];
+  const yPositions = [190, 365, 540];
   const notes = [
     `建議 ${goals[0]} 份　吃了 ${actual[0]} 份`,
     `建議 ${goals[1]} 份　吃了 ${actual[1]} 份`,
     `建議 ${produceGoal} 份　吃了 ${actual[2]} 份`,
     `需求 ${goals[3]} 份　吃了 ${actual[3]} 碗`
   ];
-  labels.forEach((label, index) => {
+  labels.slice(0, 3).forEach((label, index) => {
     text(label, 48, yPositions[index], 25, '#bf302b', true);
     text(notes[index], 48, yPositions[index] + 37, 21);
     if ((index === 1 || index === 2) && actual[index] < goals[index]) {
       text(`-${fmt(goals[index] - actual[index])} 份`, 48, yPositions[index] + 67, 21, '#b36b15', true);
     }
   });
-  text(`工作：${$('workload').selectedOptions[0].text}；穀類1份＝1碗`, 48, 630, 17, '#555');
 
   // 5-4. 依個人需求繪製四層金字塔及實際攝取量。
   const bounds = [
@@ -5787,31 +5791,87 @@ function render() {
   text(`實際 ${water} cc　差額 ${water - waterGoal >= 0 ? '+' : ''}${water - waterGoal} cc`, 405, 765, 23);
   text('水格每格240cc，末格為剩餘需求', 405, 795, 16, '#555');
 
+  // 右側共 11 行：兩個區段標題、四餐、統計表標頭及四項統計。
+  // 使用相同列高、字級與置中基準線，避免餐點區與統計區看起來不一致。
+  const rightX = 1025;
+  const rightWidth = 425;
+  const rightTop = 88;
+  const rightRowHeight = 94.5;
+  const rightRows = 11;
+  const rightBottom = rightTop + rightRowHeight * rightRows;
+  const rightFont = 23;
+  const rowBaseline = index => rightTop + index * rightRowHeight + rightRowHeight / 2 + 11;
+  const rowTop = index => rightTop + index * rightRowHeight;
   const meals = [
     ['早', v('breakfast')],
     ['中', v('lunch')],
     ['晚', v('dinner')],
     ['茶／宵夜', v('snack')]
   ];
+  const statLabels = ['油脂類', '蛋白質類', '蔬果類', '全穀雜糧類'];
+  const statSplit = rightX + 245;
+
+  c.fillStyle = '#fff';
+  c.fillRect(rightX, rightTop, rightWidth, rightBottom - rightTop);
+  // 兩個區段標題與統計表標頭使用同色底，列高仍與其他資料列完全相同。
+  [0, 5, 6].forEach(index => {
+    c.fillStyle = '#d3e4b5';
+    c.fillRect(rightX, rowTop(index), rightWidth, rightRowHeight);
+  });
+  c.strokeStyle = '#8a9a84';
+  c.lineWidth = 2;
+  c.strokeRect(rightX, rightTop, rightWidth, rightBottom - rightTop);
+  for (let index = 1; index < rightRows; index++) {
+    c.beginPath();
+    c.moveTo(rightX, rowTop(index));
+    c.lineTo(rightX + rightWidth, rowTop(index));
+    c.stroke();
+  }
+  // 統計區的標籤與數值欄共用分隔線。
+  c.beginPath();
+  c.moveTo(statSplit, rowTop(6));
+  c.lineTo(statSplit, rightBottom);
+  c.stroke();
+
+  c.textAlign = 'center';
+  text('【你一天的飲食】', rightX + rightWidth / 2, rowBaseline(0), rightFont, '#26783a', true);
+  c.textAlign = 'start';
   meals.forEach(([label, content], index) => {
-    const y = 145 + index * 105;
-    text(label + '：', 1025, y, 23);
-    lines(content, 1105, y, 345, 21, 29, 3);
-    rule(1025, y + 75, 420);
+    const row = index + 1;
+    const y = rowBaseline(row);
+    text(label + '：', rightX + 12, y, rightFont, '#222', true);
+    const contentText = String(content || '');
+    ctx.font = `${Math.round(rightFont * 1.45)}px Arial, 'Noto Sans TC', sans-serif`;
+    const contentWidth = 260;
+    const wrapped = [];
+    let line = '';
+    for (const character of contentText) {
+      if (line && ctx.measureText(line + character).width > contentWidth) {
+        wrapped.push(line);
+        line = character;
+      } else {
+        line += character;
+      }
+    }
+    if (line) wrapped.push(line);
+    if (wrapped.length > 1) {
+      text(wrapped[0], rightX + 120, y - 17, rightFont);
+      text(wrapped[1], rightX + 120, y + 17, rightFont);
+    } else if (wrapped.length === 1) {
+      text(wrapped[0], rightX + 120, y, rightFont);
+    }
   });
 
-  text('【統計】', 1180, 555, 25, '#26783a', true);
-  c.fillStyle = '#d3e4b5';
-  c.fillRect(1025, 568, 425, 30);
-  text('類別', 1065, 590, 15);
-  text('實際攝取', 1285, 590, 15);
-  // 統計列加大間距，向下延伸至原問卷人資料區域。
-  labels.forEach((label, index) => {
-    const y = 615 + index * 48;
-    text(label.length > 9 ? label.slice(0, 9) : label, 1035, y, 16);
-    text(`${actual[index]} ${index === 3 ? '碗' : '份'}`, 1300, y, 16);
-    rule(1025, y + 18, 425);
+  c.textAlign = 'center';
+  text('【統計】', rightX + rightWidth / 2, rowBaseline(5), rightFont, '#26783a', true);
+  text('類別', rightX + 122, rowBaseline(6), rightFont, '#222', true);
+  text('合計', statSplit + (rightX + rightWidth - statSplit) / 2, rowBaseline(6), rightFont, '#222', true);
+  statLabels.forEach((label, index) => {
+    const row = index + 7;
+    text(label, rightX + 122, rowBaseline(row), rightFont);
+    text(`${actual[index]} ${index === 3 ? '碗' : '份'}`, statSplit + (rightX + rightWidth - statSplit) / 2, rowBaseline(row), rightFont);
   });
+  c.textAlign = 'start';
 
   // 問卷人資料移至左側水分區下方，右側空間留給延伸的統計表。
   c.fillStyle = '#e3edf9';
@@ -5820,12 +5880,12 @@ function render() {
   text(`電話：${v('phone') || '未填寫'}`, 62, 775, 19);
 
   // 5-6. 健康資料與補充建議；橫線作為上下區塊分界。
-  rule(45, 820, 1405);
-  text(`慢性用藥：${shortHealthValue(v('med'))}`, 48, 880, 20, '#444');
-  text(`目前不適：${shortHealthValue(v('symptom'))}`, 48, 925, 20, '#444');
+  rule(45, 1135, 1405);
+  text(`慢性用藥：${shortHealthValue(v('med'))}`, 48, 1195, 20, '#444');
+  text(`目前不適：${shortHealthValue(v('symptom'))}`, 48, 1240, 20, '#444');
   const bmi = num('height') ? fmt(weight / (num('height') / 100) ** 2) : 0;
-  text(`BMI ${bmi}（僅供參考）`, 48, 970, 20, '#555');
-  text('【營養補充建議】', 48, 1020, 25, '#26783a', true);
+  text(`BMI ${bmi}（僅供參考）`, 48, 1285, 20, '#555');
+  text('【營養補充建議】', 48, 1340, 25, '#26783a', true);
 
   const plan = updateNutritionPlan();
   const supplements = v('supplements').split('\n').filter(Boolean).slice(0, 5);
@@ -5836,20 +5896,20 @@ function render() {
     if (separator >= 0) {
       const pricePart = item.slice(0, separator + 1);
       const mealPart = item.slice(separator + 1).trim();
-      lines(`${index + 1}. ${pricePart}`, 48, y, canvas.width - 100, 19, 28, 1);
-      lines(mealPart, 76, y + 34, canvas.width - 140, 19, 30, 2);
+      lines(`${index + 1}. ${pricePart}`, 48, y, canvas.width - 100, 22, 32, 1);
+      lines(mealPart, 76, y + 34, canvas.width - 140, 22, 34, 2);
     } else {
-      lines(`${index + 1}. ${item}`, 48, y, canvas.width - 100, 19, 28, 3);
+      lines(`${index + 1}. ${item}`, 48, y, canvas.width - 100, 22, 34, 3);
     }
   });
   text(
     `早餐費用：${plan.breakfast === null ? '無法計算' : 'NT$ ' + plan.breakfast.toFixed(1)}　中餐費用：${plan.lunch === null ? '無法計算' : 'NT$ ' + plan.lunch.toFixed(1)}　晚餐費用：${plan.dinner === null ? '無法計算' : 'NT$ ' + plan.dinner.toFixed(1)}`,
     48,
     supplementCostY,
-    19
+    22
   );
 
-  text('飲食估算不等於醫療診斷', 48, diagnosisNoticeY, 18, '#666');
+  text('飲食估算不等於醫療診斷', 48, diagnosisNoticeY, 20, '#666');
 
   // 5-7. 將缺乏提醒繪製在 JPG 最下方。
   let warningTextY = warningStartY;
