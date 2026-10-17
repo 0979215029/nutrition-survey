@@ -9,7 +9,7 @@
 <body>
 <main>
 <h1>健康飲食金字塔｜一週飲食問卷</h1>
-<p id="buildVersion" style="color:#287944;font-weight:bold">版本：20261018-R14（喝水量在上・工作強度在下）</p>
+<p id="buildVersion" style="color:#287944;font-weight:bold">版本：20261018-R15（右表對齊・危害提醒在線下）</p>
 <p>請填寫過去一週，您每天最常吃的食物，完成後可產生衛生署的國人建議飲食指南比較，可以下載或截圖為圖檔。</p>
 <p class="note">
 <strong>最後的飲食評估圖片請回傳給問卷者交作業，也可以一起討論如何便宜的健康飲食。</strong>
@@ -5657,6 +5657,7 @@ function render() {
   text(v('name') || '受訪者', 490, 65, 36, '#222', true);
   text(`${age}歲　${v('sex')}　${num('height')}公分　${weight}公斤`, 490, 111, 25);
   text(`評估日期 ${new Date().toLocaleDateString('zh-TW')}`, 750, 68, 20, '#555');
+  text('版本 20261018-R15', 750, 140, 13, '#555');
   const labels = ['油脂類', '蛋白質、豆魚蛋肉類', '蔬果類', '全穀雜糧類'];
   const yPositions = [190, 365, 540];
   const notes = [
