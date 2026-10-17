@@ -5661,10 +5661,6 @@ function render() {
   text(v('name') || '受訪者', 490, 65, 36, '#222', true);
   text(`${age}歲　${v('sex')}　${num('height')}公分　${weight}公斤`, 490, 111, 25);
   text(`評估日期 ${new Date().toLocaleDateString('zh-TW')}`, 750, 68, 20, '#555');
-  c.textAlign = 'center';
-  text('【你一天的飲食】', 1237, 88, 30, '#26783a', true);
-  c.textAlign = 'start';
-
   const labels = ['油脂類', '蛋白質、豆魚蛋肉類', '蔬果類', '全穀雜糧類'];
   const yPositions = [190, 365, 540];
   const notes = [
@@ -5796,11 +5792,12 @@ function render() {
   const rightX = 1025;
   const rightWidth = 425;
   const rightTop = 88;
-  const rightRowHeight = 94.5;
   const rightRows = 11;
+  // 依照使用者標示的藍色橫線，將整個右側區塊收在約 y=845 之內。
+  const rightRowHeight = (845 - rightTop) / rightRows;
   const rightBottom = rightTop + rightRowHeight * rightRows;
-  const rightFont = 23;
-  const rowBaseline = index => rightTop + index * rightRowHeight + rightRowHeight / 2 + 11;
+  const rightFont = 18;
+  const rowBaseline = index => rightTop + index * rightRowHeight + rightRowHeight / 2 + 9;
   const rowTop = index => rightTop + index * rightRowHeight;
   const meals = [
     ['早', v('breakfast')],
@@ -5855,8 +5852,8 @@ function render() {
     }
     if (line) wrapped.push(line);
     if (wrapped.length > 1) {
-      text(wrapped[0], rightX + 120, y - 17, rightFont);
-      text(wrapped[1], rightX + 120, y + 17, rightFont);
+      text(wrapped[0], rightX + 120, y - 13, rightFont);
+      text(wrapped[1], rightX + 120, y + 13, rightFont);
     } else if (wrapped.length === 1) {
       text(wrapped[0], rightX + 120, y, rightFont);
     }
