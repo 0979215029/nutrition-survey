@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>健康飲食金字塔｜飲食問卷</title>
-<style>body{font-family:Arial,'Noto Sans TC',sans-serif;background:#f3f6f3;margin:0;color:#24332b}main{max-width:1050px;margin:auto;padding:18px}h1{color:#b72e29}fieldset{border:1px solid #cbd8c8;border-radius:12px;background:white;margin:15px 0;padding:16px}legend{font-weight:bold;color:#29753d}label{display:block;margin:8px 0}input,select,textarea{box-sizing:border-box;width:100%;padding:9px;border:1px solid #b9c5ba;border-radius:6px;font-size:19px}textarea{min-height:60px}input::placeholder,textarea::placeholder{color:#7a827d;opacity:1}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:10px}.actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}button{background:#287944;color:white;border:0;padding:12px 20px;border-radius:7px;font-size:19px;cursor:pointer}button.secondary{background:#46647a}#preview{width:100%;background:white;border:1px solid #ddd}small{color:#53645a}.note{background:#fff6dc;padding:10px;border-radius:7px}.deficiency-warning{margin:14px 0;color:#c00000}.deficiency-warning p{margin:8px 0}#genericDeficiencyWarning{font-size:22px;font-weight:bold;text-align:center;animation:nutritionWarningBlink 1s steps(2,start) infinite}#deficiencyDetails{font-size:16px;font-weight:normal;line-height:1.5;text-align:left}#deficiencyDetails p{margin:6px 0}@keyframes nutritionWarningBlink{to{visibility:hidden}}@media(prefers-reduced-motion:reduce){#genericDeficiencyWarning{animation:none}}input[aria-invalid="true"]{border:2px solid #c62828;background:#fff8f8}.order-bar{display:block;text-align:center;background:#287944;color:#fff;text-decoration:none;padding:16px 20px;border-radius:8px;font-size:22px;font-weight:bold}.order-note{line-height:1.8}.order-note p{margin:10px 0} .step-hint{display:inline-block;color:#c00000;font-weight:bold;font-size:21px;margin-right:9px;vertical-align:middle}#estimateButton{vertical-align:middle}.actions{align-items:center}</style>
+<style>body{font-family:Arial,'Noto Sans TC',sans-serif;background:#f3f6f3;margin:0;color:#24332b}main{max-width:1050px;margin:auto;padding:18px}h1{color:#b72e29}fieldset{border:1px solid #cbd8c8;border-radius:12px;background:white;margin:15px 0;padding:16px}legend{font-weight:bold;color:#29753d}label{display:block;margin:8px 0}input,select,textarea{box-sizing:border-box;width:100%;padding:10px;border:1px solid #b9c5ba;border-radius:6px;font-size:21px}textarea{min-height:60px}input::placeholder,textarea::placeholder{color:#7a827d;opacity:1}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:10px}.actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}button{background:#287944;color:white;border:0;padding:13px 21px;border-radius:7px;font-size:21px;cursor:pointer}button.secondary{background:#46647a}#preview{width:100%;background:white;border:1px solid #ddd}small{color:#53645a;font-size:17px}.note{background:#fff6dc;padding:12px;border-radius:7px;font-size:18px}.deficiency-warning{margin:14px 0;color:#c00000}.deficiency-warning p{margin:8px 0}#genericDeficiencyWarning{font-size:22px;font-weight:bold;text-align:center;animation:nutritionWarningBlink 1s steps(2,start) infinite}#deficiencyDetails{font-size:16px;font-weight:normal;line-height:1.5;text-align:left}#deficiencyDetails p{margin:6px 0}@keyframes nutritionWarningBlink{to{visibility:hidden}}@media(prefers-reduced-motion:reduce){#genericDeficiencyWarning{animation:none}}input[aria-invalid="true"]{border:2px solid #c62828;background:#fff8f8}.order-bar{display:block;text-align:center;background:#287944;color:#fff;text-decoration:none;padding:16px 20px;border-radius:8px;font-size:22px;font-weight:bold}.order-note{line-height:1.8}.order-note p{margin:10px 0} .step-hint{display:inline-block;color:#c00000;font-weight:bold;font-size:21px;margin-right:9px;vertical-align:middle}#estimateButton{vertical-align:middle}.actions{align-items:center}</style>
 </head>
 <body>
 <main>
@@ -5515,14 +5515,14 @@ function fmt(n){
 }
 
 function text(t, x, y, size = 24, color = '#222', bold = false) {
-  size = Math.round(size * 1.17);
+  size = Math.round(size * 1.45);
   ctx.fillStyle = color;
   ctx.font = `${bold ? 'bold ' : ''}${size}px Arial, 'Noto Sans TC', sans-serif`;
   ctx.fillText(String(t), x, y, Math.max(80, canvas.width - x - 22));
 }
 
 function lines(t, x, y, maxWidth = 390, size = 22, step = 31, maxLines = 4) {
-  ctx.font = `${Math.round(size * 1.17)}px Arial, 'Noto Sans TC', sans-serif`;
+  ctx.font = `${Math.round(size * 1.45)}px Arial, 'Noto Sans TC', sans-serif`;
   const output = [];
   let line = '';
 
@@ -5608,7 +5608,7 @@ function render() {
 
   // JPG 內的提醒文字採靜態紅字；只有網頁上的一般警示會閃爍。
   const warningLineSets = warning.details.map(message => {
-    ctx.font = "20px Arial, 'Noto Sans TC', sans-serif";
+    ctx.font = "24px Arial, 'Noto Sans TC', sans-serif";
     const rows = [];
     let line = '';
     for (const character of message) {
@@ -5623,15 +5623,17 @@ function render() {
     return rows;
   });
 
-  const supplementStartY = 933;
-  const supplementRowHeight = 90; // 每項最多三行，避免文字在 JPG 中被截斷
+  const supplementStartY = 1060;
+  const supplementRowHeight = 112; // 每項保留兩行用量文字與行距
   const supplementCount = Math.min(5, calculateNutritionPlan().rows.length);
-  const supplementCostY = Math.max(1105, supplementStartY + supplementCount * supplementRowHeight + 12);
-  const warningStartY = Math.max(1150, supplementCostY + 65);
+  // 費用列及診斷說明固定排在最後一項用量文字之後，避免互相覆蓋。
+  const supplementCostY = Math.max(1210, supplementStartY + Math.max(0, supplementCount - 1) * supplementRowHeight + 170);
+  const diagnosisNoticeY = supplementCostY - 52;
+  const warningStartY = Math.max(1260, supplementCostY + 75);
   let warningY = warningStartY;
-  if (warning.general) warningY += 38;
+  if (warning.general) warningY += 42;
   warningLineSets.forEach(rows => {
-    warningY += rows.length * 25 + 5;
+    warningY += rows.length * 27 + 5;
   });
   canvas.height = Math.max(
     1180, warningY + 20
@@ -5673,7 +5675,7 @@ function render() {
       text(`-${fmt(goals[index] - actual[index])} 份`, 48, yPositions[index] + 67, 21, '#b36b15', true);
     }
   });
-  text(`工作：${$('workload').selectedOptions[0].text}；穀類1份＝1碗`, 48, 615, 17, '#555');
+  text(`工作：${$('workload').selectedOptions[0].text}；穀類1份＝1碗`, 48, 630, 17, '#555');
 
   // 5-4. 依個人需求繪製四層金字塔及實際攝取量。
   const bounds = [
@@ -5818,12 +5820,12 @@ function render() {
   text(`電話：${v('phone') || '未填寫'}`, 62, 775, 19);
 
   // 5-6. 健康資料與補充建議；橫線作為上下區塊分界。
-  rule(45, 800, 1405);
-  text(`慢性用藥：${shortHealthValue(v('med'))}`, 48, 812, 20, '#444');
-  text(`目前不適：${shortHealthValue(v('symptom'))}`, 48, 840, 20, '#444');
+  rule(45, 820, 1405);
+  text(`慢性用藥：${shortHealthValue(v('med'))}`, 48, 880, 20, '#444');
+  text(`目前不適：${shortHealthValue(v('symptom'))}`, 48, 925, 20, '#444');
   const bmi = num('height') ? fmt(weight / (num('height') / 100) ** 2) : 0;
-  text(`BMI ${bmi}（僅供參考）`, 48, 867, 20, '#555');
-  text('【營養補充建議】', 48, 900, 25, '#26783a', true);
+  text(`BMI ${bmi}（僅供參考）`, 48, 970, 20, '#555');
+  text('【營養補充建議】', 48, 1020, 25, '#26783a', true);
 
   const plan = updateNutritionPlan();
   const supplements = v('supplements').split('\n').filter(Boolean).slice(0, 5);
@@ -5835,7 +5837,7 @@ function render() {
       const pricePart = item.slice(0, separator + 1);
       const mealPart = item.slice(separator + 1).trim();
       lines(`${index + 1}. ${pricePart}`, 48, y, canvas.width - 100, 19, 28, 1);
-      lines(mealPart, 76, y + 32, canvas.width - 140, 19, 28, 2);
+      lines(mealPart, 76, y + 34, canvas.width - 140, 19, 30, 2);
     } else {
       lines(`${index + 1}. ${item}`, 48, y, canvas.width - 100, 19, 28, 3);
     }
@@ -5847,7 +5849,7 @@ function render() {
     19
   );
 
-  text('飲食估算不等於醫療診斷', 48, 1070, 17, '#666');
+  text('飲食估算不等於醫療診斷', 48, diagnosisNoticeY, 18, '#666');
 
   // 5-7. 將缺乏提醒繪製在 JPG 最下方。
   let warningTextY = warningStartY;
@@ -5855,12 +5857,12 @@ function render() {
     c.textAlign = 'center';
     text('長期部分營養缺乏會導致生病', 750, warningTextY, 26, '#c00000', true);
     c.textAlign = 'start';
-    warningTextY += 38;
+    warningTextY += 42;
   }
   warningLineSets.forEach(rows => {
     rows.forEach(row => {
       text(row, 45, warningTextY, 14, '#c00000');
-      warningTextY += 25;
+      warningTextY += 27;
     });
     warningTextY += 5;
   });
