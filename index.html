@@ -9,7 +9,7 @@
 <body>
 <main>
 <h1>健康飲食金字塔｜一週飲食問卷</h1>
-<p id="buildVersion" style="color:#287944;font-weight:bold">版本：20261018-R16（危害與下方文字放大）</p>
+<p id="buildVersion" style="color:#287944;font-weight:bold">版本：20261018-R18（危害與下方文字放大）</p>
 <p>請填寫過去一週，您每天最常吃的食物，完成後可產生衛生署的國人建議飲食指南比較，可以下載或截圖為圖檔。</p>
 <p class="note">
 <strong>最後的飲食評估圖片請回傳給問卷者交作業，也可以一起討論如何便宜的健康飲食。</strong>
@@ -5657,19 +5657,19 @@ function render() {
   text(v('name') || '受訪者', 490, 65, 36, '#222', true);
   text(`${age}歲　${v('sex')}　${num('height')}公分　${weight}公斤`, 490, 111, 25);
   text(`評估日期 ${new Date().toLocaleDateString('zh-TW')}`, 750, 68, 20, '#555');
-  text('版本 20261018-R16', 750, 140, 13, '#555');
+  text('版本 20261018-R18', 750, 140, 13, '#555');
   const labels = ['油脂類', '蛋白質、豆魚蛋肉類', '蔬果類', '全穀雜糧類'];
-  const yPositions = [190, 365, 540];
+  const yPositions = [182, 288, 394, 500];
   const notes = [
     `建議 ${goals[0]} 份　吃了 ${actual[0]} 份`,
     `建議 ${goals[1]} 份　吃了 ${actual[1]} 份`,
     `建議 ${produceGoal} 份　吃了 ${actual[2]} 份`,
     `需求 ${goals[3]} 份　吃了 ${actual[3]} 碗`
   ];
-  labels.slice(0, 3).forEach((label, index) => {
+  labels.forEach((label, index) => {
     text(label, 48, yPositions[index], 25, '#bf302b', true);
     text(notes[index], 48, yPositions[index] + 37, 21);
-    if ((index === 1 || index === 2) && actual[index] < goals[index]) {
+    if (actual[index] < goals[index]) {
       text(`-${fmt(goals[index] - actual[index])} 份`, 48, yPositions[index] + 67, 21, '#b36b15', true);
     }
   });
@@ -5750,7 +5750,7 @@ function render() {
       c.lineTo(r1, bound.y1);
       c.stroke();
       text(`+${fmt(extra)}`, r1 + width + 12, (bound.y0 + bound.y1) / 2, 22, '#ba3c39', true);
-    } else if (actual[index] < goals[index] && (index === 1 || index === 2)) {
+    } else if (actual[index] < goals[index]) {
       text(`-${fmt(goals[index] - actual[index])}`, right(bound.y1) + 15, (bound.y0 + bound.y1) / 2, 22, '#b36b15', true);
     }
   });
@@ -5800,7 +5800,7 @@ function render() {
     ['早', v('breakfast')],
     ['中', v('lunch')],
     ['晚', v('dinner')],
-    ['茶／宵夜', v('snack')]
+    ['下午茶／宵夜', v('snack')]
   ];
   const statLabels = ['油脂類', '蛋白質類', '蔬果類', '全穀雜糧類'];
   const statSplit = rightX + 245;
@@ -5833,27 +5833,37 @@ function render() {
   meals.forEach(([label, content], index) => {
     const row = index + 1;
     const y = rowBaseline(row);
-    text(label + '：', rightX + 12, y, rightFont, '#222', true);
+    const isSnack = index === 3;
+    // 餐點名稱與回答分成兩欄，長標籤不再壓到回答。
+    const labelX = rightX + 10;
+    const answerX = rightX + (isSnack ? 178 : 105);
+    const answerWidth = rightX + rightWidth - answerX - 12;
+    text(label + '：', labelX, y, isSnack ? 18 : rightFont, '#222', true);
     const contentText = String(content || '');
-    ctx.font = `${Math.round(rightFont * 1.45)}px Arial, 'Noto Sans TC', sans-serif`;
-    const contentWidth = 260;
+    c.font = `${rightFont}px Arial, 'Noto Sans TC', sans-serif`;
     const wrapped = [];
     let line = '';
     for (const character of contentText) {
-      if (line && ctx.measureText(line + character).width > contentWidth) {
+      if (line && c.measureText(line + character).width > answerWidth) {
         wrapped.push(line);
         line = character;
-      } else {
-        line += character;
-      }
+      } else line += character;
     }
     if (line) wrapped.push(line);
-    if (wrapped.length > 1) {
-      text(wrapped[0], rightX + 120, y - 15, rightFont);
-      text(wrapped[1], rightX + 120, y + 15, rightFont);
-    } else if (wrapped.length === 1) {
-      text(wrapped[0], rightX + 120, y, rightFont);
+    // 餐點格內最多兩行，超長文字以省略號提示，避免跨列疊字。
+    if (wrapped.length > 2) {
+      wrapped.length = 2;
+      while (wrapped[1] && c.measureText(wrapped[1] + '…').width > answerWidth) {
+        wrapped[1] = wrapped[1].slice(0, -1);
+      }
+      wrapped[1] += '…';
     }
+    c.save();
+    c.beginPath();
+    c.rect(answerX, rowTop(row) + 3, answerWidth, rightRowHeight - 6);
+    c.clip();
+    wrapped.forEach((part, i) => text(part, answerX, y + (wrapped.length === 2 ? (i === 0 ? -13 : 13) : 0), rightFont));
+    c.restore();
   });
 
   c.textAlign = 'center';
