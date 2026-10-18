@@ -9,7 +9,7 @@
 <body>
 <main>
 <h1>健康飲食金字塔｜一週飲食問卷</h1>
-<p id="buildVersion" style="color:#287944;font-weight:bold">版本：20261018-R18（危害與下方文字放大）</p>
+<p id="buildVersion" style="color:#287944;font-weight:bold">版本：20261018-R19（危害與下方文字放大）</p>
 <p>請填寫過去一週，您每天最常吃的食物，完成後可產生衛生署的國人建議飲食指南比較，可以下載或截圖為圖檔。</p>
 <p class="note">
 <strong>最後的飲食評估圖片請回傳給問卷者交作業，也可以一起討論如何便宜的健康飲食。</strong>
@@ -5657,21 +5657,35 @@ function render() {
   text(v('name') || '受訪者', 490, 65, 36, '#222', true);
   text(`${age}歲　${v('sex')}　${num('height')}公分　${weight}公斤`, 490, 111, 25);
   text(`評估日期 ${new Date().toLocaleDateString('zh-TW')}`, 750, 68, 20, '#555');
-  text('版本 20261018-R18', 750, 140, 13, '#555');
+  text('版本 20261018-R19', 750, 140, 13, '#555');
+  // 左側四大類：標題、建議說明、攝取比較各佔一行；保留類別間距。
   const labels = ['油脂類', '蛋白質、豆魚蛋肉類', '蔬果類', '全穀雜糧類'];
-  const yPositions = [182, 288, 394, 500];
-  const notes = [
-    `建議 ${goals[0]} 份　吃了 ${actual[0]} 份`,
-    `建議 ${goals[1]} 份　吃了 ${actual[1]} 份`,
-    `建議 ${produceGoal} 份　吃了 ${actual[2]} 份`,
-    `需求 ${goals[3]} 份　吃了 ${actual[3]} 碗`
+  const yPositions = [181, 299, 417, 535];
+  const explanations = [
+    '建議多攝取3號魚油 和 9號橄欖油',
+    '體重 ÷ 7',
+    '小孩5份 女生7份 男生9份',
+    '工作：輕3份 中4份 重5份'
   ];
   labels.forEach((label, index) => {
-    text(label, 48, yPositions[index], 25, '#bf302b', true);
-    text(notes[index], 48, yPositions[index] + 37, 21);
-    if (actual[index] < goals[index]) {
-      text(`-${fmt(goals[index] - actual[index])} 份`, 48, yPositions[index] + 67, 21, '#b36b15', true);
+    const goal = Number(goals[index]);
+    const eaten = Number(actual[index]);
+    const difference = eaten - goal;
+    const signed = difference > 0 ? `+${fmt(difference)}` : fmt(difference);
+    const unit = index === 3 ? '碗' : '份';
+    text(label, 48, yPositions[index], 24, '#bf302b', true);
+    text(explanations[index], 48, yPositions[index] + 30, 17, '#333');
+    // 同行放置建議、實際與差額，必要時縮小字體以免碰到金字塔。
+    const summary = `建議${fmt(goal)}${unit}  吃了${fmt(eaten)}${unit}  ${signed}${unit}`;
+    c.save();
+    let size = 19;
+    c.font = `${size}px Arial, sans-serif`;
+    while (c.measureText(summary).width > 350 && size > 15) {
+      size -= 1;
+      c.font = `${size}px Arial, sans-serif`;
     }
+    c.restore();
+    text(summary, 48, yPositions[index] + 59, size, difference < 0 ? '#9d5b13' : '#333', true);
   });
 
   // 5-4. 依個人需求繪製四層金字塔及實際攝取量。
