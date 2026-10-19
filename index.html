@@ -5492,8 +5492,8 @@ function calculateNutritionPlan(){
  const proteinLunch=Math.max(0,proteinSpoons-3)*2;
  const doubleServings=adult?(num('produce')>pg/2?1:2):0; // 問卷自訂規則：蔬果攝取超過建議量一半，早餐1份；否則早晚各1份
  const rows=[];
- if(proteinSpoons)rows.push({name:'紐崔萊優質蛋白素－全植物配方',morning:proteinMorning,lunch:proteinLunch,evening:proteinMorning,unit:'匙',price:1890,units:60});
- if(doubleServings)rows.push({name:'紐崔萊 DOUBLE X 蔬果綜合營養片',morning:1,lunch:0,evening:doubleServings===2?1:0,unit:'份（3顆）',price:2300,units:62});
+ if(proteinSpoons)rows.push({name:'紐崔萊優質蛋白素－全植物配方',morning:proteinMorning,lunch:proteinLunch,evening:proteinMorning,unit:'匙',price:21,units:1});
+ if(doubleServings)rows.push({name:'紐崔萊 DOUBLE X 蔬果綜合營養片',morning:1,lunch:0,evening:doubleServings===2?1:0,unit:'份（3顆）',price:35.5,units:1});
  const money=(items)=>items.every(r=>r.price>0&&r.units>0)?items.reduce((sum,r)=>sum+r.price/r.units*(r.qty||0),0):null;
  const breakfast=money(rows.map(r=>({...r,qty:r.morning})).filter(r=>r.qty));
  const lunch=money(rows.map(r=>({...r,qty:r.lunch||0})).filter(r=>r.qty));
