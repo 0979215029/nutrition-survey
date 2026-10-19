@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>健康飲食金字塔｜飲食問卷</title>
 <style>body{font-family:Arial,'Noto Sans TC',sans-serif;background:#f3f6f3;margin:0;color:#24332b}main{max-width:1050px;margin:auto;padding:18px}h1{color:#b72e29}fieldset{border:1px solid #cbd8c8;border-radius:12px;background:white;margin:15px 0;padding:16px}legend{font-weight:bold;color:#29753d}label{display:block;margin:8px 0}input,select,textarea{box-sizing:border-box;width:100%;padding:10px;border:1px solid #b9c5ba;border-radius:6px;font-size:21px}textarea{min-height:60px}input::placeholder,textarea::placeholder{color:#7a827d;opacity:1}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:10px}.actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}button{background:#287944;color:white;border:0;padding:13px 21px;border-radius:7px;font-size:21px;cursor:pointer}button.secondary{background:#46647a}#preview{width:100%;background:white;border:1px solid #ddd}small{color:#53645a;font-size:17px}.note{background:#fff6dc;padding:12px;border-radius:7px;font-size:18px}.deficiency-warning{margin:14px 0;color:#c00000}.deficiency-warning p{margin:8px 0}#genericDeficiencyWarning{font-size:22px;font-weight:bold;text-align:center;animation:nutritionWarningBlink 1s steps(2,start) infinite}#deficiencyDetails{font-size:16px;font-weight:normal;line-height:1.5;text-align:left}#deficiencyDetails p{margin:6px 0}@keyframes nutritionWarningBlink{to{visibility:hidden}}@media(prefers-reduced-motion:reduce){#genericDeficiencyWarning{animation:none}}input[aria-invalid="true"]{border:2px solid #c62828;background:#fff8f8}.order-bar{display:block;text-align:center;background:#287944;color:#fff;text-decoration:none;padding:16px 20px;border-radius:8px;font-size:22px;font-weight:bold}.order-note{line-height:1.8}.order-note p{margin:10px 0} .step-hint{display:inline-block;color:#c00000;font-weight:bold;font-size:21px;margin-right:9px;vertical-align:middle}#estimateButton{vertical-align:middle}.actions{align-items:center}</style>
-</head>
+<style>
+.choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:10px 0}.choice-grid label{display:flex;align-items:center;gap:5px;font-size:16px}.choice-grid input{width:auto}.oil-options label{display:block;margin:9px 0}.choice-extra{width:100%;box-sizing:border-box;padding:9px} @media(max-width:480px){.choice-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style></head>
 <body>
 <main>
 <h1>健康飲食金字塔｜一週飲食問卷</h1>
@@ -32,6 +34,7 @@
 </label>
 <label style="grid-column:1 / -1">每日喝水量（水 湯 茶 咖啡 飲料) cc <input id="water" type="number" placeholder="例如：2200">
 </label>
+<div style="grid-column:1/-1" class="oil-options"><strong>額外補充好油：（可複選）</strong><label><input type="checkbox" name="goodOil" value="魚油"> 3號魚油（有助維持心血管、眼睛與腦部健康）</label><label><input type="checkbox" name="goodOil" value="橄欖油"> 9號橄欖油（有助維持心血管、皮膚與腸胃健康）</label></div>
 <label style="grid-column:1 / -1">工作強度<select id="workload">
 <option value="">請選擇工作強度</option>
 <option value="light">輕（坐著）</option>
@@ -42,10 +45,8 @@
 </label>
 </div>
 <p id="requiredProfileStatus" class="note" role="status" aria-live="polite" hidden></p>
-<label>慢性用藥（選填）<input id="med" placeholder="例如：血壓藥；無則留白">
-</label>
-<label>目前不適（選填）<input id="symptom" placeholder="例如：容易疲倦；無則留白">
-</label>
+<div><strong>日常用藥／相關疾病（可複選）</strong><div class="choice-grid"><label><input type="checkbox" name="medChoice" value="高血壓">高血壓</label><label><input type="checkbox" name="medChoice" value="高血脂">高血脂</label><label><input type="checkbox" name="medChoice" value="痛風">痛風</label><label><input type="checkbox" name="medChoice" value="低血壓">低血壓</label><label><input type="checkbox" name="medChoice" value="氣喘">氣喘</label><label><input type="checkbox" name="medChoice" value="癲癇">癲癇</label><label><input type="checkbox" name="medChoice" value="高血糖">高血糖</label><label><input type="checkbox" name="medChoice" value="甲狀腺">甲狀腺</label><label><input type="checkbox" name="medChoice" value="關節炎">關節炎</label><label><input type="checkbox" name="medChoice" value="攝護腺">攝護腺</label><label><input type="checkbox" name="medChoice" value="癌">癌</label></div><label>其他（自行輸入）<input class="choice-extra" id="{other}" placeholder="請輸入其他狀況"></label></div>
+<div><strong>不適狀況（可複選）</strong><div class="choice-grid"><label><input type="checkbox" name="symChoice" value="胃痛">胃痛</label><label><input type="checkbox" name="symChoice" value="疲倦">疲倦</label><label><input type="checkbox" name="symChoice" value="心悸">心悸</label><label><input type="checkbox" name="symChoice" value="頭暈">頭暈</label><label><input type="checkbox" name="symChoice" value="無力">無力</label><label><input type="checkbox" name="symChoice" value="胸悶">胸悶</label><label><input type="checkbox" name="symChoice" value="耳鳴">耳鳴</label><label><input type="checkbox" name="symChoice" value="腹脹">腹脹</label><label><input type="checkbox" name="symChoice" value="便秘">便秘</label></div><label>其他（自行輸入）<input class="choice-extra" id="{other}" placeholder="請輸入其他狀況"></label></div>
 </fieldset>
 <fieldset>
 <legend>二、一週內每天最常吃的飲食</legend>
@@ -5594,6 +5595,10 @@ function shortHealthValue(value, max = 22) {
   return content.length > max ? content.slice(0, max - 1) + '…' : (content || '無');
 }
 
+
+function selectedValues(group,other){const items=[...document.querySelectorAll(`input[name="${group}"]:checked`)].map(x=>x.value);const extra=document.getElementById(other).value.trim();if(extra)items.push(extra);return items.length?items.join('、'):'未填寫';}
+function selectedOil(){return [...document.querySelectorAll('input[name="goodOil"]:checked')].map(x=>x.value);}
+
 function render() {
   // 5-1. 更新網頁下方的缺乏提醒。
   const warning = nutritionWarningData();
@@ -5631,12 +5636,12 @@ function render() {
   const warningStartY = sectionDividerY + 42;
   const warningHeight = (warning.general ? 52 : 0) + warningLineSets.reduce((sum, rows) => sum + rows.length * 40 + 10, 0);
   const healthStartY = warningStartY + warningHeight + 36;
-  const supplementStartY = healthStartY + 220;
+  const supplementStartY = healthStartY + 270;
   const supplementRowHeight = 150;
   const supplementCount = Math.min(5, calculateNutritionPlan().rows.length);
   const supplementCostY = supplementStartY + Math.max(0, supplementCount - 1) * supplementRowHeight + 200;
   const diagnosisNoticeY = supplementCostY - 60;
-  canvas.height = Math.max(1180, supplementCostY + 55);
+  canvas.height = Math.max(1180, supplementCostY + 325);
 
   // 5-2. 清空畫布並準備問卷資料。
   const c = ctx;
@@ -5662,7 +5667,7 @@ function render() {
   const labels = ['油脂類', '蛋白質、豆魚蛋肉類', '蔬果類', '全穀雜糧類'];
   const yPositions = [181, 299, 417, 535];
   const explanations = [
-    '建議多攝取3號魚油 和 9號橄欖油',
+    '有補充：' + (selectedOil().join('、') || '未勾選'),
     '體重 ÷ 7',
     '小孩5份 女生7份 男生9份',
     '工作：輕3份 中4份 重5份'
@@ -5899,11 +5904,11 @@ function render() {
 
   // 5-6. 健康資料與補充建議；橫線作為上下區塊分界。
   rule(45, sectionDividerY, 1405);
-  text(`慢性用藥：${shortHealthValue(v('med'))}`, 48, healthStartY + 0, 24, '#444');
-  text(`目前不適：${shortHealthValue(v('symptom'))}`, 48, healthStartY + 50, 24, '#444');
+  lines(`日常用藥：${selectedValues('medChoice','medOther')}`, 48, healthStartY + 0, 1330, 24, 32, 2);
+  lines(`不適狀況：${selectedValues('symChoice','symOther')}`, 48, healthStartY + 70, 1330, 24, 32, 2);
   const bmi = num('height') ? fmt(weight / (num('height') / 100) ** 2) : 0;
-  text(`BMI ${bmi}（僅供參考）`, 48, healthStartY + 100, 24, '#555');
-  text('【營養補充建議】', 48, healthStartY + 160, 28, '#26783a', true);
+  text(`BMI ${bmi}（僅供參考）`, 48, healthStartY + 140, 24, '#555');
+  text('【營養補充建議】', 48, healthStartY + 200, 28, '#26783a', true);
 
   const plan = updateNutritionPlan();
   const supplements = v('supplements').split('\n').filter(Boolean).slice(0, 5);
@@ -5944,6 +5949,14 @@ function render() {
     });
     warningTextY += 10;
   });
+  // JPG 底部右側：商城 QR 碼（與 shop 參數對應）。
+  const qrX=canvas.width-255,qrY=canvas.height-245;
+  text('安麗紐崔萊購物商城', canvas.width-465, qrY-22, 24, '#26783a', true);
+  text('右上方≡是總目錄',canvas.width-465,qrY+15,20,'#444');
+  const qrImg=shopQRCanvas||fallbackQR;
+  if(qrImg && (qrImg.complete!==false || qrImg.width>0)){
+    try{c.drawImage(qrImg,qrX,qrY,190,190);}catch(e){}
+  }
   return canvas;
 }
 
@@ -6009,5 +6022,16 @@ function initialize() {
 // 執行頁面初始化。
 initialize();
 </script>
-</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script>
+const fallbackQR=new Image();fallbackQR.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJQAAACUAQAAAABdRz15AAABSElEQVR4nM2WQYpcMQxEn4fZl27Q9z9W36B8gpdFN4EkZDFoIPHKEvxHfcmy68jv6378kYJ/lzvnzMzMnXM558yKh9E0Ss0r2PA+4QSep8nhFSx5wONmevrFb//Ou53AOGveB1gYmGZewYZ3PJCf4YU8d/1VjQGrqqv+fjDM4ZDeOecctucPtKEqttnpw2qirbR2+b8vSSSUSLb1w6RI35t2N2/YtoipabLXpyENSa3d8iASbOu36MOUvMiBHe8TPNKhlPHObn4RTCwJbbquX9JisGU/v8cBCsxzPIWs3jfEaBMxtst+oIhQAyHr+tnUALSR9fkDQkxDgPV9pZqWRGKWvPf7cb2EgevWv0R5dsKZUu7ab5BEahpg2d9X7nnzOE+uITt979w8yYPMzfQ7/EEffV5K+3Utv6x3f3sAvA9g5Q/Of+53fwBPIQ1rtj9t8AAAAABJRU5ErkJggg==';
+let shopQRCanvas=null;
+function updateShopQR(){
+ const url=document.getElementById('orderLink').href;
+ if(typeof QRCode==='undefined'){shopQRCanvas=null;return;}
+ const div=document.createElement('div');div.style.cssText='position:absolute;left:-9999px';document.body.appendChild(div);
+ new QRCode(div,{text:url,width:200,height:200,correctLevel:QRCode.CorrectLevel.M});
+ setTimeout(()=>{shopQRCanvas=div.querySelector('canvas')||div.querySelector('img');div.remove();},100);
+}
+window.addEventListener('load',()=>{updateShopQR();});
+</script></body>
 </html>
