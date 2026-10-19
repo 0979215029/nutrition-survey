@@ -5950,9 +5950,10 @@ function render() {
     warningTextY += 10;
   });
   // JPG 底部右側：商城 QR 碼（與 shop 參數對應）。
-  const qrX=canvas.width-255,qrY=canvas.height-245;
-  text('安麗紐崔萊購物商城', canvas.width-465, qrY-22, 24, '#26783a', true);
-  text('右上方≡是總目錄',canvas.width-465,qrY+15,20,'#444');
+  const qrX=canvas.width-245, qrY=supplementCostY-305;
+  // 商城區塊上移至營養補充建議右側空白區，左側原有文字不移動。
+  text('安麗紐崔萊購物商城', qrX-10, qrY-48, 22, '#26783a', true);
+  text('右上方≡是總目錄',qrX-10,qrY-16,19,'#444');
   const qrImg=shopQRCanvas||fallbackQR;
   if(qrImg && (qrImg.complete!==false || qrImg.width>0)){
     try{c.drawImage(qrImg,qrX,qrY,190,190);}catch(e){}
