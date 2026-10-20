@@ -5661,7 +5661,6 @@ function render() {
   text(v('name') || '受訪者', 490, 65, 36, '#222', true);
   text(`${age}歲　${v('sex')}　${num('height')}公分　${weight}公斤`, 490, 111, 25);
   text(`評估日期 ${new Date().toLocaleDateString('zh-TW')}`, 750, 68, 20, '#555');
-  text('版本 20261018-R19', 750, 140, 13, '#555');
   // 左側四大類：標題、建議說明、攝取比較各佔一行；保留類別間距。
   const labels = ['油脂類', '蛋白質、豆魚蛋肉類', '蔬果類', '全穀雜糧類'];
   const yPositions = [181, 299, 417, 535];
@@ -5949,13 +5948,19 @@ function render() {
     warningTextY += 10;
   });
   // JPG 底部右側：商城 QR 碼（與 shop 參數對應）。
-  const qrX=canvas.width-355, qrY=supplementCostY-305;
-  // 商城區塊上移至營養補充建議右側空白區，左側原有文字不移動。
-  text('安麗紐崔萊購物商城', qrX-10, qrY-48, 22, '#26783a', true);
-  text('右上方≡是總目錄',qrX-10,qrY-16,19,'#444');
+  const qrX=canvas.width-355, qrOriginalY=supplementCostY-305;
+  const qrSize=190*1.35;
+  const qrY=qrOriginalY+190-qrSize; // 固定原 QR 左下角，向右上放大
+  const qrCenterX=qrX+qrSize/2;
+  // 文字維持原字級，水平中心與放大後 QR 的中心線對齊。
+  c.save();
+  c.textAlign='center';
+  text('安麗紐崔萊購物商城', qrCenterX, qrY-48, 22, '#26783a', true);
+  text('右上方≡是總目錄', qrCenterX, qrY-16, 19, '#444');
+  c.restore();
   const qrImg=shopQRCanvas||fallbackQR;
   if(qrImg && (qrImg.complete!==false || qrImg.width>0)){
-    try{c.drawImage(qrImg,qrX,qrY,190,190);}catch(e){}
+    try{c.drawImage(qrImg,qrX,qrY,qrSize,qrSize);}catch(e){}
   }
   return canvas;
 }
