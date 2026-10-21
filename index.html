@@ -140,6 +140,26 @@
 </fieldset>
 </main>
 <script>
+// 分享目前問卷網址；保留網址參數，不加入受訪者填答內容。
+(function () {
+  const shareButton = document.createElement('button');
+  shareButton.id = 'lineShareButton';
+  shareButton.type = 'button';
+  shareButton.className = 'order-bar';
+  shareButton.textContent = '分享到 LINE';
+  shareButton.style.cssText = 'width:100%;margin-top:16px;background:#06a944;';
+  document.getElementById('orderLink').insertAdjacentElement('afterend', shareButton);
+  shareButton.addEventListener('click', function () {
+    if (!/^https?:$/.test(window.location.protocol)) {
+      window.alert('請先將程式上傳到網站，並開啟正式問卷網址，再點「分享到 LINE」。手機裡的本機 HTML 檔案無法直接分享成可開啟的網頁連結。');
+      return;
+    }
+    const message = '邀請您填寫飲食評估問卷：\n' + window.location.href;
+    window.location.assign('https://line.me/R/share?text=' + encodeURIComponent(message));
+  });
+})();
+</script>
+<script>
 
 'use strict';
 
@@ -5956,7 +5976,7 @@ function render() {
   c.save();
   c.textAlign='center';
   text('安麗紐崔萊購物商城', qrCenterX, qrY-48, 22, '#26783a', true);
-  text('左上方≡是總目錄', qrCenterX, qrY-16, 19, '#444');
+  text('右上方≡是總目錄', qrCenterX, qrY-16, 19, '#444');
   c.restore();
   const qrImg=shopQRCanvas||fallbackQR;
   if(qrImg && (qrImg.complete!==false || qrImg.width>0)){
