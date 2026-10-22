@@ -6019,39 +6019,17 @@ async function shareJpgToLine(){
   alert('此瀏覽器無法直接分享 JPG。請先點「下載 JPG 圖片」，再從 LINE 傳送該圖片。');
  },'image/jpeg',0.95);
 }
-// 商城分享：讀取上方商城連結，透過 reurl.cc API 縮短後分享 LINE。
-// 注意：此金鑰放在公開 HTML 中，任何訪客都能查看，請留意額度與濫用風險。
-const REURL_API_KEY='4070ff49d794e43c13563b663c974755ecd3b536919304df8a38b58d65165567c4f5d6';
+// 商城分享：永遠取商城按鈕目前的 href，不使用問卷網址。
+// 縮網址需外部服務；優先嘗試 is.gd，失敗時使用完整有效網址。
 async function shareShopToLine(){
  const original=$('orderLink').href;
- const button=$('shareShopButton');
- const previous=button.textContent;
- button.disabled=true;
- button.textContent='正在產生商城短網址…';
  let url=original;
  try{
-  const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),7000);
-  try{
-   const response=await fetch('https://api.reurl.cc/shorten',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','reurl-api-key':REURL_API_KEY},
-    body:JSON.stringify({url:original}),
-    signal:controller.signal
-   });
-   if(!response.ok)throw new Error('HTTP '+response.status);
-   const data=await response.json();
-   const shortUrl=data.short_url||data.shorturl||data.shortUrl;
-   if(typeof shortUrl!=='string'||!/^https:\/\/reurl\.cc\//i.test(shortUrl))throw new Error('縮網址結果不正確');
-   url=shortUrl;
-  }finally{clearTimeout(timer);}
- }catch(err){
-  alert('reurl.cc 縮網址未成功（可能是瀏覽器跨來源限制或 API 額度問題），將改用原始商城網址分享到 LINE。');
- }finally{
-  button.disabled=false;
-  button.textContent=previous;
- }
- window.location.href='https://line.me/R/msg/text/?'+encodeURIComponent('紐崔萊營養品網路商城\n'+url);
+  const response=await fetch('https://is.gd/create.php?format=json&url='+encodeURIComponent(original),{signal:AbortSignal.timeout(4500)});
+  if(response.ok){const data=await response.json();if(data.shorturl && /^https:\/\//.test(data.shorturl))url=data.shorturl;}
+ }catch(e){}
+ const line='https://line.me/R/msg/text/?'+encodeURIComponent('紐崔萊營養品網路商城\n'+url);
+ window.location.href=line;
 }
 
 // 八、頁面初始化：網址預填、綁定按鈕及欄位變更事件。
