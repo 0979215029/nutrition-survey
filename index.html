@@ -6028,7 +6028,7 @@ async function shareShopToLine(){
   const response=await fetch('https://is.gd/create.php?format=json&url='+encodeURIComponent(original),{signal:AbortSignal.timeout(4500)});
   if(response.ok){const data=await response.json();if(data.shorturl && /^https:\/\//.test(data.shorturl))url=data.shorturl;}
  }catch(e){}
- const line='https://line.me/R/msg/text/?'+encodeURIComponent('紐崔萊營養品網路商城\n'+url);
+ const line='https://line.me/R/msg/text/?'+encodeURIComponent('紐崔萊營養品網路商城\n'+url+'\n\n400多種優質產品：\n左上≡是總目錄、中上👤是送貨進度、右上 🛒是結帳\n首次使用先免費註冊，以後只要手機號碼認證即可宅配、商店取貨、刷卡或貨到付款。\n\n★只有這連結網址能訂貨，請放記事本存好。');
  window.location.href=line;
 }
 
