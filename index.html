@@ -5634,9 +5634,10 @@ function drawFactorySection(baseHeight){
  txt('人體',658,54,17,'#fff','center');txt('工廠',658,75,17,'#fff','center');
  ['毛髮','皮膚','骨骼','四肢','血液','器官','抗體','………'].forEach((t,i)=>txt(t,658,132+i*26,i===7?17:23,'#fff','center'));
  function cross(x,y){
-  c.fillStyle='#fff';c.fillRect(x-30,y-27,60,54);
-  c.strokeStyle='#e00000';c.lineWidth=11;c.lineCap='butt';
-  c.beginPath();c.moveTo(x-20,y-20);c.lineTo(x+20,y+20);c.moveTo(x+20,y-20);c.lineTo(x-20,y+20);c.stroke();
+  // X 底端與完整箭頭線保留空隙，不遮線、不切斷線。
+  const cy=y-21, r=12;
+  c.strokeStyle='#e00000';c.lineWidth=8;c.lineCap='butt';
+  c.beginPath();c.moveTo(x-r,cy-r);c.lineTo(x+r,cy+r);c.moveTo(x+r,cy-r);c.lineTo(x-r,cy+r);c.stroke();
  }
  // X 位於文字右邊的箭頭上，不蓋住項目名稱。
  if(num('fat')<1.5 && num('grain')<grainGoal()/2)cross(484,224);
@@ -5647,7 +5648,7 @@ function drawFactorySection(baseHeight){
  const boxY=top+377*scale+8, boxX=26, boxW=canvas.width-52;
  c.save();
  c.lineWidth=3;c.strokeStyle='#d84924';c.fillStyle='#fffbdc';
- c.beginPath();c.roundRect(boxX,boxY,boxW,410,20);c.fill();c.stroke();
+ c.beginPath();c.roundRect(boxX,boxY,boxW,540,20);c.fill();c.stroke();
  const blue='#06368a', red='#b41108', green='#237c20';
  function rich(parts,y,size=56){
    c.font=`bold ${size}px "Microsoft JhengHei", "Noto Sans CJK TC", sans-serif`;
@@ -5672,8 +5673,10 @@ function drawFactorySection(baseHeight){
  rich([['蔬果',green],['就是'],['工人',red],['。']],boxY+171);
  stripe(boxY+237,'#efffe8','#91b688');
  rich([['如果每天需要 '],[fmt(produceGoal),red],[' 份，但你只給 '],[fmt(produce),red],[' 份，那就是 '],[produce<produceGoal?'缺 工':'足 量',produce<produceGoal?red:green,true],['。']],boxY+237,52);
- rich([['長期下來身體自然出現問題，就會產生'],['亞健康',blue]],boxY+302,49);
- rich([['（醫生還診斷不出問題，但會覺得身體不適），'],['所以您想過如何改善嗎？',red]],boxY+365,44);
+ rich([['長期下來身體自然出問題，']],boxY+302,49);
+ rich([['但去醫院檢查，醫生卻查不出病因，']],boxY+365,49);
+ rich([['這就叫『'],['亞健康',blue],['』，再嚴重就是疾病。']],boxY+428,49);
+ rich([['「所以您有想過要如何改善嗎？」',red]],boxY+491,52);
  c.restore();
 }
 
@@ -5731,7 +5734,7 @@ function render(includeFactory=false) {
   const supplementCostY = supplementStartY + Math.max(0, supplementCount - 1) * supplementRowHeight + 200;
   const diagnosisNoticeY = supplementCostY - 60;
   const factoryBaseHeight=Math.max(1180, supplementCostY + 325);
-  canvas.height = factoryBaseHeight + (includeFactory ? 1180 : 0);
+  canvas.height = factoryBaseHeight + (includeFactory ? 1310 : 0);
 
   // 5-2. 清空畫布並準備問卷資料。
   const c = ctx;
