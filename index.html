@@ -96,14 +96,7 @@
 <span class="step-hint">再點一次，</span><button type="button" id="generateButton">產生飲食評估圖</button>
 </div>
 </fieldset>
-<p id="imageStatus" role="status" aria-live="polite">
-</p>
 <div id="resultSection" hidden>
-<div class="actions">
-<span class="step-hint">請拍螢幕或</span><button type="button" class="secondary" id="downloadButton">下載 JPG 圖片</button>
-</div>
-<div class="actions"><button type="button" id="shareJpgButton" style="background:#06a747;color:white;width:100%;padding:14px;border:0;border-radius:10px;font-size:1.3em;font-weight:bold">下載 JPG 並分享到 LINE</button></div>
-<p class="note" id="downloadNotice">本程式如果用LINE開啟，可能無法下載JPG，也無法把JPG傳到LINE，請先螢幕截圖再裁JPG圖後再上傳。</p>
 <!-- preview 保留完整原始 JPG；網頁依區塊顯示。 -->
 <canvas id="preview" width="1500" height="1180" hidden style="display:none"></canvas>
 <div id="assessmentPage" style="background:white">
@@ -111,6 +104,15 @@
 <section id="factorySection" hidden aria-label="人體工廠與營養說明">
 <canvas id="factoryPreview" width="1500" height="1530" style="display:block;width:100%;height:auto" role="img" aria-label="人體工廠圖與說明"></canvas>
 </section>
+<div id="imageActions" style="padding:1px 16px 16px">
+<p id="imageStatus" role="status" aria-live="polite">
+</p>
+<div class="actions">
+<span class="step-hint">請拍螢幕或</span><button type="button" class="secondary" id="downloadButton">下載 JPG 圖片</button>
+</div>
+<div class="actions"><button type="button" id="shareJpgButton" style="background:#06a747;color:white;width:100%;padding:14px;border:0;border-radius:10px;font-size:1.3em;font-weight:bold">下載 JPG 並分享到 LINE</button></div>
+<p class="note" id="downloadNotice">本程式如果用LINE開啟，可能無法下載JPG，也無法把JPG傳到LINE，請先螢幕截圖再裁JPG圖後再上傳。</p>
+</div>
 <canvas id="detailsPreview" width="1500" height="1180" style="display:block;width:100%;height:auto" role="img" aria-label="飲食評估說明與商城 QR 碼"></canvas>
 </div>
 <div id="saveImageArea" hidden>
