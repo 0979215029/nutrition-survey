@@ -104,14 +104,18 @@
 </div>
 <div class="actions"><button type="button" id="shareJpgButton" style="background:#06a747;color:white;width:100%;padding:14px;border:0;border-radius:10px;font-size:1.3em;font-weight:bold">下載 JPG 並分享到 LINE</button></div>
 <p class="note" id="downloadNotice">本程式如果用LINE開啟，可能無法下載JPG，也無法把JPG傳到LINE，請先螢幕截圖再裁JPG圖後再上傳。</p>
-<canvas id="preview" width="1500" height="1180">
-</canvas>
+<!-- preview 保留完整原始 JPG；網頁依區塊顯示。 -->
+<canvas id="preview" width="1500" height="1180" hidden style="display:none"></canvas>
+<div id="assessmentPage" style="background:white">
+<canvas id="pyramidPreview" width="1500" height="895" style="display:block;width:100%;height:auto" role="img" aria-label="飲食金字塔與裁切分隔線"></canvas>
+<section id="factorySection" hidden aria-label="人體工廠與營養說明">
+<canvas id="factoryPreview" width="1500" height="1530" style="display:block;width:100%;height:auto" role="img" aria-label="人體工廠圖與說明"></canvas>
+</section>
+<canvas id="detailsPreview" width="1500" height="1180" style="display:block;width:100%;height:auto" role="img" aria-label="飲食評估說明與商城 QR 碼"></canvas>
+</div>
 <div id="saveImageArea" hidden>
 <img id="saveImage" alt="飲食評估 JPG 圖片" style="width:100%;height:auto;border:1px solid #ddd">
 </div>
-<section id="factorySection" hidden aria-label="人體工廠與營養說明" style="margin-top:20px">
-<canvas id="factoryPreview" width="1500" height="1530" style="display:block;width:100%;height:auto" role="img" aria-label="人體工廠圖與說明"></canvas>
-</section>
 <div id="deficiencyWarning" class="deficiency-warning" role="alert" aria-live="assertive" hidden><p id="genericDeficiencyWarning">長期部分營養缺乏會導致生病</p><div id="deficiencyDetails"></div></div>
 <div id="recommendationsSection" hidden>
 <p>
@@ -5738,7 +5742,9 @@ function render() {
   });
 
   const sectionDividerY = 815;
-  const warningStartY = sectionDividerY + 42;
+  // 分隔線下保留兩行空白（每行 40px），供列印裁切。
+  const cuttingBlankHeight = 2 * 40;
+  const warningStartY = sectionDividerY + cuttingBlankHeight + 42;
   const warningHeight = (warning.general ? 52 : 0) + warningLineSets.reduce((sum, rows) => sum + rows.length * 40 + 10, 0);
   const healthStartY = warningStartY + warningHeight + 36;
   const supplementStartY = healthStartY + 270;
@@ -6065,6 +6071,7 @@ function render() {
     try{c.drawImage(qrImg,qrX,qrY,190,190);}catch(e){}
   }
 
+  updateAssessmentPage(sectionDividerY + cuttingBlankHeight);
   return canvas;
 }
 
@@ -6078,6 +6085,16 @@ function showFactoryOnPage(){
  $('factorySection').hidden=false;
 }
 
+// 僅拆分網頁預覽，JPG 仍使用未含人體工廠的原始畫布。
+function updateAssessmentPage(splitY){
+ const top=$('pyramidPreview'), bottom=$('detailsPreview');
+ top.width=canvas.width;top.height=splitY;
+ bottom.width=canvas.width;bottom.height=canvas.height-splitY;
+ top.getContext('2d').drawImage(canvas,0,0,canvas.width,splitY,0,0,canvas.width,splitY);
+ bottom.getContext('2d').drawImage(canvas,0,splitY,canvas.width,bottom.height,0,0,canvas.width,bottom.height);
+ showFactoryOnPage();
+}
+
 // 七、產生評估圖、預覽及下載 JPG。
 
 // 按下「產生飲食評估圖」後執行。
@@ -6089,10 +6106,9 @@ function generateImage(){
  const status=$('imageStatus');
  if(!v('name').trim()){status.textContent='請先填寫受訪者姓名。';return}
  render();$('resultSection').hidden=false;
- $('factorySection').hidden=true;
  $('recommendationsSection').hidden=false;
  $('saveImageArea').hidden=true;
- $('recommendationsSection').scrollIntoView({behavior:'smooth',block:'nearest'});
+ $('assessmentPage').scrollIntoView({behavior:'smooth',block:'start'});
  status.textContent='飲食評估圖已產生，請下載 JPG 並回傳給問卷者。';
 }
 
@@ -6107,7 +6123,6 @@ function showSaveImage(){
 // 下載 JPG：處理一般瀏覽器與 LINE 內建瀏覽器。
 function downloadJpg(){
  render();
- showFactoryOnPage();
  const fileName=`健康飲食金字塔_${(v('name')||'受訪者').replace(/[\\/:*?"<>|]/g,'_')}.jpg`;
  // LINE 常會阻止輸出為圖檔，建議用螢幕拍照儲存。
  const inApp=/Line\//i.test(navigator.userAgent)||/\bLIFF\b/i.test(navigator.userAgent);
@@ -6132,7 +6147,6 @@ async function shareJpgToLine(){
  button.disabled=true;
  try{
   render();
-  showFactoryOnPage();
   const filename=`健康飲食金字塔_${(v('name')||'受訪者').replace(/[\\/:*?"<>|]/g,'_')}.jpg`;
   const dataUrl=canvas.toDataURL('image/jpeg',0.95);
   const binary=atob(dataUrl.split(',')[1]);
