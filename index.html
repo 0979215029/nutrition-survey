@@ -5604,10 +5604,10 @@ function drawFactorySection(baseHeight){
  const proteinGoal=num('weight')/7;
  const signed=(a,b)=>{const d=a-b;return (d>=0?'+':'−')+fmt(Math.abs(d));};
  function labelBox(x,y,w,h,content){
-   c.fillStyle='#fff';c.fillRect(x*scale,top+y*scale,w*scale,h*scale);
+   c.fillStyle='#fffbdc';c.fillRect(x*scale,top+y*scale,w*scale,h*scale);
    c.strokeStyle='#bd3030';c.lineWidth=1.4;c.strokeRect(x*scale,top+y*scale,w*scale,h*scale);
    c.fillStyle='#a51d19';c.textAlign='center';c.textBaseline='middle';
-   c.font='bold 22px Arial, sans-serif';
+   c.font='bold 42px "Microsoft JhengHei", sans-serif';
    c.fillText(content,(x+w/2)*scale,top+(y+h/2)*scale,(w-4)*scale);
    c.textAlign='left';c.textBaseline='alphabetic';
  }
@@ -5621,20 +5621,38 @@ function drawFactorySection(baseHeight){
  if(num('fat')<1.5 && num('grain')<grainGoal()/2)cross(266,238);
  if(num('produce')<produceGoal/2)cross(257,320);
  if(num('water')<num('weight')*35/2)cross(250,370);
- const y=top+429*scale+42;
- c.fillStyle='#20352b';c.textAlign='left';c.textBaseline='alphabetic';
- c.font='bold 32px Arial, sans-serif';
- c.fillText('人體工廠｜每日營養攝取說明',65,y);
- c.font='27px Arial, sans-serif';
- const explanations=[
-  '原料（蛋白質）：顯示每日攝取與需求的差額／每日需求量。',
-  '工人（維生素、礦物質）：以蔬果份數估算，顯示差額／每日需求量。',
-  '動能：油脂及五穀雜糧皆低於需求的一半時標示紅色 X。',
-  '垃圾袋：蔬果低於每日需求的一半時標示紅色 X。',
-  '清潔、代謝：飲水低於每日需求的一半時標示紅色 X。',
-  '紅色 X 代表本問卷估算的攝取不足，並非疾病診斷。'
- ];
- explanations.forEach((line,i)=>c.fillText(line,65,y+58+i*48));
+ // 依參考截圖繪製說明框，數值連動問卷資料。
+ const boxY=top+429*scale+8, boxX=26, boxW=canvas.width-52;
+ c.save();
+ c.lineWidth=3;c.strokeStyle='#d84924';c.fillStyle='#fffbdc';
+ c.beginPath();c.roundRect(boxX,boxY,boxW,410,20);c.fill();c.stroke();
+ const blue='#06368a', red='#b41108', green='#237c20';
+ function rich(parts,y,size=46){
+   c.font=`bold ${size}px "Microsoft JhengHei", "Noto Sans CJK TC", sans-serif`;
+   const width=parts.reduce((n,p)=>n+c.measureText(p[0]).width,0);
+   const fit=Math.min(1,(boxW-78)/width);
+   c.save();c.translate(boxX+39,y);c.scale(fit,1);
+   c.textAlign='left';c.textBaseline='middle';
+   let x=0;
+   parts.forEach(([t,color,badge])=>{
+     const w=c.measureText(t).width;
+     if(badge){c.fillStyle='#fff000';c.strokeStyle='#e33c1b';c.lineWidth=3;
+       c.beginPath();c.roundRect(x-8,-28,w+16,56,7);c.fill();c.stroke();}
+     c.fillStyle=color||'#111';c.fillText(t,x,0);x+=w;
+   });c.restore();
+ }
+ function stripe(y,fill,stroke){c.fillStyle=fill;c.strokeStyle=stroke;c.lineWidth=1.5;
+ c.beginPath();c.roundRect(boxX+29,y-28,boxW-58,56,7);c.fill();c.stroke();}
+ const protein=num('protein'),produce=num('produce');
+ rich([['人體如房子，'],['蛋白質',blue],['就是'],['水泥砂漿',red],['。']],boxY+39);
+ stripe(boxY+105,'#e8f5ff','#6c9ab5');
+ rich([['如果每天需要 '],[fmt(proteinGoal),red],[' 份，但你只給 '],[fmt(protein),red],[' 份，那就是 '],[protein<proteinGoal?'缺 料':'足 量',protein<proteinGoal?red:green,true],['。']],boxY+105,43);
+ rich([['蔬果',green],['就是'],['工人',red],['。']],boxY+171);
+ stripe(boxY+237,'#efffe8','#91b688');
+ rich([['如果每天需要 '],[fmt(produceGoal),red],[' 份，但你只給 '],[fmt(produce),red],[' 份，那就是 '],[produce<produceGoal?'缺 工':'足 量',produce<produceGoal?red:green,true],['。']],boxY+237,43);
+ rich([['長期下來身體自然出現問題，就會產生'],['亞健康',blue]],boxY+302,42);
+ rich([['（醫生還診斷不出問題，但會覺得身體不適），'],['所以您想過如何改善嗎？',red]],boxY+365,37);
+ c.restore();
 }
 
 
@@ -5691,7 +5709,7 @@ function render(includeFactory=false) {
   const supplementCostY = supplementStartY + Math.max(0, supplementCount - 1) * supplementRowHeight + 200;
   const diagnosisNoticeY = supplementCostY - 60;
   const factoryBaseHeight=Math.max(1180, supplementCostY + 325);
-  canvas.height = factoryBaseHeight + (includeFactory ? 1450 : 0);
+  canvas.height = factoryBaseHeight + (includeFactory ? 1580 : 0);
 
   // 5-2. 清空畫布並準備問卷資料。
   const c = ctx;
