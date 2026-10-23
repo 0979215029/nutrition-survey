@@ -5640,43 +5640,51 @@ function drawFactorySection(baseHeight){
   c.beginPath();c.moveTo(x-r,cy-r);c.lineTo(x+r,cy+r);c.moveTo(x+r,cy-r);c.lineTo(x-r,cy+r);c.stroke();
  }
  // X 位於文字右邊的箭頭上，不蓋住項目名稱。
- if(num('fat')<1.5 && num('grain')<grainGoal()/2)cross(484,224);
+ if(num('fat')<1.5 && num('grain')<grainGoal()/2)cross(510,224);
  if(num('produce')<produceGoal/2)cross(510,301);
- if(num('water')<num('weight')*35/2)cross(512,344);
+ if(num('water')<num('weight')*35/2)cross(510,344);
  c.restore();
- // 依參考截圖繪製說明框，數值連動問卷資料。
+ // 依確認樣式繪製說明框，文字和狀態連動問卷資料。
  const boxY=top+377*scale+8, boxX=26, boxW=canvas.width-52;
  c.save();
  c.lineWidth=3;c.strokeStyle='#d84924';c.fillStyle='#fffbdc';
- c.beginPath();c.roundRect(boxX,boxY,boxW,540,20);c.fill();c.stroke();
+ c.beginPath();c.roundRect(boxX,boxY,boxW,760,20);c.fill();c.stroke();
  const blue='#06368a', red='#b41108', green='#237c20';
+ const fontFamily='"Microsoft JhengHei", "Noto Sans CJK TC", sans-serif';
  function rich(parts,y,size=56){
-   c.font=`bold ${size}px "Microsoft JhengHei", "Noto Sans CJK TC", sans-serif`;
-   const width=parts.reduce((n,p)=>n+c.measureText(p[0]).width,0);
+   const entries=parts.map(([t,color,badge])=>{
+     const fontSize=badge?Math.round(size*1.48):size;
+     c.font=`bold ${fontSize}px ${fontFamily}`;
+     return {t,color,badge,fontSize,width:c.measureText(t).width+(badge?30:0)};
+   });
+   const width=entries.reduce((n,p)=>n+p.width,0);
    const fit=Math.min(1,(boxW-78)/width);
    c.save();c.translate(boxX+39,y);c.scale(fit,1);
-   c.textAlign='left';c.textBaseline='middle';
-   let x=0;
-   parts.forEach(([t,color,badge])=>{
-     const w=c.measureText(t).width;
+   c.textAlign='left';c.textBaseline='middle';let x=0;
+   entries.forEach(({t,color,badge,fontSize,width})=>{
+     c.font=`bold ${fontSize}px ${fontFamily}`;
      if(badge){c.fillStyle='#fff000';c.strokeStyle='#e33c1b';c.lineWidth=3;
-       c.beginPath();c.roundRect(x-8,-28,w+16,56,7);c.fill();c.stroke();}
-     c.fillStyle=color||'#111';c.fillText(t,x,0);x+=w;
+       c.beginPath();c.roundRect(x,-fontSize*.61,width,fontSize*1.22,16);c.fill();c.stroke();}
+     c.fillStyle=color||'#111';c.fillText(t,x+(badge?15:0),0);x+=width;
    });c.restore();
  }
- function stripe(y,fill,stroke){c.fillStyle=fill;c.strokeStyle=stroke;c.lineWidth=1.5;
- c.beginPath();c.roundRect(boxX+29,y-28,boxW-58,56,7);c.fill();c.stroke();}
  const protein=num('protein'),produce=num('produce');
- rich([['人體如房子，'],['蛋白質',blue],['就是'],['水泥砂漿',red],['。']],boxY+39);
- stripe(boxY+105,'#e8f5ff','#6c9ab5');
- rich([['如果每天需要 '],[fmt(proteinGoal),red],[' 份，但你只給 '],[fmt(protein),red],[' 份，那就是 '],[protein<proteinGoal?'缺 料':'足 量',protein<proteinGoal?red:green,true],['。']],boxY+105,52);
- rich([['蔬果',green],['就是'],['工人',red],['。']],boxY+171);
- stripe(boxY+237,'#efffe8','#91b688');
- rich([['如果每天需要 '],[fmt(produceGoal),red],[' 份，但你只給 '],[fmt(produce),red],[' 份，那就是 '],[produce<produceGoal?'缺 工':'足 量',produce<produceGoal?red:green,true],['。']],boxY+237,52);
- rich([['長期下來身體自然出問題，']],boxY+302,49);
- rich([['但去醫院檢查，醫生卻查不出病因，']],boxY+365,49);
- rich([['這就叫『'],['亞健康',blue],['』，再嚴重就是疾病。']],boxY+428,49);
- rich([['「所以您有想過要如何改善嗎？」',red]],boxY+491,52);
+ const lacksProtein=protein<proteinGoal,lacksProduce=produce<produceGoal;
+ rich([['人體如蓋房子，']],boxY+45);
+ rich([['蛋白質',blue],['就是'],['水泥砂漿',red],['。']],boxY+110);
+ rich([['如果每天需要 '],[fmt(proteinGoal),red],[' 份，但你只給 '],[fmt(protein),red],[' 份，那就是 '],[lacksProtein?'缺料':'足量',lacksProtein?red:green,true],['。']],boxY+200,52);
+ rich([['蔬果',green],['就是'],['工人',red],['。']],boxY+290);
+ rich([['如果每天需要 '],[fmt(produceGoal),red],[' 份，但你只給 '],[fmt(produce),red],[' 份，那就是 '],[lacksProduce?'缺工':'足量',lacksProduce?red:green,true],['。']],boxY+380,52);
+ const shortageWords=[lacksProduce?'缺工':'',lacksProtein?'缺料':''].filter(Boolean).join('又');
+ if(shortageWords){
+   rich([['如果'+shortageWords+'，長期下來身體自然出問題，']],boxY+465,49);
+   rich([['但去醫院檢查，醫生卻查不出病因，']],boxY+525,49);
+   rich([['這就叫『'],['亞健康',blue],['』，再嚴重就是疾病。']],boxY+585,49);
+ }else{
+   rich([['蛋白質與蔬果攝取已達本問卷設定需求。',green]],boxY+465,49);
+ }
+ rich([['所以您有想過要如何改善嗎？',red,true]],boxY+690,58);
+
  c.restore();
 }
 
@@ -5734,7 +5742,7 @@ function render(includeFactory=false) {
   const supplementCostY = supplementStartY + Math.max(0, supplementCount - 1) * supplementRowHeight + 200;
   const diagnosisNoticeY = supplementCostY - 60;
   const factoryBaseHeight=Math.max(1180, supplementCostY + 325);
-  canvas.height = factoryBaseHeight + (includeFactory ? 1310 : 0);
+  canvas.height = factoryBaseHeight + (includeFactory ? 1530 : 0);
 
   // 5-2. 清空畫布並準備問卷資料。
   const c = ctx;
