@@ -107,7 +107,7 @@
 <div class="actions">
 <span class="step-hint">請拍螢幕或</span><button type="button" class="secondary" id="downloadButton">下載 JPG 圖片</button>
 </div>
-<div class="actions"><button type="button" id="shareJpgButton" style="background:#06a747;color:white;width:100%;padding:14px;border:0;border-radius:10px;font-size:1.3em;font-weight:bold">把 JPG 圖片傳到 LINE</button></div>
+<div class="actions"><button type="button" id="shareJpgButton" style="background:#06a747;color:white;width:100%;padding:14px;border:0;border-radius:10px;font-size:1.3em;font-weight:bold">下載 JPG 並分享到 LINE</button></div>
 <p class="note" id="downloadNotice">本程式如果用LINE開啟，可能無法下載JPG，也無法把JPG傳到LINE，請先螢幕截圖再裁JPG圖後再上傳。</p>
 <canvas id="preview" width="1500" height="1180">
 </canvas>
@@ -6004,20 +6004,42 @@ function downloadJpg(){
  },'image/jpeg',0.95);
 }
 
-// LINE 圖片分享：傳送真正的 JPG 檔案，避免分享問卷網址。
+// 先同步啟動下載，再於同一次點擊開啟系統圖片分享。
+// 網頁無法確認手機下載完成，也無法指定系統分享選單中的 LINE。
+let sharingJpg = false;
 async function shareJpgToLine(){
- render();
- const filename=`健康飲食金字塔_${(v('name')||'受訪者').replace(/[\\/:*?"<>|]/g,'_')}.jpg`;
- canvas.toBlob(async blob=>{
-  if(!blob){alert('圖片產生失敗，請先下載 JPG。');return;}
-  const file=new File([blob],filename,{type:'image/jpeg'});
-  try{
-   if(navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))){
-    await navigator.share({files:[file]});return;
-   }
-  }catch(e){if(e.name==='AbortError')return;}
-  alert('此瀏覽器無法直接分享 JPG。請先點「下載 JPG 圖片」，再從 LINE 傳送該圖片。');
- },'image/jpeg',0.95);
+ if(sharingJpg)return;
+ sharingJpg=true;
+ const button=$('shareJpgButton');
+ button.disabled=true;
+ try{
+  render();
+  const filename=`健康飲食金字塔_${(v('name')||'受訪者').replace(/[\\/:*?"<>|]/g,'_')}.jpg`;
+  const dataUrl=canvas.toDataURL('image/jpeg',0.95);
+  const binary=atob(dataUrl.split(',')[1]);
+  const bytes=new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+  const file=new File([bytes],filename,{type:'image/jpeg'});
+  const url=URL.createObjectURL(file);
+  const link=document.createElement('a');
+  link.href=url;link.download=filename;
+  document.body.appendChild(link);
+  try{link.click();}finally{
+   link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+  }
+  // 不等待下載回呼，保留手機瀏覽器要求的使用者點擊權限。
+  if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+   try{await navigator.share({files:[file]});return;}
+   catch(error){if(error.name==='AbortError')return;}
+  }
+  $('saveImage').src=dataUrl;
+  $('saveImageArea').hidden=false;
+  $('downloadNotice').textContent='已啟動 JPG 下載；此瀏覽器無法開啟圖片分享。請從手機下載資料夾選取圖片傳到 LINE；若未下載成功，請長按下方圖片儲存，或用 Chrome 開啟。';
+ }catch(error){
+  $('downloadNotice').textContent='JPG 產生或下載失敗，請重新產生評估圖後再試。';
+ }finally{
+  sharingJpg=false;button.disabled=false;
+ }
 }
 // 商城分享：永遠取商城按鈕目前的 href，不使用問卷網址。
 // 縮網址需外部服務；優先嘗試 is.gd，失敗時使用完整有效網址。
