@@ -5746,27 +5746,25 @@ function drawFactorySection(baseHeight,targetCanvas){
  const protein=num('protein'),produce=num('produce');
  function comparison(goal,actual,shortLabel){
    const difference=Math.round((actual-goal)*10)/10;
-   const status=difference<0?shortLabel:difference>0?'過量':'足量';
-   const color=difference===0?green:red;
-   const detail=difference<0?`而你缺 ${fmt(-difference)} 份`:
-     difference>0?`而你多 ${fmt(difference)} 份`:'而你剛好達到需求';
-   return [['你每天需要 '],[fmt(goal),red],[' 份，'+detail+'，那就是 '],[status,color,true]];
+   if(difference>=0){
+     return [['你每天需要 '],[fmt(goal),red],[' 份，你攝取量足夠',green]];
+   }
+   return [['你每天需要 '],[fmt(goal),red],[' 份，而你缺 '+fmt(-difference)+' 份，那就是 '],[shortLabel,red,true]];
  }
  rich([['人體如蓋房子，']],boxY+45);
  rich([['蛋白質',blue],['就像'],['水泥砂漿',red],['：']],boxY+110);
  rich(comparison(proteinGoal,protein,'缺料'),boxY+200,52);
  rich([['蔬果',green],['就像'],['工人',red],['：']],boxY+290);
  rich(comparison(produceGoal,produce,'缺工'),boxY+380,52);
- const unbalanced=Math.abs(protein-proteinGoal)>=.05||Math.abs(produce-produceGoal)>=.05;
+ const unbalanced=Math.round((protein-proteinGoal)*10)<0||Math.round((produce-produceGoal)*10)<0;
  if(unbalanced){
    rich([['長期飲食不均衡，會影響健康，而且身體不適醫生也查不出']],boxY+525,49);
    rich([['原因，就是所謂的『'],['亞健康',blue,false,true],['』']],boxY+585,49);
    rich([['如果繼續維持這樣吃就會造成『'],['疾病',red,false,true],['』']],boxY+640,49);
+   rich([['所以您有想過要如何改善嗎？',red,true,'full']],boxY+690,58);
  }else{
-   rich([['蛋白質與蔬果攝取符合本問卷設定需求，']],boxY+465,49);
-   rich([['請持續維持均衡飲食。',green]],boxY+525,49);
+   rich([['您的蛋白質和蔬果足夠，請繼續維持，也可以補充營養食品，讓身體更健康。',green]],boxY+465,49);
  }
- rich([['所以您有想過要如何改善嗎？',red,true,'full']],boxY+690,58);
  c.fillStyle='#fffbdc';c.strokeStyle='#d84924';c.lineWidth=3;
  c.beginPath();c.roundRect(boxX,boxY,boxW,factoryCursor-boxY+16,20);c.fill();c.stroke();
  factoryRows.forEach(row=>{
