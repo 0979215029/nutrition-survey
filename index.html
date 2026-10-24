@@ -5507,7 +5507,7 @@ function calculateNutritionPlan(){
  const doubleServings=adult?(num('produce')>pg/2?1:2):0; // 問卷自訂規則：蔬果攝取超過建議量一半，早餐1份；否則早晚各1份
  const rows=[];
  if(proteinSpoons)rows.push({name:'紐崔萊優質蛋白素－全植物配方',morning:proteinMorning,lunch:proteinLunch,evening:proteinMorning,unit:'匙',price:21,units:1});
- if(doubleServings)rows.push({name:'紐崔萊 DOUBLE X 蔬果綜合營養片',morning:1,lunch:0,evening:doubleServings===2?1:0,unit:'份（3顆）',price:35.5,units:1});
+ if(doubleServings)rows.push({name:'紐崔萊DOUBLE X蔬果綜合營養片',morning:1,lunch:0,evening:doubleServings===2?1:0,unit:'份（3顆）',price:35.5,units:1});
  const money=(items)=>items.every(r=>r.price>0&&r.units>0)?items.reduce((sum,r)=>sum+r.price/r.units*(r.qty||0),0):null;
  const breakfast=money(rows.map(r=>({...r,qty:r.morning})).filter(r=>r.qty));
  const lunch=money(rows.map(r=>({...r,qty:r.lunch||0})).filter(r=>r.qty));
@@ -5787,7 +5787,7 @@ function render() {
   // 分隔線下保留兩行空白（每行 40px），供列印裁切。
   const cuttingBlankHeight = 2 * 40;
   const warningStartY = sectionDividerY + cuttingBlankHeight + 55;
-  const warningHeight = (warning.general ? 70 : 0) + warningLineSets.reduce((sum, rows) => sum + rows.length * 86 + 24, 0);
+  const warningHeight = (warning.general ? 115 : 0) + warningLineSets.reduce((sum, rows) => sum + rows.length * 86 + 24, 0);
   const healthStartY = warningStartY + warningHeight + 36;
   // 依實際換行數安排說明，短內容不再保留整段空白。
   function rowCount(value,width,size){
@@ -5802,7 +5802,7 @@ function render() {
   const symptomText=`不適狀況：${selectedValues('symChoice','symOther')}`;
   const symptomY=healthStartY+rowCount(medText,1000,40)*86+14;
   const bmiY=symptomY+rowCount(symptomText,1000,40)*86+14;
-  const headingY=Math.max(bmiY+90,healthStartY+310);
+  const headingY=Math.max(bmiY+90,healthStartY+420);
   const supplementHeading='【營養補充建議：再加大燕麥片和橄欖油】';
   // 右側保留 QR 與標題的專用區域。
   const supplementStartY=headingY+rowCount(supplementHeading,1400,40)*86+20;
@@ -5815,10 +5815,13 @@ function render() {
     const meal=separator>=0?item.slice(separator+1).trim():'';
     const title=`${index+1}. ${price}`;
     const y=nextSupplementY;
-    const priceHeight=rowCount(title,canvas.width-100,40)*86;
+    // 單價與分號同列，避免只剩分號換到下一行。
+    ctx.font="66px Arial, 'Noto Sans TC', sans-serif";
+    const titleSize=Math.min(40,40*(canvas.width-110)/Math.max(1,ctx.measureText(title).width));
+    const priceHeight=86;
     const mealY=y+priceHeight+4;
     nextSupplementY=meal?mealY+rowCount(meal,canvas.width-140,40)*86+22:y+priceHeight+22;
-    return {title,meal,y,mealY};
+    return {title,titleSize,meal,y,mealY};
   });
   const diagnosisNoticeY=nextSupplementY+10;
   const supplementCostY=diagnosisNoticeY+90;
@@ -6084,8 +6087,8 @@ function render() {
   const bmi = num('height') ? fmt(weight / (num('height') / 100) ** 2) : 0;
   text(`BMI ${bmi}（僅供參考）`,48,bmiY,40,'#555');
   lines(supplementHeading,48,headingY,1400,40,86,100,'#26783a',true);
-  supplementLayout.forEach(({title,meal,y,mealY})=>{
-    lines(title,48,y,canvas.width-100,40,86,100);
+  supplementLayout.forEach(({title,titleSize,meal,y,mealY})=>{
+    text(title,48,y,titleSize);
     if(meal)lines(meal,76,mealY,canvas.width-140,40,86,100);
   });
 
@@ -6097,9 +6100,9 @@ function render() {
   let warningTextY = warningStartY;
   if (warning.general) {
     c.textAlign = 'center';
-    text('長期部分營養缺乏會導致生病', 750, warningTextY, 40, '#c00000', true);
+    text('長期部分營養缺乏會導致疾病', 750, warningTextY, 60, '#c00000', true);
     c.textAlign = 'start';
-    warningTextY += 70;
+    warningTextY += 115;
   }
   warningLineSets.forEach(rows => {
     rows.forEach(row => {
@@ -6109,13 +6112,13 @@ function render() {
     warningTextY += 24;
   });
   // 商城 QR 碼位於健康資料右側，對應圈選區域。
-  const qrX=canvas.width-355, qrY=healthStartY+50;
+  const qrX=canvas.width-355, qrY=healthStartY+60;
   // 商城區塊上移至營養補充建議右側空白區，左側原有文字不移動。
   text('安麗紐崔萊購物商城', qrX-10, qrY-48, 22, '#26783a', true);
   text('右上方≡是總目錄',qrX-10,qrY-16,19,'#444');
   const qrImg=shopQRCanvas||fallbackQR;
   if(qrImg && (qrImg.complete!==false || qrImg.width>0)){
-    try{c.drawImage(qrImg,qrX,qrY,190,190);}catch(e){}
+    try{c.drawImage(qrImg,qrX,qrY,270,270);}catch(e){}
   }
 
   updateAssessmentPage(sectionDividerY + cuttingBlankHeight);
