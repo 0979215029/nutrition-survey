@@ -5835,7 +5835,7 @@ function render() {
   const cuttingBlankHeight = 2 * 40;
   const warningStartY = sectionDividerY + cuttingBlankHeight + 120;
   const warningHeight = (warning.general ? 115 : 0) + warningLineSets.reduce((sum, rows) => sum + rows.length * 86 + 24, 0);
-  const healthStartY = warningStartY + warningHeight + 190;
+  const healthStartY = warningStartY + warningHeight + 60;
   // 依實際換行數安排說明，短內容不再保留整段空白。
   function rowCount(value,width,size){
     ctx.font=`${Math.round(size*1.65)}px Arial, 'Noto Sans TC', sans-serif`;
