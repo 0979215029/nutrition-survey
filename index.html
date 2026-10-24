@@ -97,7 +97,7 @@
 </div>
 </fieldset>
 <div id="resultSection" hidden>
-<!-- preview 保留完整原始 JPG；網頁依區塊顯示。 -->
+<!-- preview 包含完整輸出 JPG；網頁依區塊顯示。 -->
 <canvas id="preview" width="1500" height="1180" hidden style="display:none"></canvas>
 <div id="assessmentPage" style="background:white">
 <canvas id="pyramidPreview" width="1500" height="895" style="display:block;width:100%;height:auto" role="img" aria-label="飲食金字塔與裁切分隔線"></canvas>
@@ -5770,13 +5770,39 @@ function render() {
   const warningStartY = sectionDividerY + cuttingBlankHeight + 55;
   const warningHeight = (warning.general ? 70 : 0) + warningLineSets.reduce((sum, rows) => sum + rows.length * 56 + 16, 0);
   const healthStartY = warningStartY + warningHeight + 36;
-  const supplementStartY = healthStartY + 410;
-  const supplementRowHeight = 270;
-  const supplementCount = Math.min(5, calculateNutritionPlan().rows.length);
-  const supplementCostY = supplementStartY + Math.max(0, supplementCount - 1) * supplementRowHeight + 270;
-  const diagnosisNoticeY = supplementCostY - 60;
-  const factoryBaseHeight=Math.max(1180, supplementCostY + 430);
-  canvas.height = factoryBaseHeight;
+  // 依實際換行數安排說明，短內容不再保留整段空白。
+  function rowCount(value,width,size){
+    ctx.font=`${Math.round(size*1.65)}px Arial, 'Noto Sans TC', sans-serif`;
+    let count=1,line='';
+    for(const ch of String(value)){
+      if(line && ctx.measureText(line+ch).width>width){count++;line=ch;}else line+=ch;
+    }
+    return count;
+  }
+  const medText=`日常用藥：${selectedValues('medChoice','medOther')}`;
+  const symptomText=`不適狀況：${selectedValues('symChoice','symOther')}`;
+  const symptomY=healthStartY+rowCount(medText,1000,28)*54+14;
+  const bmiY=symptomY+rowCount(symptomText,1000,28)*54+14;
+  const headingY=bmiY+65;
+  // 右側保留 QR 與標題的專用區域。
+  const supplementStartY=Math.max(headingY+75,healthStartY+310);
+  const plan=updateNutritionPlan();
+  const supplements=v('supplements').split('\n').filter(Boolean).slice(0,5);
+  let nextSupplementY=supplementStartY;
+  const supplementLayout=supplements.map((item,index)=>{
+    const separator=item.indexOf('；');
+    const price=separator>=0?item.slice(0,separator+1):item;
+    const meal=separator>=0?item.slice(separator+1).trim():'';
+    const title=`${index+1}. ${price}`;
+    const y=nextSupplementY;
+    const priceHeight=rowCount(title,canvas.width-100,30)*60;
+    const mealY=y+priceHeight+4;
+    nextSupplementY=meal?mealY+rowCount(meal,canvas.width-140,30)*60+22:y+priceHeight+22;
+    return {title,meal,y,mealY};
+  });
+  const diagnosisNoticeY=nextSupplementY+10;
+  const supplementCostY=diagnosisNoticeY+56;
+  canvas.height=Math.ceil(supplementCostY+55);
 
   // 5-2. 清空畫布並準備問卷資料。
   const c = ctx;
@@ -6032,27 +6058,16 @@ function render() {
 
   // 5-6. 健康資料與補充建議；橫線作為上下區塊分界。
   rule(45, sectionDividerY, 1405);
-  lines(`日常用藥：${selectedValues('medChoice','medOther')}`, 48, healthStartY + 0, 1330, 28, 54, 2);
-  lines(`不適狀況：${selectedValues('symChoice','symOther')}`, 48, healthStartY + 130, 1330, 28, 54, 2);
+  lines(medText,48,healthStartY,1000,28,54,100);
+  lines(symptomText,48,symptomY,1000,28,54,100);
   const bmi = num('height') ? fmt(weight / (num('height') / 100) ** 2) : 0;
-  text(`BMI ${bmi}（僅供參考）`, 48, healthStartY + 250, 28, '#555');
-  text('【營養補充建議】', 48, healthStartY + 330, 32, '#26783a', true);
-
-  const plan = updateNutritionPlan();
-  const supplements = v('supplements').split('\n').filter(Boolean).slice(0, 5);
-  supplements.forEach((item, index) => {
-    const y = supplementStartY + index * supplementRowHeight;
-    // 單價後的早餐／中餐／晚餐用量固定從下一行開始，避免右側文字被裁切。
-    const separator = item.indexOf('；');
-    if (separator >= 0) {
-      const pricePart = item.slice(0, separator + 1);
-      const mealPart = item.slice(separator + 1).trim();
-      lines(`${index + 1}. ${pricePart}`, 48, y, canvas.width - 100, 30, 60, 2);
-      lines(mealPart, 76, y + 120, canvas.width - 140, 30, 60, 2);
-    } else {
-      lines(`${index + 1}. ${item}`, 48, y, canvas.width - 100, 30, 60, 4);
-    }
+  text(`BMI ${bmi}（僅供參考）`,48,bmiY,28,'#555');
+  text('【營養補充建議】',48,headingY,32,'#26783a',true);
+  supplementLayout.forEach(({title,meal,y,mealY})=>{
+    lines(title,48,y,canvas.width-100,30,60,100);
+    if(meal)lines(meal,76,mealY,canvas.width-140,30,60,100);
   });
+
   text(
     `早餐費用：${plan.breakfast === null ? '無法計算' : 'NT$ ' + plan.breakfast.toFixed(1)}　中餐費用：${plan.lunch === null ? '無法計算' : 'NT$ ' + plan.lunch.toFixed(1)}　晚餐費用：${plan.dinner === null ? '無法計算' : 'NT$ ' + plan.dinner.toFixed(1)}`,
     48,
@@ -6077,8 +6092,8 @@ function render() {
     });
     warningTextY += 16;
   });
-  // JPG 底部右側：商城 QR 碼（與 shop 參數對應）。
-  const qrX=canvas.width-355, qrY=supplementCostY+140;
+  // 商城 QR 碼位於健康資料右側，對應圈選區域。
+  const qrX=canvas.width-355, qrY=healthStartY+50;
   // 商城區塊上移至營養補充建議右側空白區，左側原有文字不移動。
   text('安麗紐崔萊購物商城', qrX-10, qrY-48, 22, '#26783a', true);
   text('右上方≡是總目錄',qrX-10,qrY-16,19,'#444');
@@ -6091,7 +6106,7 @@ function render() {
   return canvas;
 }
 
-// 人體工廠僅供網頁觀看；與下載及分享使用的 preview 畫布完全分開。
+// 先繪製人體工廠與說明，再供網頁預覽及 JPG 合成共用。
 function showFactoryOnPage(){
  const target=$('factoryPreview');
  target.width=1500;target.height=4000;
@@ -6104,7 +6119,7 @@ function showFactoryOnPage(){
  $('factorySection').hidden=false;
 }
 
-// 僅拆分網頁預覽，JPG 仍使用未含人體工廠的原始畫布。
+// 網頁保留操作按鈕；JPG 合成金字塔、人體工廠及說明、原補充說明。
 function updateAssessmentPage(splitY){
  const top=$('pyramidPreview'), bottom=$('detailsPreview');
  top.width=canvas.width;top.height=splitY;
@@ -6112,6 +6127,13 @@ function updateAssessmentPage(splitY){
  top.getContext('2d').drawImage(canvas,0,0,canvas.width,splitY,0,0,canvas.width,splitY);
  bottom.getContext('2d').drawImage(canvas,0,splitY,canvas.width,bottom.height,0,0,canvas.width,bottom.height);
  showFactoryOnPage();
+ const factory=$('factoryPreview');
+ canvas.height=top.height+factory.height+bottom.height;
+ const output=canvas.getContext('2d');
+ output.fillStyle='#fff';output.fillRect(0,0,canvas.width,canvas.height);
+ output.drawImage(top,0,0);
+ output.drawImage(factory,0,top.height);
+ output.drawImage(bottom,0,top.height+factory.height);
 }
 
 // 七、產生評估圖、預覽及下載 JPG。
