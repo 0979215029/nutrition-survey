@@ -5500,8 +5500,10 @@ function calculateNutritionPlan(){
  // 僅成年問卷使用搭配；未成年不自動建議用量。
  const adult=!v('age').trim() || age>=18; // 年齡未填時仍顯示補充建議；明確未成年則不自動推薦
  const proteinSpoons=adult&&proteinGap>0?Math.ceil(proteinGap/2):0;
- const proteinMorning=Math.min(proteinSpoons,3);
- const proteinLunch=Math.max(0,proteinSpoons-3)*2;
+ // 保留每日總匙數；早晚各超過3匙時，將總量平均分配到三餐。
+ const proteinTotal=proteinSpoons*2;
+ const proteinMorning=proteinSpoons>3?Math.round(proteinTotal/3*100)/100:proteinSpoons;
+ const proteinLunch=proteinSpoons>3?Math.round((proteinTotal-proteinMorning*2)*100)/100:0;
  const doubleServings=adult?(num('produce')>pg/2?1:2):0; // 問卷自訂規則：蔬果攝取超過建議量一半，早餐1份；否則早晚各1份
  const rows=[];
  if(proteinSpoons)rows.push({name:'紐崔萊優質蛋白素－全植物配方',morning:proteinMorning,lunch:proteinLunch,evening:proteinMorning,unit:'匙',price:21,units:1});
@@ -5510,15 +5512,23 @@ function calculateNutritionPlan(){
  const breakfast=money(rows.map(r=>({...r,qty:r.morning})).filter(r=>r.qty));
  const lunch=money(rows.map(r=>({...r,qty:r.lunch||0})).filter(r=>r.qty));
  const dinner=money(rows.map(r=>({...r,qty:r.evening})).filter(r=>r.qty));
- const fmtPrice=n=>n===null?'無法計算':'NT$ '+n.toFixed(1);
- return {rows,breakfast,lunch,dinner,description:rows.length?rows.map(r=>`${r.name}：每${r.unit==='匙'?'匙':'份'}NT$${(r.price/r.units).toFixed(2)}；早餐 ${r.morning}${r.unit}、中餐 ${r.lunch||0}${r.unit}、晚餐 ${r.evening}${r.unit}`).join('\n'):'目前無建議商品'};
+ return {rows,breakfast,lunch,dinner,description:rows.length?rows.map(r=>{
+   const meals=[['早餐',r.morning],['中餐',r.lunch],['晚餐',r.evening]]
+     .filter(([,quantity])=>quantity>0).map(([label,quantity])=>`${label}${quantity}${r.unit}`).join('、');
+   return `${r.name}：每${r.unit==='匙'?'匙':'份'}${Math.ceil(r.price/r.units)}元；${meals}`;
+ }).join('\n'):'目前無建議商品'};
+}
+
+function nutritionCostText(plan){
+ return [['早餐',plan.breakfast],['中餐',plan.lunch],['晚餐',plan.dinner]]
+   .map(([meal,cost])=>`${meal}費用${cost===null?'無法計算':Math.ceil(cost)+'元'}`).join('，');
 }
 
 // 更新網頁上的營養品建議與費用。
 function updateNutritionPlan(){
  const plan=calculateNutritionPlan();
  $('supplements').value=plan.description;
- $('nutritionPlan').textContent=`早餐費用：${plan.rows.length?plan.breakfast===null?'無法計算': 'NT$ '+plan.breakfast.toFixed(1):'NT$ 0'}；中餐費用：${plan.rows.length?plan.lunch===null?'無法計算':'NT$ '+plan.lunch.toFixed(1):'NT$ 0'}；晚餐費用：${plan.rows.length?plan.dinner===null?'無法計算':'NT$ '+plan.dinner.toFixed(1):'NT$ 0'}`;
+ $('nutritionPlan').textContent=nutritionCostText(plan);
  return plan;
 }
 
@@ -5792,9 +5802,10 @@ function render() {
   const symptomText=`不適狀況：${selectedValues('symChoice','symOther')}`;
   const symptomY=healthStartY+rowCount(medText,1000,40)*86+14;
   const bmiY=symptomY+rowCount(symptomText,1000,40)*86+14;
-  const headingY=bmiY+90;
+  const headingY=Math.max(bmiY+90,healthStartY+310);
+  const supplementHeading='【營養補充建議：再加大燕麥片和橄欖油】';
   // 右側保留 QR 與標題的專用區域。
-  const supplementStartY=Math.max(headingY+100,healthStartY+310);
+  const supplementStartY=headingY+rowCount(supplementHeading,1400,40)*86+20;
   const plan=updateNutritionPlan();
   const supplements=v('supplements').split('\n').filter(Boolean).slice(0,5);
   let nextSupplementY=supplementStartY;
@@ -5811,7 +5822,7 @@ function render() {
   });
   const diagnosisNoticeY=nextSupplementY+10;
   const supplementCostY=diagnosisNoticeY+90;
-  const costText=`早餐費用：${plan.breakfast === null ? '無法計算' : 'NT$ ' + plan.breakfast.toFixed(1)}　中餐費用：${plan.lunch === null ? '無法計算' : 'NT$ ' + plan.lunch.toFixed(1)}　晚餐費用：${plan.dinner === null ? '無法計算' : 'NT$ ' + plan.dinner.toFixed(1)}`;
+  const costText=nutritionCostText(plan);
   canvas.height=Math.ceil(supplementCostY+rowCount(costText,1400,40)*86+30);
 
   // 5-2. 清空畫布並準備問卷資料。
@@ -6072,7 +6083,7 @@ function render() {
   lines(symptomText,48,symptomY,1000,40,86,100);
   const bmi = num('height') ? fmt(weight / (num('height') / 100) ** 2) : 0;
   text(`BMI ${bmi}（僅供參考）`,48,bmiY,40,'#555');
-  text('【營養補充建議】',48,headingY,40,'#26783a',true);
+  lines(supplementHeading,48,headingY,1400,40,86,100,'#26783a',true);
   supplementLayout.forEach(({title,meal,y,mealY})=>{
     lines(title,48,y,canvas.width-100,40,86,100);
     if(meal)lines(meal,76,mealY,canvas.width-140,40,86,100);
