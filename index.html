@@ -5672,7 +5672,8 @@ function drawFactorySection(baseHeight,targetCanvas){
      factoryRows.push({items:row,y:factoryCursor+rowHeight/2});
      factoryCursor+=rowHeight;row=[];width=0;height=0;
    }
-   for(const [value,color,badge] of parts){
+   for(const [rawValue,color,badge] of parts){
+     const value=String(rawValue ?? "");
      const fontSize=badge&&value.length<=8?Math.round(size*1.48):size;
      c.font=`bold ${fontSize}px ${fontFamily}`;
      // 短標籤維持整塊黃底，較長句子逐字換行。
@@ -5690,9 +5691,9 @@ function drawFactorySection(baseHeight,targetCanvas){
  const lacksProtein=protein<proteinGoal,lacksProduce=produce<produceGoal;
  rich([['人體如蓋房子，']],boxY+45);
  rich([['蛋白質',blue],['就是'],['水泥砂漿',red],['。']],boxY+110);
- rich([['如果每天需要 '],[fmt(proteinGoal),red],[' 份，但你只給 '],[fmt(protein),red],[' 份，那就是 '],[lacksProtein?'缺料':'足量',lacksProtein?red:green,true],['。']],boxY+200,52);
+ rich([['你每天需要 '],[fmt(proteinGoal),red],[' 份，而你吃 '],[fmt(protein),red],[' 份，那就是 '],[lacksProtein?'缺料':'足量',lacksProtein?red:green,true],['。']],boxY+200,52);
  rich([['蔬果',green],['就是'],['工人',red],['。']],boxY+290);
- rich([['如果每天需要 '],[fmt(produceGoal),red],[' 份，但你只給 '],[fmt(produce),red],[' 份，那就是 '],[lacksProduce?'缺工':'足量',lacksProduce?red:green,true],['。']],boxY+380,52);
+ rich([['你每天需要 '],[fmt(produceGoal),red],[' 份，而你吃 '],[fmt(produce),red],[' 份，那就是 '],[lacksProduce?'缺工':'足量',lacksProduce?red:green,true],['。']],boxY+380,52);
  const shortageWords=[lacksProduce?'缺工':'',lacksProtein?'缺料':''].filter(Boolean).join('又');
  if(shortageWords){
    rich([['如果'+shortageWords+'，長期下來身體自然出問題，']],boxY+465,49);
@@ -6162,9 +6163,16 @@ function showSaveImage(){
 }
 
 // 下載 JPG：處理一般瀏覽器與 LINE 內建瀏覽器。
+function assessmentJpgFilename(){
+ const name=(v('name').trim()||'受訪者').replace(/[\\/:*?"<>|\x00-\x1f]/g,'_');
+ const date=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+ const part=type=>date.find(p=>p.type===type).value;
+ return `${name}飲食評估${part('year')}${part('month')}${part('day')}.JPG`;
+}
+
 function downloadJpg(){
  render();
- const fileName=`健康飲食金字塔_${(v('name')||'受訪者').replace(/[\\/:*?"<>|]/g,'_')}.jpg`;
+ const fileName=assessmentJpgFilename();
  // LINE 常會阻止輸出為圖檔，建議用螢幕拍照儲存。
  const inApp=/Line\//i.test(navigator.userAgent)||/\bLIFF\b/i.test(navigator.userAgent);
  if(inApp){showSaveImage();return;}
@@ -6188,7 +6196,7 @@ async function shareJpgToLine(){
  button.disabled=true;
  try{
   render();
-  const filename=`健康飲食金字塔_${(v('name')||'受訪者').replace(/[\\/:*?"<>|]/g,'_')}.jpg`;
+  const filename=assessmentJpgFilename();
   const dataUrl=canvas.toDataURL('image/jpeg',0.95);
   const binary=atob(dataUrl.split(',')[1]);
   const bytes=new Uint8Array(binary.length);
