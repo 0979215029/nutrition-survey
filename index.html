@@ -5674,10 +5674,18 @@ function drawFactorySection(baseHeight,targetCanvas){
    }
    for(const [rawValue,color,badge] of parts){
      const value=String(rawValue ?? "");
-     const fontSize=badge&&value.length<=8?Math.round(size*1.48):size;
+     const fontSize=badge?Math.round(52*1.22*1.48):size;
      c.font=`bold ${fontSize}px ${fontFamily}`;
      // 短標籤維持整塊黃底，較長句子逐字換行。
-     const chunks=badge && c.measureText(value).width+30<=available?[value]:Array.from(value);
+     const chunks=[];
+     if(badge){
+       let chunk='';
+       for(const ch of value){
+         if(chunk && c.measureText(chunk+ch).width+30>available){chunks.push(chunk);chunk='';}
+         chunk+=ch;
+       }
+       if(chunk)chunks.push(chunk);
+     }else chunks.push(...Array.from(value));
      for(const t of chunks){
        const w=c.measureText(t).width+(badge?30:0);
        if(width+w>available)flush();
@@ -5691,9 +5699,9 @@ function drawFactorySection(baseHeight,targetCanvas){
  const lacksProtein=protein<proteinGoal,lacksProduce=produce<produceGoal;
  rich([['人體如蓋房子，']],boxY+45);
  rich([['蛋白質',blue],['就是'],['水泥砂漿',red],['。']],boxY+110);
- rich([['你每天需要 '],[fmt(proteinGoal),red],[' 份，而你吃 '],[fmt(protein),red],[' 份，那就是 '],[lacksProtein?'缺料':'足量',lacksProtein?red:green,true],['。']],boxY+200,52);
+ rich([['你每天需要 '],[fmt(proteinGoal),red],[' 份，而你吃 '],[fmt(protein),red],[' 份，那就是 '],[lacksProtein?'缺料':'足量',lacksProtein?red:green,true]],boxY+200,52);
  rich([['蔬果',green],['就是'],['工人',red],['。']],boxY+290);
- rich([['你每天需要 '],[fmt(produceGoal),red],[' 份，而你吃 '],[fmt(produce),red],[' 份，那就是 '],[lacksProduce?'缺工':'足量',lacksProduce?red:green,true],['。']],boxY+380,52);
+ rich([['你每天需要 '],[fmt(produceGoal),red],[' 份，而你吃 '],[fmt(produce),red],[' 份，那就是 '],[lacksProduce?'缺工':'足量',lacksProduce?red:green,true]],boxY+380,52);
  const shortageWords=[lacksProduce?'缺工':'',lacksProtein?'缺料':''].filter(Boolean).join('又');
  if(shortageWords){
    rich([['如果'+shortageWords+'，長期下來身體自然出問題，']],boxY+465,49);
@@ -5750,7 +5758,7 @@ function render() {
 
   // JPG 內的提醒文字採靜態紅字；只有網頁上的一般警示會閃爍。
   const warningLineSets = warning.details.map(message => {
-    ctx.font = "43px Arial, 'Noto Sans TC', sans-serif";
+    ctx.font = "66px Arial, 'Noto Sans TC', sans-serif";
     const rows = [];
     let line = '';
     for (const character of message) {
@@ -5769,7 +5777,7 @@ function render() {
   // 分隔線下保留兩行空白（每行 40px），供列印裁切。
   const cuttingBlankHeight = 2 * 40;
   const warningStartY = sectionDividerY + cuttingBlankHeight + 55;
-  const warningHeight = (warning.general ? 70 : 0) + warningLineSets.reduce((sum, rows) => sum + rows.length * 56 + 16, 0);
+  const warningHeight = (warning.general ? 70 : 0) + warningLineSets.reduce((sum, rows) => sum + rows.length * 86 + 24, 0);
   const healthStartY = warningStartY + warningHeight + 36;
   // 依實際換行數安排說明，短內容不再保留整段空白。
   function rowCount(value,width,size){
@@ -5782,11 +5790,11 @@ function render() {
   }
   const medText=`日常用藥：${selectedValues('medChoice','medOther')}`;
   const symptomText=`不適狀況：${selectedValues('symChoice','symOther')}`;
-  const symptomY=healthStartY+rowCount(medText,1000,28)*54+14;
-  const bmiY=symptomY+rowCount(symptomText,1000,28)*54+14;
-  const headingY=bmiY+65;
+  const symptomY=healthStartY+rowCount(medText,1000,40)*86+14;
+  const bmiY=symptomY+rowCount(symptomText,1000,40)*86+14;
+  const headingY=bmiY+90;
   // 右側保留 QR 與標題的專用區域。
-  const supplementStartY=Math.max(headingY+75,healthStartY+310);
+  const supplementStartY=Math.max(headingY+100,healthStartY+310);
   const plan=updateNutritionPlan();
   const supplements=v('supplements').split('\n').filter(Boolean).slice(0,5);
   let nextSupplementY=supplementStartY;
@@ -5796,14 +5804,15 @@ function render() {
     const meal=separator>=0?item.slice(separator+1).trim():'';
     const title=`${index+1}. ${price}`;
     const y=nextSupplementY;
-    const priceHeight=rowCount(title,canvas.width-100,30)*60;
+    const priceHeight=rowCount(title,canvas.width-100,40)*86;
     const mealY=y+priceHeight+4;
-    nextSupplementY=meal?mealY+rowCount(meal,canvas.width-140,30)*60+22:y+priceHeight+22;
+    nextSupplementY=meal?mealY+rowCount(meal,canvas.width-140,40)*86+22:y+priceHeight+22;
     return {title,meal,y,mealY};
   });
   const diagnosisNoticeY=nextSupplementY+10;
-  const supplementCostY=diagnosisNoticeY+56;
-  canvas.height=Math.ceil(supplementCostY+55);
+  const supplementCostY=diagnosisNoticeY+90;
+  const costText=`早餐費用：${plan.breakfast === null ? '無法計算' : 'NT$ ' + plan.breakfast.toFixed(1)}　中餐費用：${plan.lunch === null ? '無法計算' : 'NT$ ' + plan.lunch.toFixed(1)}　晚餐費用：${plan.dinner === null ? '無法計算' : 'NT$ ' + plan.dinner.toFixed(1)}`;
+  canvas.height=Math.ceil(supplementCostY+rowCount(costText,1400,40)*86+30);
 
   // 5-2. 清空畫布並準備問卷資料。
   const c = ctx;
@@ -6059,39 +6068,34 @@ function render() {
 
   // 5-6. 健康資料與補充建議；橫線作為上下區塊分界。
   rule(45, sectionDividerY, 1405);
-  lines(medText,48,healthStartY,1000,28,54,100);
-  lines(symptomText,48,symptomY,1000,28,54,100);
+  lines(medText,48,healthStartY,1000,40,86,100);
+  lines(symptomText,48,symptomY,1000,40,86,100);
   const bmi = num('height') ? fmt(weight / (num('height') / 100) ** 2) : 0;
-  text(`BMI ${bmi}（僅供參考）`,48,bmiY,28,'#555');
-  text('【營養補充建議】',48,headingY,32,'#26783a',true);
+  text(`BMI ${bmi}（僅供參考）`,48,bmiY,40,'#555');
+  text('【營養補充建議】',48,headingY,40,'#26783a',true);
   supplementLayout.forEach(({title,meal,y,mealY})=>{
-    lines(title,48,y,canvas.width-100,30,60,100);
-    if(meal)lines(meal,76,mealY,canvas.width-140,30,60,100);
+    lines(title,48,y,canvas.width-100,40,86,100);
+    if(meal)lines(meal,76,mealY,canvas.width-140,40,86,100);
   });
 
-  text(
-    `早餐費用：${plan.breakfast === null ? '無法計算' : 'NT$ ' + plan.breakfast.toFixed(1)}　中餐費用：${plan.lunch === null ? '無法計算' : 'NT$ ' + plan.lunch.toFixed(1)}　晚餐費用：${plan.dinner === null ? '無法計算' : 'NT$ ' + plan.dinner.toFixed(1)}`,
-    48,
-    supplementCostY,
-    26
-  );
+  lines(costText,48,supplementCostY,1400,40,86,100);
 
-  text('飲食估算不等於醫療診斷', 48, diagnosisNoticeY, 24, '#666');
+  text('飲食估算不等於醫療診斷', 48, diagnosisNoticeY, 40, '#666');
 
   // 5-7. 將缺乏提醒繪製在分隔線下第一區塊。
   let warningTextY = warningStartY;
   if (warning.general) {
     c.textAlign = 'center';
-    text('長期部分營養缺乏會導致生病', 750, warningTextY, 28, '#c00000', true);
+    text('長期部分營養缺乏會導致生病', 750, warningTextY, 40, '#c00000', true);
     c.textAlign = 'start';
     warningTextY += 70;
   }
   warningLineSets.forEach(rows => {
     rows.forEach(row => {
-      text(row, 45, warningTextY, 26, '#c00000');
-      warningTextY += 56;
+      text(row, 45, warningTextY, 40, '#c00000');
+      warningTextY += 86;
     });
-    warningTextY += 16;
+    warningTextY += 24;
   });
   // 商城 QR 碼位於健康資料右側，對應圈選區域。
   const qrX=canvas.width-355, qrY=healthStartY+50;
