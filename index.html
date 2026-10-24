@@ -46,7 +46,7 @@
 <legend>二、一週內每天最常吃的飲食</legend>
 <p class="note"><strong>份量換算基準：</strong>油脂 1 份＝1 茶匙（5 mL）；蛋白質 1 份＝約三根手指的長、寬、厚，約 1 兩；蔬菜 1 份＝煮熟半碗；五穀雜糧 1 份＝1 平碗。</p>
 <div class="grid">
-<label>早餐<textarea id="breakfast" placeholder="例如：蛋餅1份、無糖豆漿1杯">
+<label>早餐<textarea id="breakfast" placeholder="例如：蛋餅一份、無糖豆漿一杯、大燕麥片三匙">
 </textarea>
 </label>
 <label>午餐<textarea id="lunch" placeholder="例如：白飯1碗、雞肉3份、青菜1碗">
@@ -55,7 +55,7 @@
 <label>晚餐<textarea id="dinner" placeholder="例如：魚肉2份、豆腐1塊、青菜1碗">
 </textarea>
 </label>
-<label>下午茶／宵夜<textarea id="snack" placeholder="例如：餅乾3片（沒有則填無）">
+<label>下午茶／宵夜<textarea id="snack" placeholder="例如：花生十三公克、腰果五顆、開心果10公克（沒有則填無）">
 </textarea>
 </label>
 </div>
@@ -5437,6 +5437,28 @@ function validateRequiredProfile(moveToMissingField){
  return false;
 }
 
+// 堅果採去殼可食重量；每份油脂換算依國健署食物代換表。
+// https://www.hpa.gov.tw/Pages/Detail.aspx?nodeid=543&pid=8382
+// 顆粒重量及夏威夷果7g/份為粗估，實際以秤重及包裝標示優先。
+const nutMeasures={
+ '花生':[13,1.3], '花生仁':[13,1.3], '開心果':[10,1],
+ '腰果':[10,2], '杏仁果':[7,1.4], '杏仁':[7,1.4],
+ '夏威夷果':[7,2.5], '夏威夷豆':[7,2.5],
+ '葵瓜子':[10,.3], '葵花子':[10,.3], '葵瓜子仁':[10,.3], '葵花子仁':[10,.3],
+ '核桃仁':[7,3.5], '南瓜子':[10,.3], '堅果':[10,2]
+};
+const oatNames=new Set(['燕麥片','大燕麥片','細燕麥片','燕麥','大燕麥']);
+function normalizeFoodQuantities(input){
+ const digits={'零':0,'〇':0,'一':1,'壹':1,'二':2,'兩':2,'两':2,'貳':2,'贰':2,'三':3,'參':3,'叁':3,'四':4,'肆':4,'五':5,'伍':5,'六':6,'陸':6,'陆':6,'七':7,'柒':7,'八':8,'捌':8,'九':9,'玖':9};
+ function chineseNumber(raw){
+   if(raw==='半')return .5;
+   if(!/[十拾百佰千仟]/.test(raw))return Number([...raw].map(ch=>digits[ch]).join(''));
+   let sum=0,n=0;for(const ch of raw){const unit={十:10,拾:10,百:100,佰:100,千:1000,仟:1000}[ch];if(unit){sum+=(n||1)*unit;n=0;}else n=digits[ch];}return sum+n;
+ }
+ return String(input).replace(/[０-９]/g,ch=>String(ch.charCodeAt(0)-0xff10))
+  .replace(/[零〇一壹二兩两貳贰三參叁四肆五伍六陸陆七柒八捌九玖十拾百佰千仟半]+(?=\s*(?:公克|克|湯匙|茶匙|匙|粒|片|個|顆|包|份|條|塊|貫|串|支|碗|杯|根))/g,(ch,offset,text)=>text.startsWith('三杯',offset)||mealRules.some(([name])=>name.startsWith(ch)&&text.startsWith(name,offset))?ch:String(chineseNumber(ch)));
+}
+
 // 飲食分析：辨識輸入餐點並計算四類食物份數。
 function estimate(){
  if(!validateRequiredProfile(true)){
@@ -5446,31 +5468,42 @@ function estimate(){
    $('resultSection').hidden=true;
    return;
  }
- const source=[v('breakfast'),v('lunch'),v('dinner'),v('snack')].join('、');
+ const source=normalizeFoodQuantities([v('breakfast'),v('lunch'),v('dinner'),v('snack')].join('、'));
  const totals=[0,0,num('fruit'),0], matched=[];
  const age=num('age'),produceGoal=age<12?5:(v('sex')==='男'?9:7);
  const supplementRules=[
-  ['優質蛋白',[0,1,0,0]],['高蛋白',[0,1,0,0]],['蛋白質',[0,1,0,0]],['蛋白',[0,1,0,0]],['補體素',[0,1,0,0]],
+  ['蛋白質粉',[0,1,0,0]],['蛋白粉',[0,1,0,0]],['優質蛋白',[0,1,0,0]],['高蛋白',[0,1,0,0]],['蛋白質',[0,1,0,0]],['蛋白',[0,1,0,0]],['補體素',[0,1,0,0]],
   ['銀寶善存',[0,0,produceGoal/2,0]],['Double X',[0,0,produceGoal/2,0]],['DoubleX',[0,0,produceGoal/2,0]],['DX',[0,0,produceGoal/2,0]],['善存',[0,0,produceGoal/2,0]],['得力',[0,0,produceGoal/4,0]]
  ];
- const estimateRules=[...mealRules,...supplementRules];
+ const estimateRules=[...mealRules.filter(([name])=>!nutMeasures[name]&&!oatNames.has(name)),...Object.keys(nutMeasures).map(name=>[name,[1,0,0,0]]),...[...oatNames].map(name=>[name,[0,0,0,1/8]]),...supplementRules];
  const estimateLookup=new Map(estimateRules.map(([name,portions])=>[name.toLowerCase(),portions]));
  // 完整餐點優先；辨識「餅乾6片」「2片吐司」「麵包2個」等數量。
 
  const pieceBase=name=>name.includes('餅乾')||['蛋捲','米餅','仙貝','洋芋片'].includes(name)?3:1;
  const toQuantity=value=>{if(!value)return 0;const parts=String(value).replace(/\s/g,'').split('/');if(parts.length===1)return Number(parts[0])||0;const numerator=Number(parts[0]),denominator=Number(parts[1]);return Number.isFinite(numerator)&&Number.isFinite(denominator)&&denominator!==0?numerator/denominator:0;};
- const amountPattern='(?:[0-9]+(?:\\.[0-9]+)?|[0-9]+\\s*\\/\\s*[0-9]+)';
- const quantityRegex=new RegExp('(?:('+amountPattern+')\\s*(片|個|顆|包|份|條|塊|貫|串|支|碗|杯|根)\\s*)?('+[...estimateRules].sort((a,b)=>b[0].length-a[0].length).map(([n])=>n.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&')).join('|')+')(?:\\s*('+amountPattern+')\\s*(片|個|顆|包|份|條|塊|貫|串|支|碗|杯|根))?','gi');
+ const amountPattern='(?:[0-9]+\s*\/\s*[0-9]+|[0-9]+(?:\.[0-9]+)?)';
+ const unitPattern='公克|克|湯匙|茶匙|匙|粒|片|個|顆|包|份|條|塊|貫|串|支|碗|杯|根|g';
+ const names=[...estimateRules].sort((a,b)=>b[0].length-a[0].length).map(([n])=>n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|');
+ const quantityRegex=new RegExp('(?:('+amountPattern+')\s*('+unitPattern+')\s*)?('+names+')(?:\s*('+amountPattern+')\s*('+unitPattern+')?)?','gi');
  const remaining=source.replace(quantityRegex,(full,before,unitBefore,name,after,unitAfter)=>{
    const servings=estimateLookup.get(name.toLowerCase());let multiplier=1;
-   if(bakeryNames.has(name)){
+   const qty=toQuantity(before||after||'1'),unit=(unitBefore||unitAfter||'').toLowerCase();
+   if(nutMeasures[name]){
+     const [gramsPerServing,gramsPerPiece]=nutMeasures[name];
+     if(['公克','克','g'].includes(unit))multiplier=qty/gramsPerServing;
+     else if(['顆','粒','個'].includes(unit))multiplier=qty*gramsPerPiece/gramsPerServing;
+     else if(['匙','湯匙','茶匙'].includes(unit))multiplier=qty*(unit==='茶匙'?10/3:10)/gramsPerServing;
+     else multiplier=qty; // 未寫單位按份，並於填寫說明註明。
+   }else if(oatNames.has(name)){
+     multiplier=['公克','克','g'].includes(unit)?qty/10:unit==='碗'?qty*8:qty;
+   }else if(bakeryNames.has(name)){
      const qty=toQuantity(before||after||0), unit=unitBefore||unitAfter||'';
      if(qty){multiplier=qty/(unit==='片'||unit==='塊'||unit==='條'?pieceBase(name):1);}
    } else if(sashimiNames.has(name)||nigiriNames.has(name)){
      const qty=toQuantity(before||after||0),unit=unitBefore||unitAfter||'';
      if(qty && ['片','貫','個','份'].includes(unit))multiplier=qty/(sashimiNames.has(name)&&unit==='片'?5:1);
    } else if(before||after){ // 其他食物保留原有單份估算，避免誤把「1碗」當份數。
-     const qty=toQuantity(before||after); if(qty>0 && ['份','個','顆','串','支','碗','杯','包','塊','片','條','根'].includes(unitBefore||unitAfter))multiplier=qty;
+     const qty=toQuantity(before||after); if(qty>=0 && ['','份','個','顆','粒','串','支','碗','杯','包','塊','片','條','根','匙','湯匙','茶匙'].includes(unitBefore||unitAfter||''))multiplier=qty;
    }
    servings.forEach((value,i)=>totals[i]+=value*multiplier);
    matched.push(name+(multiplier!==1?' ×'+Math.round(multiplier*1000)/1000:''));
@@ -5502,8 +5535,8 @@ function calculateNutritionPlan(){
  const proteinSpoons=adult&&proteinGap>0?Math.ceil(proteinGap/2):0;
  // 保留每日總匙數；早晚各超過3匙時，將總量平均分配到三餐。
  const proteinTotal=proteinSpoons*2;
- const proteinMorning=proteinSpoons>3?Math.round(proteinTotal/3*100)/100:proteinSpoons;
- const proteinLunch=proteinSpoons>3?Math.round((proteinTotal-proteinMorning*2)*100)/100:0;
+ const proteinMorning=proteinSpoons>3?Math.round(proteinTotal/3):proteinSpoons;
+ const proteinLunch=proteinSpoons>3?proteinTotal-proteinMorning*2:0;
  const doubleServings=adult?(num('produce')>pg/2?1:2):0; // 問卷自訂規則：蔬果攝取超過建議量一半，早餐1份；否則早晚各1份
  const rows=[];
  if(proteinSpoons)rows.push({name:'紐崔萊優質蛋白素－全植物配方',morning:proteinMorning,lunch:proteinLunch,evening:proteinMorning,unit:'匙',price:21,units:1});
@@ -5709,9 +5742,9 @@ function drawFactorySection(baseHeight,targetCanvas){
  const lacksProtein=protein<proteinGoal,lacksProduce=produce<produceGoal;
  rich([['人體如蓋房子，']],boxY+45);
  rich([['蛋白質',blue],['就是'],['水泥砂漿',red],['。']],boxY+110);
- rich([['你每天需要 '],[fmt(proteinGoal),red],[' 份，而你吃 '],[fmt(protein),red],[' 份，那就是 '],[lacksProtein?'缺料':'足量',lacksProtein?red:green,true]],boxY+200,52);
+ rich([['你每天需要 '],[fmt(proteinGoal),red],[' 份，而你缺 '],[fmt(Math.max(0,proteinGoal-protein)),red],[' 份，那就是 '],[lacksProtein?'缺料':'足量',lacksProtein?red:green,true]],boxY+200,52);
  rich([['蔬果',green],['就是'],['工人',red],['。']],boxY+290);
- rich([['你每天需要 '],[fmt(produceGoal),red],[' 份，而你吃 '],[fmt(produce),red],[' 份，那就是 '],[lacksProduce?'缺工':'足量',lacksProduce?red:green,true]],boxY+380,52);
+ rich([['你每天需要 '],[fmt(produceGoal),red],[' 份，而你缺 '],[fmt(Math.max(0,produceGoal-produce)),red],[' 份，那就是 '],[lacksProduce?'缺工':'足量',lacksProduce?red:green,true]],boxY+380,52);
  const shortageWords=[lacksProduce?'缺工':'',lacksProtein?'缺料':''].filter(Boolean).join('又');
  if(shortageWords){
    rich([['如果'+shortageWords+'，長期下來身體自然出問題，']],boxY+465,49);
@@ -5786,9 +5819,9 @@ function render() {
   const sectionDividerY = 950;
   // 分隔線下保留兩行空白（每行 40px），供列印裁切。
   const cuttingBlankHeight = 2 * 40;
-  const warningStartY = sectionDividerY + cuttingBlankHeight + 55;
+  const warningStartY = sectionDividerY + cuttingBlankHeight + 120;
   const warningHeight = (warning.general ? 115 : 0) + warningLineSets.reduce((sum, rows) => sum + rows.length * 86 + 24, 0);
-  const healthStartY = warningStartY + warningHeight + 36;
+  const healthStartY = warningStartY + warningHeight + 125;
   // 依實際換行數安排說明，短內容不再保留整段空白。
   function rowCount(value,width,size){
     ctx.font=`${Math.round(size*1.65)}px Arial, 'Noto Sans TC', sans-serif`;
@@ -5800,8 +5833,8 @@ function render() {
   }
   const medText=`日常用藥：${selectedValues('medChoice','medOther')}`;
   const symptomText=`不適狀況：${selectedValues('symChoice','symOther')}`;
-  const symptomY=healthStartY+rowCount(medText,1000,40)*86+14;
-  const bmiY=symptomY+rowCount(symptomText,1000,40)*86+14;
+  const symptomY=healthStartY+rowCount(medText,940,40)*86+14;
+  const bmiY=symptomY+rowCount(symptomText,940,40)*86+14;
   const headingY=Math.max(bmiY+90,healthStartY+420);
   const supplementHeading='【營養補充建議：再加大燕麥片和橄欖油】';
   // 右側保留 QR 與標題的專用區域。
@@ -6082,8 +6115,8 @@ function render() {
 
   // 5-6. 健康資料與補充建議；橫線作為上下區塊分界。
   rule(45, sectionDividerY, 1405);
-  lines(medText,48,healthStartY,1000,40,86,100);
-  lines(symptomText,48,symptomY,1000,40,86,100);
+  lines(medText,48,healthStartY,940,40,86,100);
+  lines(symptomText,48,symptomY,940,40,86,100);
   const bmi = num('height') ? fmt(weight / (num('height') / 100) ** 2) : 0;
   text(`BMI ${bmi}（僅供參考）`,48,bmiY,40,'#555');
   lines(supplementHeading,48,headingY,1400,40,86,100,'#26783a',true);
@@ -6112,13 +6145,14 @@ function render() {
     warningTextY += 24;
   });
   // 商城 QR 碼位於健康資料右側，對應圈選區域。
-  const qrX=canvas.width-355, qrY=healthStartY+60;
+  const qrSize=351; // 原270px放大1.3倍，右下角固定。
+  const qrX=canvas.width-436, qrY=healthStartY-21;
   // 商城區塊上移至營養補充建議右側空白區，左側原有文字不移動。
   text('安麗紐崔萊購物商城', qrX-10, qrY-48, 22, '#26783a', true);
   text('右上方≡是總目錄',qrX-10,qrY-16,19,'#444');
   const qrImg=shopQRCanvas||fallbackQR;
   if(qrImg && (qrImg.complete!==false || qrImg.width>0)){
-    try{c.drawImage(qrImg,qrX,qrY,270,270);}catch(e){}
+    try{c.drawImage(qrImg,qrX,qrY,qrSize,qrSize);}catch(e){}
   }
 
   updateAssessmentPage(sectionDividerY + cuttingBlankHeight);
