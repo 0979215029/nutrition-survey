@@ -5759,9 +5759,8 @@ function drawFactorySection(baseHeight,targetCanvas){
  rich(comparison(produceGoal,produce,'缺工'),boxY+380,52);
  const unbalanced=Math.abs(protein-proteinGoal)>=.05||Math.abs(produce-produceGoal)>=.05;
  if(unbalanced){
-   rich([['營養不足或過量，都需要適度調整，']],boxY+465,49);
-   rich([['長期飲食不均衡，可能影響身體健康。']],boxY+525,49);
-   rich([['也要留意所謂的「'],['亞健康',blue,false,true],['」狀態。']],boxY+585,49);
+   rich([['長期飲食不均衡，會影響健康，而且身體不適醫生也查不出原因，']],boxY+525,49);
+   rich([['就是所謂的『'],['亞健康',blue,false,true],['』，']],boxY+585,49);
    rich([['如果繼續維持可能變成'],['疾病',red,false,true],['。']],boxY+640,49);
  }else{
    rich([['蛋白質與蔬果攝取符合本問卷設定需求，']],boxY+465,49);
