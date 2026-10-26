@@ -168,8 +168,7 @@ function searchTherapy(){
  if(!matches.length){target.textContent='目前資料表沒有找到相符項目，請換較簡短的關鍵字（例如「頭痛」「失眠」）。';return;}
  const summary=document.createElement('p');summary.textContent='找到 '+matches.length+' 項相關資料（最多顯示15項）：';target.appendChild(summary);
  for(const {r} of matches){const card=document.createElement('article');card.style.cssText='background:#fff;border:1px solid #cbd8c8;border-radius:10px;padding:13px;margin:12px 0;line-height:1.7';const h=document.createElement('h3');h.textContent=r.title;h.style.margin='0 0 8px';card.appendChild(h);
- for(const item of r.items){const p=document.createElement('p');p.style.margin='7px 0';const b=document.createElement('strong');b.textContent='資料表所列可能原因：';p.appendChild(b);p.appendChild(document.createTextNode(item.reason+'
-'));const b2=document.createElement('strong');b2.textContent='資料表所列建議：';p.appendChild(document.createElement('br'));p.appendChild(b2);p.appendChild(document.createTextNode(item.advice));card.appendChild(p)}target.appendChild(card)}
+ for(const item of r.items){const p=document.createElement('p');p.style.margin='7px 0';const b=document.createElement('strong');b.textContent='資料表所列可能原因：';p.appendChild(b);p.appendChild(document.createTextNode(item.reason+'\n'));const b2=document.createElement('strong');b2.textContent='資料表所列建議：';p.appendChild(document.createElement('br'));p.appendChild(b2);p.appendChild(document.createTextNode(item.advice));card.appendChild(p)}target.appendChild(card)}
 }
 document.getElementById('therapyQuery').addEventListener('keydown',e=>{if(e.key==='Enter')searchTherapy()});
 
