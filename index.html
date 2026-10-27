@@ -5425,6 +5425,17 @@ for(const [name,portions] of mealRules){
   if(bakeryNames.has(name)||plainGrainNames.has(name)||/泡麵|杯麵|桶麵|碗裝麵|杯裝麵/.test(name)) portions[1]=0;
   if(name==='泡麵加蛋') portions[1]=1; // 僅計一顆蛋
 }
+// 2026-10-27 自訂分類估算；蛋白質欄僅計豆魚肉蛋，非實際營養素克數。
+const expandedFoodRules = [["板條", [0, 0, 0, 1]], ["粄條", [0, 0, 0, 1]], ["碗粿", [1, 0.5, 0, 1]], ["魚丸", [0.2, 0.3, 0, 0.03]], ["貢丸", [0.2, 0.3, 0, 0.03]], ["肉丸", [0.2, 0.3, 0, 0.03]], ["福州丸", [0.3, 0.5, 0, 0.05]], ["肉圓", [2, 1, 0, 0.75]], ["雞胸肉", [0.5, 3, 0, 0]], ["三層肉", [4, 2, 0, 0]], ["五花肉", [4, 2, 0, 0]], ["里肌肉", [1, 2, 0, 0]], ["滷肉飯", [2, 0.5, 0, 1]], ["魯肉飯", [2, 0.5, 0, 1]], ["肉燥飯", [2, 0.5, 0, 1]], ["滷肉便當", [3, 1, 1, 1]], ["肉燥便當", [3, 1, 1, 1]], ["刈包", [2, 1, 0.25, 0.75]], ["割包", [2, 1, 0.25, 0.75]], ["大腸", [2, 1, 0, 0]], ["米腸", [1, 0, 0, 0.75]], ["糯米腸", [1, 0, 0, 0.75]], ["香腸", [1.5, 1, 0, 0.1]], ["熱狗", [1.5, 1, 0, 0.1]], ["大腸包小腸", [2.5, 1, 0, 0.85]], ["鹹酥雞", [3, 2, 0, 0.25]], ["鹽酥雞", [3, 2, 0, 0.25]], ["雞排", [4, 3, 0, 0.25]], ["雞塊", [0.5, 0.3, 0, 0.05]], ["珍珠奶茶", [2, 0, 0, 0.5]], ["剉冰", [0, 0, 0, 1]], ["刨冰", [0, 0, 0, 1]], ["挫冰", [0, 0, 0, 1]], ["八寶冰", [0, 0, 0, 1]], ["豆花", [0.5, 1, 0, 0]], ["布丁", [1, 0, 0, 0]], ["牛舌餅", [1, 0, 0, 0.5]], ["老婆餅", [2, 0, 0, 0.5]], ["太陽餅", [2, 0, 0, 0.5]], ["月餅", [3, 0, 0, 0.75]], ["素肉粽", [1, 1, 0.25, 1]], ["粽", [2, 1, 0, 1.5]], ["粽子", [2, 1, 0, 1.5]], ["肉粽", [2, 1, 0, 1.5]], ["湖州粽", [2, 1, 0, 1.5]], ["粳粽", [0, 0, 0, 0.75]], ["鹼粽", [0, 0, 0, 0.75]], ["甜粽", [0, 0, 0, 0.75]], ["飯糰", [2, 0.5, 0, 1.5]], ["三角飯糰", [0.5, 0.5, 0, 0.75]], ["螃蟹", [0, 2, 0, 0]], ["蛤蜊", [0, 1, 0, 0]], ["海瓜子", [0, 1, 0, 0]], ["蝦子", [0, 0.2, 0, 0]], ["蝦", [0, 0.2, 0, 0]], ["沙蝦", [0, 0.2, 0, 0]], ["泰國蝦", [0, 0.5, 0, 0]], ["明蝦", [0, 0.5, 0, 0]], ["龍蝦", [0, 3, 0, 0]], ["九孔", [0, 0.3, 0, 0]], ["鮑魚", [0, 0.5, 0, 0]], ["鳳梨酥", [1.5, 0, 0, 0.4]], ["佛跳牆", [2, 2, 0.5, 0.5]], ["小火鍋", [3, 3, 2, 0.5]], ["甜不辣", [0.5, 0.4, 0, 0.1]], ["天婦羅", [0.5, 0.4, 0, 0.1]], ["冰淇淋", [1.5, 0, 0, 0]], ["雪糕", [1.5, 0, 0, 0]], ["冰棒", [0, 0, 0, 0]], ["荷包蛋", [1, 1, 0, 0]], ["茶碗蒸", [0, 1, 0, 0]], ["蒸蛋", [0, 1, 0, 0]], ["蛋", [0, 1, 0, 0]], ["雞蛋", [0, 1, 0, 0]], ["皮蛋", [0, 1.3, 0, 0]], ["鹹蛋", [0, 1.3, 0, 0]], ["鴨蛋", [0, 1.3, 0, 0]], ["鵝蛋", [0, 2.5, 0, 0]], ["鳥蛋", [0, 0.2, 0, 0]], ["鵪鶉蛋", [0, 0.2, 0, 0]], ["蔥油餅", [3, 0, 0, 1]], ["三星蔥餅", [3, 0, 0, 1]], ["蔥餅", [3, 0, 0, 1]], ["蔥油餅加蛋", [4, 1, 0, 1]], ["三杯雞", [3, 3, 0, 0]], ["花枝", [0.5, 2, 0, 0]], ["魷魚", [0.5, 2, 0, 0]], ["小魚", [0.5, 2, 0, 0]], ["魚湯", [0.5, 1, 0, 0]], ["丸子湯", [0.5, 1, 0, 0.1]], ["蛋花湯", [0.5, 0.5, 0, 0]], ["九層塔炒蛋", [2, 2, 0, 0]], ["蛋糕", [2, 0, 0, 0.5]], ["鴨賞", [1, 2, 0, 0]], ["鴨翅", [1, 1, 0, 0]], ["雞翅", [1, 1, 0, 0]], ["棒棒腿", [1, 2, 0, 0]], ["蔥餅腊肉", [4, 1, 0, 1]], ["蔥餅臘肉", [4, 1, 0, 1]], ["腊肉", [2, 1.5, 0, 0]], ["臘肉", [2, 1.5, 0, 0]], ["臘火腿", [2, 1.5, 0, 0]], ["腊火腿", [2, 1.5, 0, 0]], ["火腿", [2, 1.5, 0, 0]]];
+const expandedFoodMeasures = {"板條": {"label": "1碗", "grams": 200}, "粄條": {"label": "1碗", "grams": 200}, "碗粿": {"label": "1碗（含肉餡）", "grams": 200}, "魚丸": {"label": "1顆", "grams": 20}, "貢丸": {"label": "1顆", "grams": 20}, "肉丸": {"label": "1顆", "grams": 20}, "福州丸": {"label": "1顆", "grams": 30}, "肉圓": {"label": "1個", "grams": 150}, "雞胸肉": {"label": "1份約100克", "grams": 100}, "三層肉": {"label": "1份約75克", "grams": 75}, "五花肉": {"label": "1份約75克", "grams": 75}, "里肌肉": {"label": "1份約75克", "grams": 75}, "滷肉飯": {"label": "1碗", "grams": 200}, "魯肉飯": {"label": "1碗", "grams": 200}, "肉燥飯": {"label": "1碗", "grams": 200}, "滷肉便當": {"label": "1盒", "grams": 350}, "肉燥便當": {"label": "1盒", "grams": 350}, "刈包": {"label": "1個", "grams": 150}, "割包": {"label": "1個", "grams": 150}, "大腸": {"label": "1份約50克", "grams": 50}, "米腸": {"label": "1條", "grams": 100}, "糯米腸": {"label": "1條", "grams": 100}, "香腸": {"label": "1條", "grams": 40}, "熱狗": {"label": "1條", "grams": 40}, "大腸包小腸": {"label": "1組", "grams": 140}, "鹹酥雞": {"label": "1小份", "grams": 100}, "鹽酥雞": {"label": "1小份", "grams": 100}, "雞排": {"label": "1片", "grams": 180}, "雞塊": {"label": "1塊", "grams": 20}, "珍珠奶茶": {"label": "1杯約500毫升（奶精）", "grams": 500}, "剉冰": {"label": "1碗含一般澱粉配料", "grams": 300}, "刨冰": {"label": "1碗含一般澱粉配料", "grams": 300}, "挫冰": {"label": "1碗含一般澱粉配料", "grams": 300}, "八寶冰": {"label": "1碗含一般澱粉配料", "grams": 300}, "豆花": {"label": "1碗不含配料", "grams": 250}, "布丁": {"label": "1個市售布丁", "grams": 100}, "牛舌餅": {"label": "1片", "grams": 40}, "老婆餅": {"label": "1個", "grams": 50}, "太陽餅": {"label": "1個", "grams": 50}, "月餅": {"label": "1個不含蛋黃肉餡", "grams": 80}, "素肉粽": {"label": "1個含豆製素肉", "grams": 180}, "粽": {"label": "1個肉粽", "grams": 200}, "粽子": {"label": "1個肉粽", "grams": 200}, "肉粽": {"label": "1個肉粽", "grams": 200}, "湖州粽": {"label": "1個肉粽", "grams": 200}, "粳粽": {"label": "1個不含肉蛋餡", "grams": 100}, "鹼粽": {"label": "1個不含肉蛋餡", "grams": 100}, "甜粽": {"label": "1個不含肉蛋餡", "grams": 100}, "飯糰": {"label": "1個含肉鬆", "grams": 200}, "三角飯糰": {"label": "1個含魚肉餡", "grams": 110}, "螃蟹": {"label": "1份可食肉約60克", "grams": 60}, "蛤蜊": {"label": "1份可食肉約50克", "grams": 50}, "海瓜子": {"label": "1份可食肉約50克", "grams": 50}, "蝦子": {"label": "1隻中型蝦可食肉約10克", "grams": 10}, "蝦": {"label": "1隻中型蝦可食肉約10克", "grams": 10}, "沙蝦": {"label": "1隻中型蝦可食肉約10克", "grams": 10}, "泰國蝦": {"label": "1隻可食肉約25克", "grams": 25}, "明蝦": {"label": "1隻可食肉約25克", "grams": 25}, "龍蝦": {"label": "1份可食肉約100克", "grams": 100}, "九孔": {"label": "1顆可食肉約15克", "grams": 15}, "鮑魚": {"label": "1顆可食肉約25克", "grams": 25}, "鳳梨酥": {"label": "1個", "grams": 40}, "佛跳牆": {"label": "1小碗含料", "grams": 250}, "小火鍋": {"label": "1鍋（飯麵另計）", "grams": 600}, "甜不辣": {"label": "1片魚漿製品", "grams": 30}, "天婦羅": {"label": "1片魚漿製品", "grams": 30}, "冰淇淋": {"label": "1球", "grams": 60}, "雪糕": {"label": "1支", "grams": 70}, "冰棒": {"label": "1支", "grams": 70}, "荷包蛋": {"label": "1顆", "grams": 55}, "茶碗蒸": {"label": "1碗約含1顆蛋", "grams": 150}, "蒸蛋": {"label": "1碗約含1顆蛋", "grams": 150}, "蛋": {"label": "1顆", "grams": 55}, "雞蛋": {"label": "1顆", "grams": 55}, "皮蛋": {"label": "1顆", "grams": 70}, "鹹蛋": {"label": "1顆", "grams": 70}, "鴨蛋": {"label": "1顆", "grams": 70}, "鵝蛋": {"label": "1顆", "grams": 150}, "鳥蛋": {"label": "1顆", "grams": 10}, "鵪鶉蛋": {"label": "1顆", "grams": 10}, "蔥油餅": {"label": "1份", "grams": 120}, "三星蔥餅": {"label": "1份", "grams": 120}, "蔥餅": {"label": "1份", "grams": 120}, "蔥油餅加蛋": {"label": "1份含1顆蛋", "grams": 175}, "三杯雞": {"label": "1份", "grams": 150}, "花枝": {"label": "1份可食部約70克", "grams": 70}, "魷魚": {"label": "1份可食部約70克", "grams": 70}, "小魚": {"label": "1份可食部約70克", "grams": 70}, "魚湯": {"label": "1碗含魚肉", "grams": 250}, "丸子湯": {"label": "1碗含約3顆丸子", "grams": 250}, "蛋花湯": {"label": "1碗含半顆蛋", "grams": 250}, "九層塔炒蛋": {"label": "1份含2顆蛋", "grams": 120}, "蛋糕": {"label": "1片", "grams": 80}, "鴨賞": {"label": "1份約60克", "grams": 60}, "鴨翅": {"label": "1隻", "grams": 40}, "雞翅": {"label": "1隻", "grams": 40}, "棒棒腿": {"label": "1隻", "grams": 80}, "蔥餅腊肉": {"label": "1份蔥餅加臘肉", "grams": 160}, "蔥餅臘肉": {"label": "1份蔥餅加臘肉", "grams": 160}, "腊肉": {"label": "1份約50克", "grams": 50}, "臘肉": {"label": "1份約50克", "grams": 50}, "臘火腿": {"label": "1份約50克", "grams": 50}, "腊火腿": {"label": "1份約50克", "grams": 50}, "火腿": {"label": "1份約50克", "grams": 50}};
+for(const [name,portions] of expandedFoodRules){
+ const i=mealRules.findIndex(([n])=>n===name);
+ if(i<0)mealRules.push([name,portions]);else mealRules[i]=[name,portions];
+}
+// 無豆魚肉蛋配料的既有澱粉小吃不計蛋白質。
+const extraZeroProteinNames=new Set(['菜粽','花生粽','芋頭糕','芋粿巧','芋頭丸','炸芋頭丸','菜脯米','草仔粿']);
+for(const [name,portions] of mealRules)if(extraZeroProteinNames.has(name))portions[1]=0;
+
 const sashimiNames = new Set(["鮭魚生魚片","鮪魚生魚片","旗魚生魚片","鯛魚生魚片","綜合生魚片","生魚片"]);
 const nigiriNames = new Set(["炙燒鮭魚握壽司","鮭魚握壽司","鮪魚握壽司","蝦握壽司","玉子握壽司","握壽司","鮭魚壽司"]);
 
@@ -5506,7 +5517,7 @@ function normalizeFoodQuantities(input){
    let sum=0,n=0;for(const ch of raw){const unit={十:10,拾:10,百:100,佰:100,千:1000,仟:1000}[ch];if(unit){sum+=(n||1)*unit;n=0;}else n=digits[ch];}return sum+n;
  }
  return String(input).replace(/[０-９]/g,ch=>String(ch.charCodeAt(0)-0xff10))
-  .replace(/[零〇一壹二兩两貳贰三參叁四肆五伍六陸陆七柒八捌九玖十拾百佰千仟半]+(?=\s*(?:公克|克|湯匙|茶匙|匙|粒|片|個|顆|包|份|條|塊|貫|串|支|碗|杯|根))/g,(ch,offset,text)=>text.startsWith('三杯',offset)||mealRules.some(([name])=>name.startsWith(ch)&&text.startsWith(name,offset))?ch:String(chineseNumber(ch)));
+  .replace(/[零〇一壹二兩两貳贰三參叁四肆五伍六陸陆七柒八捌九玖十拾百佰千仟半]+(?=\s*(?:公克|克|湯匙|茶匙|匙|粒|片|個|顆|包|份|條|塊|貫|串|支|隻|碗|杯|根))/g,(ch,offset,text)=>text.startsWith('三杯',offset)||mealRules.some(([name])=>name.startsWith(ch)&&text.startsWith(name,offset))?ch:String(chineseNumber(ch)));
 }
 
 // 飲食分析：辨識輸入餐點並計算四類食物份數。
@@ -5517,6 +5528,14 @@ function estimate(){
    $('recommendationsSection').hidden=true;
    $('resultSection').hidden=true;
    return;
+ }
+ // 泛稱無法反映實際食材，請補充後再估算。
+ for(const id of ['breakfast','lunch','dinner','snack']){
+  if(/(?:^|[、，,；;\n])\s*(?:[0-9半一二兩三]+\s*(?:份|碗|串)?)?\s*(吃到飽|串燒|湯)\s*(?:[0-9半一二兩三]+\s*(?:份|碗|串)?)?\s*(?=$|[、，,；;\n])/.test(v(id))){
+   $('estimateStatus').textContent='請將「吃到飽、串燒、湯」改填實際食材與份量，例如：雞肉2份、白飯1碗、蛋花湯1碗。';
+   $('analysisSection').hidden=false;$('generateSection').hidden=true;$('resultSection').hidden=true;
+   $(id).focus();$(id).scrollIntoView({block:'center'});return;
+  }
  }
  const source=normalizeFoodQuantities([v('breakfast'),v('lunch'),v('dinner'),v('snack')].join('、'));
  const totals=[0,0,num('fruit'),0], matched=[];
@@ -5532,13 +5551,15 @@ function estimate(){
  const pieceBase=name=>name.includes('餅乾')||['蛋捲','米餅','仙貝','洋芋片'].includes(name)?3:1;
  const toQuantity=value=>{if(!value)return 0;const parts=String(value).replace(/\s/g,'').split('/');if(parts.length===1)return Number(parts[0])||0;const numerator=Number(parts[0]),denominator=Number(parts[1]);return Number.isFinite(numerator)&&Number.isFinite(denominator)&&denominator!==0?numerator/denominator:0;};
  const amountPattern='(?:[0-9]+\s*\/\s*[0-9]+|[0-9]+(?:\.[0-9]+)?)';
- const unitPattern='公克|克|湯匙|茶匙|匙|粒|片|個|顆|包|份|條|塊|貫|串|支|碗|杯|根|g';
+ const unitPattern='隻|公克|克|湯匙|茶匙|匙|粒|片|個|顆|包|份|條|塊|貫|串|支|碗|杯|根|g';
  const names=[...estimateRules].sort((a,b)=>b[0].length-a[0].length).map(([n])=>n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|');
  const quantityRegex=new RegExp('(?:('+amountPattern+')\s*('+unitPattern+')\s*)?('+names+')(?:\s*('+amountPattern+')\s*('+unitPattern+')?)?','gi');
  const remaining=source.replace(quantityRegex,(full,before,unitBefore,name,after,unitAfter)=>{
    const servings=estimateLookup.get(name.toLowerCase());let multiplier=1;
    const qty=toQuantity(before||after||'1'),unit=(unitBefore||unitAfter||'').toLowerCase();
-   if(nutMeasures[name]){
+   if(expandedFoodMeasures[name]){
+     multiplier=['公克','克','g'].includes(unit)?qty/expandedFoodMeasures[name].grams:qty;
+   }else if(nutMeasures[name]){
      const [gramsPerServing,gramsPerPiece]=nutMeasures[name];
      if(['公克','克','g'].includes(unit))multiplier=qty/gramsPerServing;
      else if(['顆','粒','個'].includes(unit))multiplier=qty*gramsPerPiece/gramsPerServing;
@@ -5556,7 +5577,7 @@ function estimate(){
      const qty=toQuantity(before||after); if(qty>=0 && ['','份','個','顆','粒','串','支','碗','杯','包','塊','片','條','根','匙','湯匙','茶匙'].includes(unitBefore||unitAfter||''))multiplier=qty;
    }
    servings.forEach((value,i)=>totals[i]+=value*multiplier);
-   matched.push(name+(multiplier!==1?' ×'+Math.round(multiplier*1000)/1000:''));
+   matched.push(name+(expandedFoodMeasures[name]?'（基準：'+expandedFoodMeasures[name].label+'）':'')+(multiplier!==1?' ×'+Math.round(multiplier*1000)/1000:''));
    return ' '.repeat(full.length);
  });
  ['fat','protein','produce','grain'].forEach((id,i)=>$(id).value=Number((Math.round(totals[i]*1000)/1000).toFixed(3)));
