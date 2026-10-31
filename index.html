@@ -6006,9 +6006,9 @@ function render() {
   // 5-3. 標題、受訪者基本資料及每日食物統計。
   text('健康飲食金字塔', 45, 75, 44, '#bd302b', true);
   rule(45, 94, 325);
-  text(v('name') || '受訪者', 590, 65, 36, '#222', true);
-  text(`${age}歲　${v('sex')}　${num('height')}公分　${weight}公斤`, 490, 111, 25);
-  text(`評估日期 ${new Date().toLocaleDateString('zh-TW')}`, 590, 151, 20, '#555');
+  text(v('name') || '受訪者', 590, 105, 36, '#222', true);
+  text(`${age}歲　${v('sex')}　${num('height')}公分　${weight}公斤`, 490, 155, 25);
+  text(`評估日期 ${new Date().toLocaleDateString('zh-TW')}`, 590, 200, 20, '#555');
   text('版本 20261018-R19', 45, 128, 13, '#555');
   // 左側四大類：標題、建議說明、攝取比較各佔一行；保留類別間距。
   const labels = ['油脂類', '蛋白質、豆魚蛋肉類', '蔬果類', '全穀雜糧類'];
@@ -6034,14 +6034,17 @@ function render() {
   });
 
   // 5-4. 依個人需求繪製四層金字塔及實際攝取量。
+  const pyramidTop = 240, pyramidBottom = 690;
+  const pyramidCenter = 645, pyramidWidth = 480;
   const bounds = [
-    { y0: 165, y1: 285 },
-    { y0: 285, y1: 420 },
-    { y0: 420, y1: 555 },
-    { y0: 555, y1: 690 }
+    { y0: pyramidTop, y1: 343 },
+    { y0: 343, y1: 459 },
+    { y0: 459, y1: 574 },
+    { y0: 574, y1: pyramidBottom }
   ];
-  const left = y => 590 - (y - 165) * 0.36;
-  const right = y => 590 + (y - 165) * 0.37;
+  const halfWidthAt = y => (y - pyramidTop) / (pyramidBottom - pyramidTop) * pyramidWidth / 2;
+  const left = y => pyramidCenter - halfWidthAt(y);
+  const right = y => pyramidCenter + halfWidthAt(y);
 
   bounds.forEach((bound, index) => {
     const x0 = left(bound.y0);
