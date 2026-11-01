@@ -47,7 +47,7 @@
 </fieldset>
 <fieldset>
 <legend>二、一週內每天最常吃的飲食</legend>
-<p class="note"><strong>份量換算基準：</strong>油脂 1 份＝1 茶匙（5 mL）；蛋白質 1 份＝約三根手指的長、寬、厚，約 1 兩；蔬菜 1 份＝煮熟半碗；五穀雜糧 1 份＝1 平碗。</p>
+<p class="note"><strong>份量換算基準：</strong>油脂 1 份＝1 茶匙（5 mL）；蛋白質 1 份＝約三根手指的長、寬、厚，約 1 兩；蔬菜 1 份＝煮熟半碗；五穀雜糧 1 份＝泡開的 1 碗；大燕麥片 1 平匙＝10 公克（紐崔萊優質蛋白湯匙）；如果用一般奶粉湯匙，請記 0.5 匙＝5 公克。</p>
 <div class="grid">
 <label>早餐<textarea id="breakfast" placeholder="例如：蛋餅一份、無糖豆漿一杯、大燕麥片三匙">
 </textarea>
@@ -87,7 +87,7 @@
 </label>
 <label>蔬果類（份）<input id="produce" type="number" min="0" step="0.001" value="3">
 </label>
-<label>全穀雜糧類（碗）<input id="grain" type="number" min="0" step="0.001" value="1.3">
+<label>五穀雜糧類（碗）<input id="grain" type="number" min="0" step="0.001" value="1.3">
 </label>
 </div>
 
@@ -206,7 +206,7 @@ const v = id => $(id).value;
 const num = id => Math.max(0, Number(v(id)) || 0);
 const canvas = $('preview');
 const ctx = canvas.getContext('2d');
-// 每筆依序為油脂份、蛋白質份、蔬果份、全穀雜糧碗；沿用原版估算值。
+// 每筆依序為油脂份、蛋白質份、蔬果份、五穀雜糧碗；沿用原版估算值。
 const mealRules = [
   [
     "統一肉燥風味麵",
@@ -5384,7 +5384,7 @@ const mealRules = [
     ]
   ]
 ];
-// 台灣各地傳統小吃與家常菜補充項目。每份依序估油脂、蛋白質、蔬果、全穀雜糧；僅作一般份量初估。
+// 台灣各地傳統小吃與家常菜補充項目。每份依序估油脂、蛋白質、蔬果、五穀雜糧；僅作一般份量初估。
 const taiwanTraditionalMealRules = [
   ["菜頭粿",[1.5,0.5,0,0.5]],["蘿蔔糕",[1.5,0.5,0,0.5]],["煎蘿蔔糕",[2,0.5,0,0.5]],["炒蘿蔔糕",[2,1,0.5,1]],
   ["肉丸",[1,1,0,0]],["北斗肉圓",[2,2,0.5,1]],["彰化肉圓",[2,2,0.5,1]],["台南肉圓",[2,2,0.5,1]],
@@ -5406,7 +5406,7 @@ const singleFoodRules = [
   ["肉",[1,2,0,0]],  // 一份一般肉類
   ["魚",[0.5,2,0,0]], // 一份一般魚肉
   ["蛋",[0.5,1,0,0]], // 一顆蛋
-  ["奶",[0.5,1,0,0]]  // 一杯一般乳品的簡化估算
+  ["奶",[0,1,0,0]]  // 一杯一般乳品的簡化估算
 ];
 for (const [name, portions] of singleFoodRules) {
   if (!mealRules.some(([existing]) => existing === name)) mealRules.push([name, portions]);
@@ -5484,7 +5484,7 @@ const nutMeasures={
  '葵瓜子':[10,.3], '葵花子':[10,.3], '葵瓜子仁':[10,.3], '葵花子仁':[10,.3],
  '核桃仁':[7,3.5], '南瓜子':[10,.3], '堅果':[10,2]
 };
-// 零食為可食重量的暫定粗估，不是品牌檢驗值。糖分不併入全穀雜糧。
+// 零食為可食重量的暫定粗估，不是品牌檢驗值。糖分不併入五穀雜糧。
 // base：預設一份克數；piece：一顆／片／條／塊克數；values：油脂、蛋白、蔬果、五穀碗。
 const snackMeasures={
  '花生米':{base:13,piece:1.3,values:[1,0,0,0]},
@@ -5555,6 +5555,17 @@ const festivalMeasures={
  '鮮肉月餅':{base:80,piece:80,values:[4,.7,0,.45]}
 };
 Object.assign(snackMeasures,festivalMeasures);
+// 本表乳品只計蛋白質，乳脂不列入油脂欄；蛋白質7g／份，實際以標示為準。
+const dairyMeatMeasures={
+ '優格':{base:100,values:[0,.5,0,0],kind:'yogurt'},
+ '優酪乳':{base:100,values:[0,.45,0,0],kind:'milk'},
+ '羊奶':{base:100,values:[0,.5,0,0],kind:'milk'},
+ '羊乳':{base:100,values:[0,.5,0,0],kind:'milk'},
+ '鮮羊奶':{base:100,values:[0,.5,0,0],kind:'milk'},
+ '羊肉':{base:37.5,values:[.6,1,0,0],kind:'meat'},
+ '鹿肉':{base:37.5,values:[.2,1,0,0],kind:'meat'}
+};
+const labelRequiredDrinks=['活菌發酵乳','發酵乳','養樂多','多多','比菲多','乳酸菌飲料','益生菌飲料','可爾必思','LA33','AB'];
 const weightUnitGrams={公斤:1000,台斤:600,斤:600,台兩:37.5,兩:37.5,公克:1,克:1,g:1};
 const oatNames=new Set(['燕麥片','大燕麥片','細燕麥片','燕麥','大燕麥']);
 // 直接份數僅套用類別及單純食物名稱；便當等複合餐點保留原估算。
@@ -5562,7 +5573,7 @@ const directServingGroups=[
  ['油脂類','油脂','好油','油','橄欖油','魚油','奇亞籽油'],
  ['蛋白質類','蛋白質','蛋白','豆魚肉蛋類','豆魚肉蛋','肉','魚','蛋','奶','雞肉','豬肉','牛肉','魚肉','雞胸肉','豆腐'],
  ['蔬果類','蔬果','蔬菜類','蔬菜','青菜','菜','水果'],
- ['五穀雜糧類','全穀雜糧類','五穀雜糧','全穀雜糧','五穀','全穀','飯','白飯','米飯','糙米飯','麵','麵包','吐司','燕麥片','大燕麥片','燕麥','地瓜','馬鈴薯','栗子','糖炒栗子']
+ ['五穀雜糧類','五穀雜糧類','五穀雜糧','五穀雜糧','五穀','全穀','飯','白飯','米飯','糙米飯','麵','麵包','吐司','燕麥片','大燕麥片','燕麥','地瓜','馬鈴薯','栗子','糖炒栗子']
 ];
 const directServingIndex=new Map(directServingGroups.flatMap((names,i)=>names.map(name=>[name,i])));
 const chestnutNames=new Set(['糖炒栗子','栗子']);
@@ -5576,7 +5587,7 @@ function normalizeFoodQuantities(input){
    let sum=0,n=0;for(const ch of raw){const unit={十:10,拾:10,百:100,佰:100,千:1000,仟:1000}[ch];if(unit){sum+=(n||1)*unit;n=0;}else n=digits[ch];}return sum+n;
  }
  return String(input).replace(/[０-９]/g,ch=>String(ch.charCodeAt(0)-0xff10))
-  .replace(/[零〇一壹二兩两貳贰三參叁四肆五伍六陸陆七柒八捌九玖十拾百佰千仟半]+(?=\s*(?:公斤|台斤|斤|台兩|兩|公克|克|尾|隻|湯匙|茶匙|匙|粒|片|個|顆|包|份|條|塊|貫|串|支|碗|杯|根))/g,(ch,offset,text)=>text.startsWith('三杯',offset)||mealRules.some(([name])=>name.startsWith(ch)&&text.startsWith(name,offset))?ch:String(chineseNumber(ch)));
+  .replace(/[零〇一壹二兩两貳贰三參叁四肆五伍六陸陆七柒八捌九玖十拾百佰千仟半]+(?=\s*(?:公斤|台斤|斤|台兩|兩|公克|克|尾|隻|毫升|毫公升|公升|ml|cc|瓶|罐|盒|平匙|湯匙|茶匙|匙|粒|片|個|顆|包|份|條|塊|貫|串|支|碗|杯|根))/g,(ch,offset,text)=>text.startsWith('三杯',offset)||mealRules.some(([name])=>name.startsWith(ch)&&text.startsWith(name,offset))?ch:String(chineseNumber(ch)));
 }
 
 // 飲食分析：辨識輸入餐點並計算四類食物份數。
@@ -5589,26 +5600,40 @@ function estimate(){
    return;
  }
  const source=normalizeFoodQuantities([v('breakfast'),v('lunch'),v('dinner'),v('snack')].join('、'));
- const totals=[0,0,num('fruit'),0], matched=[];
+ const totals=[0,0,num('fruit'),0], matched=[], pendingLabels=[], estimatedFoods=[];
  const age=num('age'),produceGoal=age<12?5:(v('sex')==='男'?9:7);
  const supplementRules=[
   ['蛋白質粉',[0,1,0,0]],['蛋白粉',[0,1,0,0]],['優質蛋白',[0,1,0,0]],['高蛋白',[0,1,0,0]],['蛋白質',[0,1,0,0]],['蛋白',[0,1,0,0]],['補體素',[0,1,0,0]],
   ['銀寶善存',[0,0,produceGoal/2,0]],['Double X',[0,0,produceGoal/2,0]],['DoubleX',[0,0,produceGoal/2,0]],['DX',[0,0,produceGoal/2,0]],['善存',[0,0,produceGoal/2,0]],['得力',[0,0,produceGoal/4,0]]
  ];
- const estimateRules=[...mealRules.filter(([name])=>!nutMeasures[name]&&!oatNames.has(name)&&!snackMeasures[name]),...Object.entries(snackMeasures).map(([name,m])=>[name,m.values]),...Object.keys(nutMeasures).map(name=>[name,[1,0,0,0]]),...[...oatNames].map(name=>[name,[0,0,0,1/8]]),...supplementRules,...[...directServingIndex].filter(([name])=>!oatNames.has(name)&&!nutMeasures[name]&&!mealRules.some(([n])=>n===name)&&!supplementRules.some(([n])=>n===name)).map(([name,i])=>[name,[0,0,0,0].map((_,j)=>Number(i===j))])];
+ const mealEstimateRules=mealRules.map(([name,values])=>[name,name.includes('便當')?[3,...values.slice(1)]:values]);
+ const estimateRules=[...Object.entries(dairyMeatMeasures).map(([name,m])=>[name,m.values]),...labelRequiredDrinks.map(name=>[name,[0,0,0,0]]),...mealEstimateRules.filter(([name])=>!nutMeasures[name]&&!oatNames.has(name)&&!snackMeasures[name]),...Object.entries(snackMeasures).map(([name,m])=>[name,m.values]),...Object.keys(nutMeasures).map(name=>[name,[1,0,0,0]]),...[...oatNames].map(name=>[name,[0,0,0,1/8]]),...supplementRules,...[...directServingIndex].filter(([name])=>!oatNames.has(name)&&!nutMeasures[name]&&!mealRules.some(([n])=>n===name)&&!supplementRules.some(([n])=>n===name)).map(([name,i])=>[name,[0,0,0,0].map((_,j)=>Number(i===j))])];
  const estimateLookup=new Map(estimateRules.map(([name,portions])=>[name.toLowerCase(),portions]));
  // 完整餐點優先；辨識「餅乾6片」「2片吐司」「麵包2個」等數量。
 
  const pieceBase=name=>name.includes('餅乾')||['蛋捲','米餅','仙貝','洋芋片'].includes(name)?3:1;
  const toQuantity=value=>{if(!value)return 0;const parts=String(value).replace(/\s/g,'').split('/');if(parts.length===1)return Number(parts[0])||0;const numerator=Number(parts[0]),denominator=Number(parts[1]);return Number.isFinite(numerator)&&Number.isFinite(denominator)&&denominator!==0?numerator/denominator:0;};
  const amountPattern='(?:[0-9]+\\s*\\/\\s*[0-9]+|[0-9]+(?:\\.[0-9]+)?)';
- const unitPattern='公斤|台斤|斤|台兩|兩|公克|克|湯匙|茶匙|匙|粒|片|個|顆|包|份|條|塊|貫|串|支|碗|杯|根|尾|隻|粒|g';
+ const unitPattern='毫升|毫公升|公升|ml|cc|瓶|罐|盒|平匙|公斤|台斤|斤|台兩|兩|公克|克|湯匙|茶匙|匙|粒|片|個|顆|包|份|條|塊|貫|串|支|碗|杯|根|尾|隻|粒|g';
  const names=[...estimateRules].sort((a,b)=>b[0].length-a[0].length).map(([n])=>n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|');
  const quantityRegex=new RegExp('(?:('+amountPattern+')\\s*('+unitPattern+')\\s*)?('+names+')(?:\\s*('+amountPattern+')\\s*('+unitPattern+')?)?','gi');
  const remaining=source.replace(quantityRegex,(full,before,unitBefore,name,after,unitAfter)=>{
    let servings=estimateLookup.get(name.toLowerCase());let multiplier=1;
    const qty=toQuantity(before||after||'1'),unit=(unitBefore||unitAfter||'').toLowerCase();
-   if(directServingIndex.has(name)&&['','份'].includes(unit)){
+   if(labelRequiredDrinks.some(n=>n.toLowerCase()===name.toLowerCase())){
+     pendingLabels.push(name);servings=[0,0,0,0];
+   }else if(dairyMeatMeasures[name]){
+     const m=dairyMeatMeasures[name];
+     if(m.kind==='meat'){
+       multiplier=weightUnitGrams[unit]!==undefined?qty*weightUnitGrams[unit]/m.base:qty;
+     }else if(weightUnitGrams[unit]!==undefined){multiplier=qty*weightUnitGrams[unit]/m.base;}
+     else if(['ml','cc','毫升','毫公升'].includes(unit)){multiplier=qty/m.base;}
+     else if(unit==='公升'){multiplier=qty*1000/m.base;}
+     else if(unit==='杯'){multiplier=qty*240/m.base;}
+     else if(['','份'].includes(unit)){multiplier=qty*(m.kind==='yogurt'?100:240)/m.base;}
+     else {pendingLabels.push(name+'（請填公克或毫升）');servings=[0,0,0,0];}
+     estimatedFoods.push(name);
+   }else if(directServingIndex.has(name)&&['','份'].includes(unit)){
      servings=[0,0,0,0];servings[directServingIndex.get(name)]=1;multiplier=qty;
    }else if(chestnutNames.has(name)){
      servings=[0,0,0,1];
@@ -5644,6 +5669,8 @@ function estimate(){
  ['fat','protein','produce','grain'].forEach((id,i)=>$(id).value=Number((Math.round(totals[i]*1000)/1000).toFixed(3)));
  const unknown=remaining.replace(/[\s、，,。；;／/：:\d０-９份碗杯個顆片根匙條塊包]+/g,'').trim();
  $('estimateStatus').textContent=`已辨識 ${matched.length} 項：${matched.join('、')||'無'}。${unknown?'未辨識內容：'+unknown+'（請手動確認份數）':'請依實際份量修正估算。'} 不同品牌、重量及內餡差異大，請依實際份量調整。`;
+ if(estimatedFoods.length)$('estimateStatus').textContent+=' 乳品及肉品為一般份量粗估；乳品1杯240mL、優格未填單位以100g估算，乳品脂肪不計入本表油脂欄。';
+ if(pendingLabels.length)$('estimateStatus').textContent+=' 待補營養標示（尚未計入，並非沒有營養）：'+[...new Set(pendingLabels)].join('、')+'。請依實際攝取量的蛋白質公克÷7手動補入；乳品脂肪不計入油脂欄，糖不算五穀雜糧。';
  $('analysisSection').hidden=false;
  $('generateSection').hidden=false;
  $('recommendationsSection').hidden=true;
@@ -5654,7 +5681,7 @@ function estimate(){
 
 // 四、計算每日需求、營養建議及缺乏提醒。
 
-// 需求量：依工作強度取得全穀雜糧份數。
+// 需求量：依工作強度取得五穀雜糧份數。
 function grainGoal(){return {light:3,medium:4,heavy:5}[v('workload')]||3;}
 
 // 營養建議：依年齡、體重及飲食分析計算。
@@ -6025,7 +6052,7 @@ function render() {
   text(`評估日期 ${new Date().toLocaleDateString('zh-TW')}`, 590, 200, 20, '#555');
   text('版本 20261018-R19', 45, 128, 13, '#555');
   // 左側四大類：標題、建議說明、攝取比較各佔一行；保留類別間距。
-  const labels = ['油脂類', '蛋白質、豆魚蛋肉類', '蔬果類', '全穀雜糧類'];
+  const labels = ['油脂類', '蛋白質、豆魚蛋肉類', '蔬果類', '五穀雜糧類'];
   const yPositions = [185, 330, 475, 620];
   const explanations = [
     '有補充：' + (selectedOil().join('、') || '未勾選'),
@@ -6178,7 +6205,7 @@ function render() {
     ['晚', v('dinner')],
     ['下午茶／宵夜', v('snack')]
   ];
-  const statLabels = ['油脂類', '蛋白質類', '蔬果類', '全穀雜糧類'];
+  const statLabels = ['油脂類', '蛋白質類', '蔬果類', '五穀雜糧類'];
   const statSplit = rightX + 245;
 
   c.fillStyle = '#fff';
