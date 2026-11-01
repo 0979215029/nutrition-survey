@@ -5606,7 +5606,8 @@ function estimate(){
   ['蛋白質粉',[0,1,0,0]],['蛋白粉',[0,1,0,0]],['優質蛋白',[0,1,0,0]],['高蛋白',[0,1,0,0]],['蛋白質',[0,1,0,0]],['蛋白',[0,1,0,0]],['補體素',[0,1,0,0]],
   ['銀寶善存',[0,0,produceGoal/2,0]],['Double X',[0,0,produceGoal/2,0]],['DoubleX',[0,0,produceGoal/2,0]],['DX',[0,0,produceGoal/2,0]],['善存',[0,0,produceGoal/2,0]],['得力',[0,0,produceGoal/4,0]]
  ];
- const mealEstimateRules=mealRules.map(([name,values])=>[name,name.includes('便當')?[3,...values.slice(1)]:values]);
+ const zeroOilDrink=name=>/(?:咖啡|拿鐵|卡布奇諾|摩卡|豆漿|豆奶|牛奶|鮮奶|羊奶|羊乳|奶茶|優格|優酪乳|發酵乳)$/.test(name)||name==='奶';
+ const mealEstimateRules=mealRules.map(([name,values])=>[name,zeroOilDrink(name)?[0,...values.slice(1)]:name.includes('便當')?[3,...values.slice(1)]:values]);
  const estimateRules=[...Object.entries(dairyMeatMeasures).map(([name,m])=>[name,m.values]),...labelRequiredDrinks.map(name=>[name,[0,0,0,0]]),...mealEstimateRules.filter(([name])=>!nutMeasures[name]&&!oatNames.has(name)&&!snackMeasures[name]),...Object.entries(snackMeasures).map(([name,m])=>[name,m.values]),...Object.keys(nutMeasures).map(name=>[name,[1,0,0,0]]),...[...oatNames].map(name=>[name,[0,0,0,1/8]]),...supplementRules,...[...directServingIndex].filter(([name])=>!oatNames.has(name)&&!nutMeasures[name]&&!mealRules.some(([n])=>n===name)&&!supplementRules.some(([n])=>n===name)).map(([name,i])=>[name,[0,0,0,0].map((_,j)=>Number(i===j))])];
  const estimateLookup=new Map(estimateRules.map(([name,portions])=>[name.toLowerCase(),portions]));
  // 完整餐點優先；辨識「餅乾6片」「2片吐司」「麵包2個」等數量。
