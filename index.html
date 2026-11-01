@@ -6205,7 +6205,7 @@ function render() {
     ['中', v('lunch')],
     ['晚', v('dinner')],
     ['下午茶／宵夜', v('snack')],
-    ['水果', `${num('fruit')} 份`]
+    ['水果(不含上方登記的)', `${num('fruit')} 份`]
   ];
   const statLabels = ['油脂類', '蛋白質類', '蔬果類', '五穀雜糧類'];
   const statSplit = rightX + 245;
@@ -6238,6 +6238,14 @@ function render() {
   meals.forEach(([label, content], index) => {
     const row = index + 1;
     const y = rowBaseline(row);
+    if (index === 4) {
+      c.save();
+      c.font = `bold 26px Arial, 'Noto Sans TC', sans-serif`;
+      c.fillStyle = '#222';
+      c.fillText(`${label}：${content}`, rightX + 10, y, rightWidth - 20);
+      c.restore();
+      return;
+    }
     const isSnack = index === 3;
     // 餐點名稱與回答分成兩欄，長標籤不再壓到回答。
     const labelX = rightX + 10;
