@@ -6189,17 +6189,18 @@ function render() {
   text('水格每格240cc，末格為剩餘需求', 405, 905, 17, '#555');
 
   // 右側共 12 行：兩個區段標題、四餐、水果、統計表標頭及四項統計。
-  // 使用相同列高、字級與置中基準線，避免餐點區與統計區看起來不一致。
+  // 上方飲食列維持高度；統計表標頭及四項統計列縮短20%。
   const rightX = 1025;
   const rightWidth = 425;
   const rightTop = 88;
   const rightRows = 12;
-  // 右側表格底邊與左側下方分隔線共用同一座標。
+  // 依原表高度取得基準列高，下方統計列獨立縮短。
   const rightRowHeight = (sectionDividerY - rightTop) / rightRows;
-  const rightBottom = rightTop + rightRowHeight * rightRows;
+  const rowHeight = index => rightRowHeight * (index >= 7 ? 0.8 : 1);
+  const rowTop = index => rightTop + Math.min(index, 7) * rightRowHeight + Math.max(0, index - 7) * rightRowHeight * 0.8;
+  const rightBottom = rowTop(rightRows);
   const rightFont = 20;
-  const rowBaseline = index => rightTop + index * rightRowHeight + rightRowHeight / 2 + 9;
-  const rowTop = index => rightTop + index * rightRowHeight;
+  const rowBaseline = index => rowTop(index) + rowHeight(index) / 2 + 9;
   const meals = [
     ['早', v('breakfast')],
     ['中', v('lunch')],
@@ -6212,10 +6213,10 @@ function render() {
 
   c.fillStyle = '#fff';
   c.fillRect(rightX, rightTop, rightWidth, rightBottom - rightTop);
-  // 兩個區段標題與統計表標頭使用同色底，列高仍與其他資料列完全相同。
+  // 區段標題與統計表標頭使用同色底，填色依各列高度。
   [0, 6, 7].forEach(index => {
     c.fillStyle = '#d3e4b5';
-    c.fillRect(rightX, rowTop(index), rightWidth, rightRowHeight);
+    c.fillRect(rightX, rowTop(index), rightWidth, rowHeight(index));
   });
   c.strokeStyle = '#8a9a84';
   c.lineWidth = 2;
