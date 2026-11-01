@@ -6051,7 +6051,6 @@ function render() {
   text(v('name') || '受訪者', 590, 105, 36, '#222', true);
   text(`${age}歲　${v('sex')}　${num('height')}公分　${weight}公斤`, 490, 155, 25);
   text(`評估日期 ${new Date().toLocaleDateString('zh-TW')}`, 590, 200, 20, '#555');
-  text('版本 20261018-R19', 45, 128, 13, '#555');
   // 左側四大類：標題、建議說明、攝取比較各佔一行；保留類別間距。
   const labels = ['油脂類', '蛋白質、豆魚蛋肉類', '蔬果類', '五穀雜糧類'];
   const yPositions = [185, 330, 475, 620];
