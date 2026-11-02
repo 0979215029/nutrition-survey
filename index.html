@@ -6553,6 +6553,23 @@ function saveAssessmentRecord(name){
  if(row)row.date=recordToday();else assessmentRecords.push({name,date:recordToday(),ordered:false,joined:false,notes:''});
  const saved=persistAssessmentRecords();renderAssessmentRecords();return saved;
 }
+function confirmDeleteAssessmentRecord(row){
+ const dialog=document.createElement('dialog');
+ dialog.setAttribute('aria-labelledby','deleteRecordTitle');
+ dialog.style.cssText='border:0;border-radius:14px;padding:24px;max-width:85vw;width:300px;box-shadow:0 8px 40px #0005';
+ const title=document.createElement('h3');title.id='deleteRecordTitle';title.textContent='確認刪除';title.style.marginTop='0';
+ const name=document.createElement('p');name.textContent=row.name;name.style.overflowWrap='anywhere';
+ const actions=document.createElement('div');actions.className='actions';
+ const yes=document.createElement('button');yes.type='button';yes.textContent='是';yes.style.background='#b3261e';
+ const no=document.createElement('button');no.type='button';no.textContent='否';no.className='secondary';
+ yes.addEventListener('click',()=>{
+  assessmentRecords=assessmentRecords.filter(item=>item!==row);
+  persistAssessmentRecords();renderAssessmentRecords();dialog.close();
+ });
+ no.addEventListener('click',()=>dialog.close());
+ dialog.addEventListener('close',()=>dialog.remove(),{once:true});
+ actions.append(yes,no);dialog.append(title,name,actions);document.body.append(dialog);dialog.showModal();no.focus();
+}
 function renderAssessmentRecords(){
  recordEl('recordCount').textContent='已評估：'+assessmentRecords.length+' 位';
  const list=recordEl('recordList');list.replaceChildren();
@@ -6563,7 +6580,7 @@ function renderAssessmentRecords(){
   const date=document.createElement('div');date.className='recordDate';date.textContent='日期：'+row.date.replaceAll('-','/');
   const checks=document.createElement('div');checks.className='recordChecks';
   [['ordered','訂貨'],['joined','加入']].forEach(([key,title])=>{const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.checked=row[key];input.addEventListener('change',()=>{row[key]=input.checked;persistAssessmentRecords();});label.append(input,document.createTextNode(title));checks.append(label);});
-  const label=document.createElement('label');label.textContent='備註';const notes=document.createElement('textarea');notes.value=row.notes;notes.placeholder='可在此輸入備註';notes.addEventListener('input',()=>{row.notes=notes.value;persistAssessmentRecords();});label.append(notes);card.append(heading,date,checks,label);list.append(card);
+  const label=document.createElement('label');label.textContent='備註';const notes=document.createElement('textarea');notes.value=row.notes;notes.placeholder='可在此輸入備註';notes.addEventListener('input',()=>{row.notes=notes.value;persistAssessmentRecords();});label.append(notes);const remove=document.createElement('button');remove.type='button';remove.textContent='刪除';remove.style.background='#b3261e';remove.addEventListener('click',()=>confirmDeleteAssessmentRecord(row));const actions=document.createElement('div');actions.className='actions';actions.append(remove);card.append(heading,date,checks,label,actions);list.append(card);
  });
 }
 try{const raw=localStorage.getItem(assessmentRecordKey);if(raw!==null)assessmentRecords=validateRecordData(JSON.parse(raw));}
