@@ -2,7 +2,40 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<script>if(location.origin!=="https://hou-nutrition-cloud.flowytrout15.chatgpt.site"){location.replace("https://hou-nutrition-cloud.flowytrout15.chatgpt.site/assessment"+location.search+location.hash);}</script>
+<script>
+// ===== 商城代碼禁止名單：以後只需在下面新增或刪除代碼 =====
+// 每個代碼用英文雙引號包住，中間以英文逗號分隔。
+// 採完整代碼比對，不會把包含這些數字的其他商城代碼誤判為禁止。
+const BLOCKED_SHOP_CODES = [
+  "00000000",
+  "11111111",
+  "22222222"
+];
+// ===== 禁止名單結束 =====
+
+(function applyShopBlockBeforeRedirect(){
+  const owner = {name:"侯博凱", phone:"0936090990", shop:"70A10EF7BDCFC29141D9ED34A1BA8580"};
+  const params = new URLSearchParams(location.search);
+  // 與原問卷一致：優先使用 shop，沒有時使用 d。
+  const code = (params.get("shop") || params.get("d") || "").trim().toUpperCase();
+  const blocked = BLOCKED_SHOP_CODES.some(item => String(item).trim().toUpperCase() === code);
+  if(blocked){
+    params.set("interviewer", owner.name);
+    params.set("phone", owner.phone);
+    params.set("shop", owner.shop);
+    params.set("d", owner.shop);
+  }
+  // 保留原有雲端問卷流程；這不是離線版或完全獨立的 GitHub 版。
+  const search = blocked ? "?" + params.toString() : location.search;
+  const cloudOrigin = "https://hou-nutrition-cloud.flowytrout15.chatgpt.site";
+  if(location.origin !== cloudOrigin){
+    location.replace(cloudOrigin + "/assessment" + search + location.hash);
+  }else if(blocked){
+    // 若此檔也部署在雲端，讓後續程式讀取替換後的網址參數。
+    history.replaceState(null, "", location.pathname + search + location.hash);
+  }
+})();
+</script>
 
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>健康飲食金字塔｜飲食問卷</title>
