@@ -47,10 +47,10 @@ html,body{height:100%;margin:0}body.portalHomeMode{height:100dvh;overflow:hidden
 <body class="portalHomeMode">
 <div style="max-width:850px;margin:auto;padding:10px 16px;font-size:16px;line-height:1.6">
 <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><span id="localContact">正在讀取問卷資料…</span></div>
-<div id="syncState" role="status" style="font-size:12px;color:#53645a">正在連接管理中心…</div>
+<div id="syncState" role="status" hidden style="font-size:12px;color:#53645a">正在連接管理中心…</div>
 <details style="font-size:14px;color:#53645a"><summary>使用資料說明</summary>評估記錄及客戶資料保存在目前裝置的瀏覽器，請定期匯出備份。連線時回報網址中的問卷者姓名、電話、商城代碼及評估張數，不上傳受評估者或客戶資料。檔案內或管理中心任一處設為禁止即生效；離線時沿用上次取得的雲端設定。</details>
 </div>
-<section id="portalHome"><h1>紐崔萊營養保健服務</h1><p>請選擇需要的功能</p><div class="portalGrid"><button type="button" class="portalBtn" onclick="portalOpen('assessment')">① 飲食評估</button><button type="button" class="portalBtn" onclick="portalOpen('products')">② 紐崔萊產品介紹</button><button type="button" class="portalBtn" onclick="portalOpen('therapy')">③ 食療與營養</button><button type="button" class="portalBtn" onclick="portalOpen('shopping')">④ 線上購物</button><button type="button" class="portalBtn" onclick="portalOpen('dietGuide')">⑤ 衛生署每日飲食建議<br>（健康餐說明）</button><button type="button" class="portalBtn" onclick="portalOpen('records')">⑥ 評估記錄</button><button type="button" id="customerMenu" class="portalBtn" onclick="portalOpen('customers')" disabled>⑦ 客戶管理</button></div><a href="https://hou-nutrition-cloud.flowytrout15.chatgpt.site/admin" target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;padding:5px;font-size:15px;color:#287944">管理中心</a></section>
+<section id="portalHome"><h1>紐崔萊營養保健服務</h1><p>請選擇需要的功能</p><div class="portalGrid"><button type="button" class="portalBtn" onclick="portalOpen('assessment')">① 飲食評估</button><button type="button" class="portalBtn" onclick="portalOpen('products')">② 紐崔萊產品介紹</button><button type="button" class="portalBtn" onclick="portalOpen('therapy')">③ 食療與營養</button><button type="button" class="portalBtn" onclick="portalOpen('shopping')">④ 線上購物</button><button type="button" class="portalBtn" onclick="portalOpen('dietGuide')">⑤ 衛生署每日飲食建議<br>（健康餐說明）</button><button type="button" class="portalBtn" onclick="portalOpen('records')">⑥ 評估記錄</button><button type="button" id="customerMenu" class="portalBtn" onclick="portalOpen('customers')" disabled>⑦ 客戶管理</button></div><a id="cloudAdmin" hidden href="https://hou-nutrition-cloud.flowytrout15.chatgpt.site/admin" target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;padding:5px;font-size:15px;color:#287944">管理中心</a></section>
 <section id="portalCustomers" hidden><div id="customerTop"><button type="button" onclick="portalOpen('home')">← 返回首頁</button><strong>⑦ 客戶管理</strong></div><p id="customerGate" role="status">正在確認使用權限…</p><iframe id="customerFrame" title="客戶管理" hidden></iframe></section><section id="portalRecords" class="portalPage" hidden>
 <button class="portalBack" type="button" onclick="portalOpen('home')">← 返回首頁</button>
 <h2>評估記錄</h2><p id="recordCount" aria-live="polite">共評估 0 人，購買 0 人，加入 0 人</p>
@@ -6673,6 +6673,9 @@ function customerLock(message){
 }
 function applyLocalSettings(){
  loadInterviewerFromUrl();loadOrderLinkFromUrl();
+ const isOwnerContact=originalContact.name===SITE_OWNER.name&&originalContact.phone===SITE_OWNER.phone;
+ document.getElementById('syncState').hidden=!isOwnerContact;
+ document.getElementById('cloudAdmin').hidden=!isOwnerContact;
  document.getElementById('portalShopLink').href=effectiveShopLink();
  const contact=effectiveContact();
  document.getElementById('localContact').textContent='使用者：'+(contact.name||'未提供')+'　電話：'+(contact.phone||'未提供');
