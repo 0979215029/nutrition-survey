@@ -6675,7 +6675,7 @@ function applyLocalSettings(){
  loadInterviewerFromUrl();loadOrderLinkFromUrl();
  document.getElementById('portalShopLink').href=effectiveShopLink();
  const contact=effectiveContact();
- document.getElementById('localContact').textContent='問卷者：'+(contact.name||'未提供')+'　電話：'+(contact.phone||'未提供');
+ document.getElementById('localContact').textContent='使用者：'+(contact.name||'未提供')+'　電話：'+(contact.phone||'未提供');
  if(isShopBlocked())customerLock('此商城代碼已禁止使用客戶管理。');
  else{customerAllowed=true;document.getElementById('customerMenu').disabled=false;document.getElementById('customerMenu').title='';}
  updateShopQR();
@@ -6723,8 +6723,10 @@ function pendingIds(){
 }
 function syncMessage(){
  const n=pendingIds().length;
- syncLabel.textContent=lastCloudOk?(n?'尚有 '+n+' 張待同步':'已連接管理中心，使用量已同步'):(n?'暫時無法連線，'+n+' 張待同步；仍可評估及存檔':'暫時無法連接管理中心，仍可評估及存檔');
- if(volatileEvents.size)syncLabel.textContent+='。部分待同步張數無法保存，請保持頁面開啟直到同步完成。';
+ syncLabel.textContent=lastCloudOk
+  ?(n?'連線：已連線管理中心；評估記錄：'+n+'張待同步':'連線：已連線管理中心；評估記錄：已同步')
+  :(n?'連線：暫時中斷；評估記錄：'+n+'張待同步，仍可評估及存檔':'連線：暫時中斷；目前沒有待同步評估記錄，仍可評估及存檔');
+ if(volatileEvents.size)syncLabel.textContent+='；部分待同步張數只暫存在此頁面，請保持頁面開啟直到同步完成。';
 }
 async function requestCloud(payload,token=sessionToken){
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),4000);
