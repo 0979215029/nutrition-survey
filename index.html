@@ -6675,7 +6675,9 @@ function applyLocalSettings(){
  loadInterviewerFromUrl();loadOrderLinkFromUrl();
  const isOwnerContact=originalContact.name===SITE_OWNER.name&&originalContact.phone===SITE_OWNER.phone;
  document.getElementById('syncState').hidden=!isOwnerContact;
- document.getElementById('cloudAdmin').hidden=!isOwnerContact;
+ const adminLink=document.getElementById('cloudAdmin');
+ adminLink.hidden=!isOwnerContact;
+ adminLink.style.display=isOwnerContact?'block':'none';
  document.getElementById('portalShopLink').href=effectiveShopLink();
  const contact=effectiveContact();
  document.getElementById('localContact').textContent='使用者：'+(contact.name||'未提供')+'　電話：'+(contact.phone||'未提供');
