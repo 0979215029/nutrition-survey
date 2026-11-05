@@ -4,37 +4,34 @@
 <meta charset="utf-8">
 <script>
 // ===== 商城代碼禁止名單：以後只需在下面新增或刪除代碼 =====
-// 每個代碼用英文雙引號包住，中間以英文逗號分隔。
-// 採完整代碼比對，不會把包含這些數字的其他商城代碼誤判為禁止。
+// 每個代碼用英文雙引號包住，中間用英文逗號分隔。
+// 完整代碼比對、不分大小寫；修改上傳後，使用者重新整理頁面才會讀到新名單。
 const BLOCKED_SHOP_CODES = [
   "00000000",
   "11111111",
   "22222222"
 ];
 // ===== 禁止名單結束 =====
-
-(function applyShopBlockBeforeRedirect(){
-  const owner = {name:"侯博凱", phone:"0936090990", shop:"70A10EF7BDCFC29141D9ED34A1BA8580"};
-  const params = new URLSearchParams(location.search);
-  // 與原問卷一致：優先使用 shop，沒有時使用 d。
-  const code = (params.get("shop") || params.get("d") || "").trim().toUpperCase();
-  const blocked = BLOCKED_SHOP_CODES.some(item => String(item).trim().toUpperCase() === code);
-  if(blocked){
-    params.set("interviewer", owner.name);
-    params.set("phone", owner.phone);
-    params.set("shop", owner.shop);
-    params.set("d", owner.shop);
-  }
-  // 保留原有雲端問卷流程；這不是離線版或完全獨立的 GitHub 版。
-  const search = blocked ? "?" + params.toString() : location.search;
-  const cloudOrigin = "https://hou-nutrition-cloud.flowytrout15.chatgpt.site";
-  if(location.origin !== cloudOrigin){
-    location.replace(cloudOrigin + "/assessment" + search + location.hash);
-  }else if(blocked){
-    // 若此檔也部署在雲端，讓後續程式讀取替換後的網址參數。
-    history.replaceState(null, "", location.pathname + search + location.hash);
-  }
-})();
+const SITE_OWNER = Object.freeze({name:"侯博凱", phone:"0936090990", shop:"70A10EF7BDCFC29141D9ED34A1BA8580"});
+const originalParams = new URLSearchParams(location.search);
+const originalShop = (originalParams.get('shop') || originalParams.get('d') || SITE_OWNER.shop).trim().toUpperCase();
+const originalContact = Object.freeze({
+ name:originalParams.get('interviewer') || (originalShop===SITE_OWNER.shop?SITE_OWNER.name:''),
+ phone:originalParams.get('phone') || (originalShop===SITE_OWNER.shop?SITE_OWNER.phone:''),
+ shop:originalShop
+});
+const remoteBlockKey='nutritionCloud.blockCache.v1.'+originalShop;
+let remoteBlocked=false;
+function readCachedBlock(){
+ try{const cached=JSON.parse(localStorage.getItem(remoteBlockKey)||'null');if(cached&&cached.shop===originalShop&&typeof cached.blocked==='boolean')remoteBlocked=cached.blocked;}catch{}
+}
+readCachedBlock();
+function isShopBlocked(){return remoteBlocked||BLOCKED_SHOP_CODES.some(code=>String(code).trim().toUpperCase()===originalShop);}
+function effectiveContact(){return isShopBlocked()?SITE_OWNER:originalContact;}
+function effectiveShopLink(){
+ const code=effectiveContact().shop;
+ return 'https://shop.amway.com.tw/?d='+encodeURIComponent(/^[A-F0-9]{32}$/.test(code)?code:SITE_OWNER.shop);
+}
 </script>
 
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -49,11 +46,11 @@ html,body{height:100%;margin:0}body.portalHomeMode{height:100dvh;overflow:hidden
 </style></head>
 <body class="portalHomeMode">
 <div style="max-width:850px;margin:auto;padding:10px 16px;font-size:16px;line-height:1.6">
-<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><span id="cloudContact">正在讀取問卷資料…</span><a id="cloudAdmin" href="/admin" hidden style="font-weight:bold;color:#287944">管理中心</a></div>
-<div id="cloudNotice" role="status">正在連接雲端…</div><span id="cloudSync"></span> <button id="cloudRetry" type="button" style="font-size:14px;padding:5px 10px">重新連線</button>
-<details style="font-size:14px;color:#53645a"><summary>使用資料說明</summary>本站會記錄網址中的問卷者姓名、電話、商城代碼及評估張數，供設計者管理。受評估者的姓名、飲食、用藥與備註只保留在本機，不會回傳。商城連結會依管理者設定導向對應商城。</details>
+<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><span id="localContact">正在讀取問卷資料…</span></div>
+<div id="syncState" role="status" style="font-size:12px;color:#53645a">正在連接管理中心…</div>
+<details style="font-size:14px;color:#53645a"><summary>使用資料說明</summary>評估記錄及客戶資料保存在目前裝置的瀏覽器，請定期匯出備份。連線時回報網址中的問卷者姓名、電話、商城代碼及評估張數，不上傳受評估者或客戶資料。檔案內或管理中心任一處設為禁止即生效；離線時沿用上次取得的雲端設定。</details>
 </div>
-<section id="portalHome"><h1>紐崔萊營養保健服務</h1><p>請選擇需要的功能</p><div class="portalGrid"><button type="button" class="portalBtn" onclick="portalOpen('assessment')">① 飲食評估</button><button type="button" class="portalBtn" onclick="portalOpen('products')">② 紐崔萊產品介紹</button><button type="button" class="portalBtn" onclick="portalOpen('therapy')">③ 食療與營養</button><button type="button" class="portalBtn" onclick="portalOpen('shopping')">④ 線上購物</button><button type="button" class="portalBtn" onclick="portalOpen('dietGuide')">⑤ 衛生署每日飲食建議<br>（健康餐說明）</button><button type="button" class="portalBtn" onclick="portalOpen('records')">⑥ 評估記錄</button><button type="button" id="customerMenu" class="portalBtn" onclick="portalOpen('customers')" disabled>⑦ 客戶管理</button></div></section>
+<section id="portalHome"><h1>紐崔萊營養保健服務</h1><p>請選擇需要的功能</p><div class="portalGrid"><button type="button" class="portalBtn" onclick="portalOpen('assessment')">① 飲食評估</button><button type="button" class="portalBtn" onclick="portalOpen('products')">② 紐崔萊產品介紹</button><button type="button" class="portalBtn" onclick="portalOpen('therapy')">③ 食療與營養</button><button type="button" class="portalBtn" onclick="portalOpen('shopping')">④ 線上購物</button><button type="button" class="portalBtn" onclick="portalOpen('dietGuide')">⑤ 衛生署每日飲食建議<br>（健康餐說明）</button><button type="button" class="portalBtn" onclick="portalOpen('records')">⑥ 評估記錄</button><button type="button" id="customerMenu" class="portalBtn" onclick="portalOpen('customers')" disabled>⑦ 客戶管理</button></div><a href="https://hou-nutrition-cloud.flowytrout15.chatgpt.site/admin" target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;padding:5px;font-size:15px;color:#287944">管理中心</a></section>
 <section id="portalCustomers" hidden><div id="customerTop"><button type="button" onclick="portalOpen('home')">← 返回首頁</button><strong>⑦ 客戶管理</strong></div><p id="customerGate" role="status">正在確認使用權限…</p><iframe id="customerFrame" title="客戶管理" hidden></iframe></section><section id="portalRecords" class="portalPage" hidden>
 <button class="portalBack" type="button" onclick="portalOpen('home')">← 返回首頁</button>
 <h2>評估記錄</h2><p id="recordCount" aria-live="polite">共評估 0 人，購買 0 人，加入 0 人</p>
@@ -5471,19 +5468,10 @@ const nigiriNames = new Set(["炙燒鮭魚握壽司","鮭魚握壽司","鮪魚�
 
 // 初始化：從網址帶入問卷者姓名及電話。
 function loadInterviewerFromUrl(){
-  const params=new URLSearchParams(window.location.search);
-  const interviewer=params.get('interviewer');
-  const phone=params.get('phone');
-  if(interviewer!==null) $('interviewer').value=interviewer;
-  if(phone!==null) $('phone').value=phone;
+ const contact=effectiveContact();
+ $('interviewer').value=contact.name;$('phone').value=contact.phone;
 }
-
-// 初始化：shop 參數須為32字元，否則使用預設商城網址。
-function loadOrderLinkFromUrl() {
- const params=new URLSearchParams(location.search);
- const code=params.get('shop')||params.get('d')||'70A10EF7BDCFC29141D9ED34A1BA8580';
- $('orderLink').href=location.origin+'/go?shop='+encodeURIComponent(code.toUpperCase());
-}
+function loadOrderLinkFromUrl(){ $('orderLink').href=effectiveShopLink(); }
 
 // 三、檢查問卷資料並估算飲食份數。
 
@@ -6395,7 +6383,7 @@ function render() {
     labelBottom-=fontSize*1.25;
   }
   c.restore();
-  const qrImg=shopQRCanvas||fallbackQR;
+  const qrImg=shopQRCanvas;
   if(qrImg && (qrImg.complete!==false || qrImg.width>0)){
     try{c.drawImage(qrImg,qrX,qrY,qrSize,qrSize);}catch(e){}
   }
@@ -6438,11 +6426,11 @@ function updateAssessmentPage(splitY){
 
 // 按下「產生飲食評估圖」後執行。
 async function generateImage(){
- if(cloudWorking)return;
+ if(outputWorking)return;
  if(!validateRequiredProfile(true))return;
- cloudWorking=true;$('generateButton').disabled=true;
+ outputWorking=true;$('generateButton').disabled=true;
  try{
- if(!await cloudBeforeOutput())return;
+ if(!await beforeOutput())return;
  if(!validateRequiredProfile(true)){
    $('imageStatus').textContent='請先補齊必填資料，再產生飲食評估圖。';
    return;
@@ -6455,8 +6443,9 @@ async function generateImage(){
  $('assessmentPage').scrollIntoView({behavior:'smooth',block:'start'});
  status.textContent='飲食評估圖已產生，請下載 JPG 並回傳給問卷者。';
  if(!saveAssessmentRecord(v('name')))status.textContent+=' 評估記錄未能永久儲存，請至第六項匯出備份。';
- cloudCountImage();
- }catch(e){console.error('Generate error',e);$('imageStatus').textContent='評估圖產生失敗，請重試。';}finally{cloudWorking=false;$('generateButton').disabled=false;}
+ countLocalEvaluation();
+
+ }catch(e){console.error('Generate error',e);$('imageStatus').textContent='評估圖產生失敗，請重試。';}finally{outputWorking=false;$('generateButton').disabled=false;}
 }
 
 // 顯示圖片，供無法直接下載的瀏覽器儲存。
@@ -6476,7 +6465,7 @@ function assessmentJpgFilename(){
 }
 
 async function downloadJpg(){
- if(!await cloudBeforeOutput())return;
+ if(!await beforeOutput())return;
  render();
  const fileName=assessmentJpgFilename();
  // LINE 常會阻止輸出為圖檔，建議用螢幕拍照儲存。
@@ -6496,7 +6485,7 @@ async function downloadJpg(){
 // 網頁無法確認手機下載完成，也無法指定系統分享選單中的 LINE。
 let sharingJpg = false;
 async function shareJpgToLine(){
- if(!await cloudBeforeOutput())return;
+ if(!await beforeOutput())return;
  if(sharingJpg)return;
  sharingJpg=true;
  const button=$('shareJpgButton');
@@ -6533,6 +6522,7 @@ async function shareJpgToLine(){
 // 商城分享：永遠取商城按鈕目前的 href，不使用問卷網址。
 // 縮網址需外部服務；優先嘗試 is.gd，失敗時使用完整有效網址。
 async function shareShopToLine(){
+ if(!await beforeOutput())return;
  const original=$('orderLink').href;
  let url=original;
  try{
@@ -6565,19 +6555,27 @@ function initialize() {
 // 執行頁面初始化。
 initialize();
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script>
-const fallbackQR=new Image();fallbackQR.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJQAAACUAQAAAABdRz15AAABSElEQVR4nM2WQYpcMQxEn4fZl27Q9z9W36B8gpdFN4EkZDFoIPHKEvxHfcmy68jv6378kYJ/lzvnzMzMnXM558yKh9E0Ss0r2PA+4QSep8nhFSx5wONmevrFb//Ou53AOGveB1gYmGZewYZ3PJCf4YU8d/1VjQGrqqv+fjDM4ZDeOecctucPtKEqttnpw2qirbR2+b8vSSSUSLb1w6RI35t2N2/YtoipabLXpyENSa3d8iASbOu36MOUvMiBHe8TPNKhlPHObn4RTCwJbbquX9JisGU/v8cBCsxzPIWs3jfEaBMxtst+oIhQAyHr+tnUALSR9fkDQkxDgPV9pZqWRGKWvPf7cb2EgevWv0R5dsKZUu7ab5BEahpg2d9X7nnzOE+uITt979w8yYPMzfQ7/EEffV5K+3Utv6x3f3sAvA9g5Q/Of+53fwBPIQ1rtj9t8AAAAABJRU5ErkJggg==';
+<script>
+/* QRCode.js 1.0.0, MIT license, https://github.com/davidshimjs/qrcodejs */
+var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this.parsedData=[];for(var b=[],d=0,e=this.data.length;e>d;d++){var f=this.data.charCodeAt(d);f>65536?(b[0]=240|(1835008&f)>>>18,b[1]=128|(258048&f)>>>12,b[2]=128|(4032&f)>>>6,b[3]=128|63&f):f>2048?(b[0]=224|(61440&f)>>>12,b[1]=128|(4032&f)>>>6,b[2]=128|63&f):f>128?(b[0]=192|(1984&f)>>>6,b[1]=128|63&f):b[0]=f,this.parsedData=this.parsedData.concat(b)}this.parsedData.length!=this.data.length&&(this.parsedData.unshift(191),this.parsedData.unshift(187),this.parsedData.unshift(239))}function b(a,b){this.typeNumber=a,this.errorCorrectLevel=b,this.modules=null,this.moduleCount=0,this.dataCache=null,this.dataList=[]}function i(a,b){if(void 0==a.length)throw new Error(a.length+"/"+b);for(var c=0;c<a.length&&0==a[c];)c++;this.num=new Array(a.length-c+b);for(var d=0;d<a.length-c;d++)this.num[d]=a[d+c]}function j(a,b){this.totalCount=a,this.dataCount=b}function k(){this.buffer=[],this.length=0}function m(){return"undefined"!=typeof CanvasRenderingContext2D}function n(){var a=!1,b=navigator.userAgent;return/android/i.test(b)&&(a=!0,aMat=b.toString().match(/android ([0-9]\.[0-9])/i),aMat&&aMat[1]&&(a=parseFloat(aMat[1]))),a}function r(a,b){for(var c=1,e=s(a),f=0,g=l.length;g>=f;f++){var h=0;switch(b){case d.L:h=l[f][0];break;case d.M:h=l[f][1];break;case d.Q:h=l[f][2];break;case d.H:h=l[f][3]}if(h>=e)break;c++}if(c>l.length)throw new Error("Too long data");return c}function s(a){var b=encodeURI(a).toString().replace(/\%[0-9a-fA-F]{2}/g,"a");return b.length+(b.length!=a?3:0)}a.prototype={getLength:function(){return this.parsedData.length},write:function(a){for(var b=0,c=this.parsedData.length;c>b;b++)a.put(this.parsedData[b],8)}},b.prototype={addData:function(b){var c=new a(b);this.dataList.push(c),this.dataCache=null},isDark:function(a,b){if(0>a||this.moduleCount<=a||0>b||this.moduleCount<=b)throw new Error(a+","+b);return this.modules[a][b]},getModuleCount:function(){return this.moduleCount},make:function(){this.makeImpl(!1,this.getBestMaskPattern())},makeImpl:function(a,c){this.moduleCount=4*this.typeNumber+17,this.modules=new Array(this.moduleCount);for(var d=0;d<this.moduleCount;d++){this.modules[d]=new Array(this.moduleCount);for(var e=0;e<this.moduleCount;e++)this.modules[d][e]=null}this.setupPositionProbePattern(0,0),this.setupPositionProbePattern(this.moduleCount-7,0),this.setupPositionProbePattern(0,this.moduleCount-7),this.setupPositionAdjustPattern(),this.setupTimingPattern(),this.setupTypeInfo(a,c),this.typeNumber>=7&&this.setupTypeNumber(a),null==this.dataCache&&(this.dataCache=b.createData(this.typeNumber,this.errorCorrectLevel,this.dataList)),this.mapData(this.dataCache,c)},setupPositionProbePattern:function(a,b){for(var c=-1;7>=c;c++)if(!(-1>=a+c||this.moduleCount<=a+c))for(var d=-1;7>=d;d++)-1>=b+d||this.moduleCount<=b+d||(this.modules[a+c][b+d]=c>=0&&6>=c&&(0==d||6==d)||d>=0&&6>=d&&(0==c||6==c)||c>=2&&4>=c&&d>=2&&4>=d?!0:!1)},getBestMaskPattern:function(){for(var a=0,b=0,c=0;8>c;c++){this.makeImpl(!0,c);var d=f.getLostPoint(this);(0==c||a>d)&&(a=d,b=c)}return b},createMovieClip:function(a,b,c){var d=a.createEmptyMovieClip(b,c),e=1;this.make();for(var f=0;f<this.modules.length;f++)for(var g=f*e,h=0;h<this.modules[f].length;h++){var i=h*e,j=this.modules[f][h];j&&(d.beginFill(0,100),d.moveTo(i,g),d.lineTo(i+e,g),d.lineTo(i+e,g+e),d.lineTo(i,g+e),d.endFill())}return d},setupTimingPattern:function(){for(var a=8;a<this.moduleCount-8;a++)null==this.modules[a][6]&&(this.modules[a][6]=0==a%2);for(var b=8;b<this.moduleCount-8;b++)null==this.modules[6][b]&&(this.modules[6][b]=0==b%2)},setupPositionAdjustPattern:function(){for(var a=f.getPatternPosition(this.typeNumber),b=0;b<a.length;b++)for(var c=0;c<a.length;c++){var d=a[b],e=a[c];if(null==this.modules[d][e])for(var g=-2;2>=g;g++)for(var h=-2;2>=h;h++)this.modules[d+g][e+h]=-2==g||2==g||-2==h||2==h||0==g&&0==h?!0:!1}},setupTypeNumber:function(a){for(var b=f.getBCHTypeNumber(this.typeNumber),c=0;18>c;c++){var d=!a&&1==(1&b>>c);this.modules[Math.floor(c/3)][c%3+this.moduleCount-8-3]=d}for(var c=0;18>c;c++){var d=!a&&1==(1&b>>c);this.modules[c%3+this.moduleCount-8-3][Math.floor(c/3)]=d}},setupTypeInfo:function(a,b){for(var c=this.errorCorrectLevel<<3|b,d=f.getBCHTypeInfo(c),e=0;15>e;e++){var g=!a&&1==(1&d>>e);6>e?this.modules[e][8]=g:8>e?this.modules[e+1][8]=g:this.modules[this.moduleCount-15+e][8]=g}for(var e=0;15>e;e++){var g=!a&&1==(1&d>>e);8>e?this.modules[8][this.moduleCount-e-1]=g:9>e?this.modules[8][15-e-1+1]=g:this.modules[8][15-e-1]=g}this.modules[this.moduleCount-8][8]=!a},mapData:function(a,b){for(var c=-1,d=this.moduleCount-1,e=7,g=0,h=this.moduleCount-1;h>0;h-=2)for(6==h&&h--;;){for(var i=0;2>i;i++)if(null==this.modules[d][h-i]){var j=!1;g<a.length&&(j=1==(1&a[g]>>>e));var k=f.getMask(b,d,h-i);k&&(j=!j),this.modules[d][h-i]=j,e--,-1==e&&(g++,e=7)}if(d+=c,0>d||this.moduleCount<=d){d-=c,c=-c;break}}}},b.PAD0=236,b.PAD1=17,b.createData=function(a,c,d){for(var e=j.getRSBlocks(a,c),g=new k,h=0;h<d.length;h++){var i=d[h];g.put(i.mode,4),g.put(i.getLength(),f.getLengthInBits(i.mode,a)),i.write(g)}for(var l=0,h=0;h<e.length;h++)l+=e[h].dataCount;if(g.getLengthInBits()>8*l)throw new Error("code length overflow. ("+g.getLengthInBits()+">"+8*l+")");for(g.getLengthInBits()+4<=8*l&&g.put(0,4);0!=g.getLengthInBits()%8;)g.putBit(!1);for(;;){if(g.getLengthInBits()>=8*l)break;if(g.put(b.PAD0,8),g.getLengthInBits()>=8*l)break;g.put(b.PAD1,8)}return b.createBytes(g,e)},b.createBytes=function(a,b){for(var c=0,d=0,e=0,g=new Array(b.length),h=new Array(b.length),j=0;j<b.length;j++){var k=b[j].dataCount,l=b[j].totalCount-k;d=Math.max(d,k),e=Math.max(e,l),g[j]=new Array(k);for(var m=0;m<g[j].length;m++)g[j][m]=255&a.buffer[m+c];c+=k;var n=f.getErrorCorrectPolynomial(l),o=new i(g[j],n.getLength()-1),p=o.mod(n);h[j]=new Array(n.getLength()-1);for(var m=0;m<h[j].length;m++){var q=m+p.getLength()-h[j].length;h[j][m]=q>=0?p.get(q):0}}for(var r=0,m=0;m<b.length;m++)r+=b[m].totalCount;for(var s=new Array(r),t=0,m=0;d>m;m++)for(var j=0;j<b.length;j++)m<g[j].length&&(s[t++]=g[j][m]);for(var m=0;e>m;m++)for(var j=0;j<b.length;j++)m<h[j].length&&(s[t++]=h[j][m]);return s};for(var c={MODE_NUMBER:1,MODE_ALPHA_NUM:2,MODE_8BIT_BYTE:4,MODE_KANJI:8},d={L:1,M:0,Q:3,H:2},e={PATTERN000:0,PATTERN001:1,PATTERN010:2,PATTERN011:3,PATTERN100:4,PATTERN101:5,PATTERN110:6,PATTERN111:7},f={PATTERN_POSITION_TABLE:[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],G15:1335,G18:7973,G15_MASK:21522,getBCHTypeInfo:function(a){for(var b=a<<10;f.getBCHDigit(b)-f.getBCHDigit(f.G15)>=0;)b^=f.G15<<f.getBCHDigit(b)-f.getBCHDigit(f.G15);return(a<<10|b)^f.G15_MASK},getBCHTypeNumber:function(a){for(var b=a<<12;f.getBCHDigit(b)-f.getBCHDigit(f.G18)>=0;)b^=f.G18<<f.getBCHDigit(b)-f.getBCHDigit(f.G18);return a<<12|b},getBCHDigit:function(a){for(var b=0;0!=a;)b++,a>>>=1;return b},getPatternPosition:function(a){return f.PATTERN_POSITION_TABLE[a-1]},getMask:function(a,b,c){switch(a){case e.PATTERN000:return 0==(b+c)%2;case e.PATTERN001:return 0==b%2;case e.PATTERN010:return 0==c%3;case e.PATTERN011:return 0==(b+c)%3;case e.PATTERN100:return 0==(Math.floor(b/2)+Math.floor(c/3))%2;case e.PATTERN101:return 0==b*c%2+b*c%3;case e.PATTERN110:return 0==(b*c%2+b*c%3)%2;case e.PATTERN111:return 0==(b*c%3+(b+c)%2)%2;default:throw new Error("bad maskPattern:"+a)}},getErrorCorrectPolynomial:function(a){for(var b=new i([1],0),c=0;a>c;c++)b=b.multiply(new i([1,g.gexp(c)],0));return b},getLengthInBits:function(a,b){if(b>=1&&10>b)switch(a){case c.MODE_NUMBER:return 10;case c.MODE_ALPHA_NUM:return 9;case c.MODE_8BIT_BYTE:return 8;case c.MODE_KANJI:return 8;default:throw new Error("mode:"+a)}else if(27>b)switch(a){case c.MODE_NUMBER:return 12;case c.MODE_ALPHA_NUM:return 11;case c.MODE_8BIT_BYTE:return 16;case c.MODE_KANJI:return 10;default:throw new Error("mode:"+a)}else{if(!(41>b))throw new Error("type:"+b);switch(a){case c.MODE_NUMBER:return 14;case c.MODE_ALPHA_NUM:return 13;case c.MODE_8BIT_BYTE:return 16;case c.MODE_KANJI:return 12;default:throw new Error("mode:"+a)}}},getLostPoint:function(a){for(var b=a.getModuleCount(),c=0,d=0;b>d;d++)for(var e=0;b>e;e++){for(var f=0,g=a.isDark(d,e),h=-1;1>=h;h++)if(!(0>d+h||d+h>=b))for(var i=-1;1>=i;i++)0>e+i||e+i>=b||(0!=h||0!=i)&&g==a.isDark(d+h,e+i)&&f++;f>5&&(c+=3+f-5)}for(var d=0;b-1>d;d++)for(var e=0;b-1>e;e++){var j=0;a.isDark(d,e)&&j++,a.isDark(d+1,e)&&j++,a.isDark(d,e+1)&&j++,a.isDark(d+1,e+1)&&j++,(0==j||4==j)&&(c+=3)}for(var d=0;b>d;d++)for(var e=0;b-6>e;e++)a.isDark(d,e)&&!a.isDark(d,e+1)&&a.isDark(d,e+2)&&a.isDark(d,e+3)&&a.isDark(d,e+4)&&!a.isDark(d,e+5)&&a.isDark(d,e+6)&&(c+=40);for(var e=0;b>e;e++)for(var d=0;b-6>d;d++)a.isDark(d,e)&&!a.isDark(d+1,e)&&a.isDark(d+2,e)&&a.isDark(d+3,e)&&a.isDark(d+4,e)&&!a.isDark(d+5,e)&&a.isDark(d+6,e)&&(c+=40);for(var k=0,e=0;b>e;e++)for(var d=0;b>d;d++)a.isDark(d,e)&&k++;var l=Math.abs(100*k/b/b-50)/5;return c+=10*l}},g={glog:function(a){if(1>a)throw new Error("glog("+a+")");return g.LOG_TABLE[a]},gexp:function(a){for(;0>a;)a+=255;for(;a>=256;)a-=255;return g.EXP_TABLE[a]},EXP_TABLE:new Array(256),LOG_TABLE:new Array(256)},h=0;8>h;h++)g.EXP_TABLE[h]=1<<h;for(var h=8;256>h;h++)g.EXP_TABLE[h]=g.EXP_TABLE[h-4]^g.EXP_TABLE[h-5]^g.EXP_TABLE[h-6]^g.EXP_TABLE[h-8];for(var h=0;255>h;h++)g.LOG_TABLE[g.EXP_TABLE[h]]=h;i.prototype={get:function(a){return this.num[a]},getLength:function(){return this.num.length},multiply:function(a){for(var b=new Array(this.getLength()+a.getLength()-1),c=0;c<this.getLength();c++)for(var d=0;d<a.getLength();d++)b[c+d]^=g.gexp(g.glog(this.get(c))+g.glog(a.get(d)));return new i(b,0)},mod:function(a){if(this.getLength()-a.getLength()<0)return this;for(var b=g.glog(this.get(0))-g.glog(a.get(0)),c=new Array(this.getLength()),d=0;d<this.getLength();d++)c[d]=this.get(d);for(var d=0;d<a.getLength();d++)c[d]^=g.gexp(g.glog(a.get(d))+b);return new i(c,0).mod(a)}},j.RS_BLOCK_TABLE=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],j.getRSBlocks=function(a,b){var c=j.getRsBlockTable(a,b);if(void 0==c)throw new Error("bad rs block @ typeNumber:"+a+"/errorCorrectLevel:"+b);for(var d=c.length/3,e=[],f=0;d>f;f++)for(var g=c[3*f+0],h=c[3*f+1],i=c[3*f+2],k=0;g>k;k++)e.push(new j(h,i));return e},j.getRsBlockTable=function(a,b){switch(b){case d.L:return j.RS_BLOCK_TABLE[4*(a-1)+0];case d.M:return j.RS_BLOCK_TABLE[4*(a-1)+1];case d.Q:return j.RS_BLOCK_TABLE[4*(a-1)+2];case d.H:return j.RS_BLOCK_TABLE[4*(a-1)+3];default:return void 0}},k.prototype={get:function(a){var b=Math.floor(a/8);return 1==(1&this.buffer[b]>>>7-a%8)},put:function(a,b){for(var c=0;b>c;c++)this.putBit(1==(1&a>>>b-c-1))},getLengthInBits:function(){return this.length},putBit:function(a){var b=Math.floor(this.length/8);this.buffer.length<=b&&this.buffer.push(0),a&&(this.buffer[b]|=128>>>this.length%8),this.length++}};var l=[[17,14,11,7],[32,26,20,14],[53,42,32,24],[78,62,46,34],[106,84,60,44],[134,106,74,58],[154,122,86,64],[192,152,108,84],[230,180,130,98],[271,213,151,119],[321,251,177,137],[367,287,203,155],[425,331,241,177],[458,362,258,194],[520,412,292,220],[586,450,322,250],[644,504,364,280],[718,560,394,310],[792,624,442,338],[858,666,482,382],[929,711,509,403],[1003,779,565,439],[1091,857,611,461],[1171,911,661,511],[1273,997,715,535],[1367,1059,751,593],[1465,1125,805,625],[1528,1190,868,658],[1628,1264,908,698],[1732,1370,982,742],[1840,1452,1030,790],[1952,1538,1112,842],[2068,1628,1168,898],[2188,1722,1228,958],[2303,1809,1283,983],[2431,1911,1351,1051],[2563,1989,1423,1093],[2699,2099,1499,1139],[2809,2213,1579,1219],[2953,2331,1663,1273]],o=function(){var a=function(a,b){this._el=a,this._htOption=b};return a.prototype.draw=function(a){function g(a,b){var c=document.createElementNS("http://www.w3.org/2000/svg",a);for(var d in b)b.hasOwnProperty(d)&&c.setAttribute(d,b[d]);return c}var b=this._htOption,c=this._el,d=a.getModuleCount();Math.floor(b.width/d),Math.floor(b.height/d),this.clear();var h=g("svg",{viewBox:"0 0 "+String(d)+" "+String(d),width:"100%",height:"100%",fill:b.colorLight});h.setAttributeNS("http://www.w3.org/2000/xmlns/","xmlns:xlink","http://www.w3.org/1999/xlink"),c.appendChild(h),h.appendChild(g("rect",{fill:b.colorDark,width:"1",height:"1",id:"template"}));for(var i=0;d>i;i++)for(var j=0;d>j;j++)if(a.isDark(i,j)){var k=g("use",{x:String(i),y:String(j)});k.setAttributeNS("http://www.w3.org/1999/xlink","href","#template"),h.appendChild(k)}},a.prototype.clear=function(){for(;this._el.hasChildNodes();)this._el.removeChild(this._el.lastChild)},a}(),p="svg"===document.documentElement.tagName.toLowerCase(),q=p?o:m()?function(){function a(){this._elImage.src=this._elCanvas.toDataURL("image/png"),this._elImage.style.display="block",this._elCanvas.style.display="none"}function d(a,b){var c=this;if(c._fFail=b,c._fSuccess=a,null===c._bSupportDataURI){var d=document.createElement("img"),e=function(){c._bSupportDataURI=!1,c._fFail&&_fFail.call(c)},f=function(){c._bSupportDataURI=!0,c._fSuccess&&c._fSuccess.call(c)};return d.onabort=e,d.onerror=e,d.onload=f,d.src="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",void 0}c._bSupportDataURI===!0&&c._fSuccess?c._fSuccess.call(c):c._bSupportDataURI===!1&&c._fFail&&c._fFail.call(c)}if(this._android&&this._android<=2.1){var b=1/window.devicePixelRatio,c=CanvasRenderingContext2D.prototype.drawImage;CanvasRenderingContext2D.prototype.drawImage=function(a,d,e,f,g,h,i,j){if("nodeName"in a&&/img/i.test(a.nodeName))for(var l=arguments.length-1;l>=1;l--)arguments[l]=arguments[l]*b;else"undefined"==typeof j&&(arguments[1]*=b,arguments[2]*=b,arguments[3]*=b,arguments[4]*=b);c.apply(this,arguments)}}var e=function(a,b){this._bIsPainted=!1,this._android=n(),this._htOption=b,this._elCanvas=document.createElement("canvas"),this._elCanvas.width=b.width,this._elCanvas.height=b.height,a.appendChild(this._elCanvas),this._el=a,this._oContext=this._elCanvas.getContext("2d"),this._bIsPainted=!1,this._elImage=document.createElement("img"),this._elImage.style.display="none",this._el.appendChild(this._elImage),this._bSupportDataURI=null};return e.prototype.draw=function(a){var b=this._elImage,c=this._oContext,d=this._htOption,e=a.getModuleCount(),f=d.width/e,g=d.height/e,h=Math.round(f),i=Math.round(g);b.style.display="none",this.clear();for(var j=0;e>j;j++)for(var k=0;e>k;k++){var l=a.isDark(j,k),m=k*f,n=j*g;c.strokeStyle=l?d.colorDark:d.colorLight,c.lineWidth=1,c.fillStyle=l?d.colorDark:d.colorLight,c.fillRect(m,n,f,g),c.strokeRect(Math.floor(m)+.5,Math.floor(n)+.5,h,i),c.strokeRect(Math.ceil(m)-.5,Math.ceil(n)-.5,h,i)}this._bIsPainted=!0},e.prototype.makeImage=function(){this._bIsPainted&&d.call(this,a)},e.prototype.isPainted=function(){return this._bIsPainted},e.prototype.clear=function(){this._oContext.clearRect(0,0,this._elCanvas.width,this._elCanvas.height),this._bIsPainted=!1},e.prototype.round=function(a){return a?Math.floor(1e3*a)/1e3:a},e}():function(){var a=function(a,b){this._el=a,this._htOption=b};return a.prototype.draw=function(a){for(var b=this._htOption,c=this._el,d=a.getModuleCount(),e=Math.floor(b.width/d),f=Math.floor(b.height/d),g=['<table style="border:0;border-collapse:collapse;">'],h=0;d>h;h++){g.push("<tr>");for(var i=0;d>i;i++)g.push('<td style="border:0;border-collapse:collapse;padding:0;margin:0;width:'+e+"px;height:"+f+"px;background-color:"+(a.isDark(h,i)?b.colorDark:b.colorLight)+';"></td>');g.push("</tr>")}g.push("</table>"),c.innerHTML=g.join("");var j=c.childNodes[0],k=(b.width-j.offsetWidth)/2,l=(b.height-j.offsetHeight)/2;k>0&&l>0&&(j.style.margin=l+"px "+k+"px")},a.prototype.clear=function(){this._el.innerHTML=""},a}();QRCode=function(a,b){if(this._htOption={width:256,height:256,typeNumber:4,colorDark:"#000000",colorLight:"#ffffff",correctLevel:d.H},"string"==typeof b&&(b={text:b}),b)for(var c in b)this._htOption[c]=b[c];"string"==typeof a&&(a=document.getElementById(a)),this._android=n(),this._el=a,this._oQRCode=null,this._oDrawing=new q(this._el,this._htOption),this._htOption.text&&this.makeCode(this._htOption.text)},QRCode.prototype.makeCode=function(a){this._oQRCode=new b(r(a,this._htOption.correctLevel),this._htOption.correctLevel),this._oQRCode.addData(a),this._oQRCode.make(),this._el.title=a,this._oDrawing.draw(this._oQRCode),this.makeImage()},QRCode.prototype.makeImage=function(){"function"==typeof this._oDrawing.makeImage&&(!this._android||this._android>=3)&&this._oDrawing.makeImage()},QRCode.prototype.clear=function(){this._oDrawing.clear()},QRCode.CorrectLevel=d}();
+</script><script>
 let shopQRCanvas=null;
+let shopQRUrl='';
 function updateShopQR(){
  const url=document.getElementById('orderLink').href;
- if(typeof QRCode==='undefined'){shopQRCanvas=null;return;}
+ if(shopQRCanvas&&shopQRUrl===url)return;
+ shopQRCanvas=null;shopQRUrl='';
+ if(typeof QRCode==='undefined')return;
  const div=document.createElement('div');div.style.cssText='position:absolute;left:-9999px';document.body.appendChild(div);
- new QRCode(div,{text:url,width:200,height:200,correctLevel:QRCode.CorrectLevel.M});
- setTimeout(()=>{shopQRCanvas=div.querySelector('canvas')||div.querySelector('img');div.remove();},100);
+ try{
+  new QRCode(div,{text:url,width:200,height:200,correctLevel:QRCode.CorrectLevel.M});
+  shopQRCanvas=div.querySelector('canvas');
+  if(shopQRCanvas)shopQRUrl=url;
+ }finally{div.remove();}
 }
-window.addEventListener('load',()=>{updateShopQR();});
+window.addEventListener('load',updateShopQR);
 </script><script>
-const assessmentRecordKey='nutritionAssessment.records.v1.cloud.'+(new URLSearchParams(location.search).get('shop')||new URLSearchParams(location.search).get('d')||'70A10EF7BDCFC29141D9ED34A1BA8580').toUpperCase();
+const assessmentRecordKey='nutritionAssessment.records.v1.cloud.'+originalShop;
 let assessmentRecords=[];
 let recordStorageBlocked=false;
 const recordEl=id=>document.getElementById(id);
@@ -6663,46 +6661,135 @@ renderAssessmentRecords();
 
 </script><footer style="text-align:center;padding:18px;color:#53645a;font-size:15px">程式設計：侯博凱 · 0936090990</footer><script>
 
-let customerAllowed=false,customerChecked=0,customerOpenRequest=0;
-function customerLock(message){customerAllowed=false;document.getElementById('customerMenu').disabled=true;document.getElementById('customerMenu').title=message;document.getElementById('customerGate').textContent=message;document.getElementById('customerGate').hidden=false;const f=document.getElementById('customerFrame');f.hidden=true;f.removeAttribute('srcdoc');}
-function customerApplyPermission(d){customerChecked=Date.now();if(d.blocked!==false){customerLock('管理者已禁用此功能。');return;}customerAllowed=true;document.getElementById('customerMenu').disabled=false;document.getElementById('customerMenu').title='';}
-function customerAccessValid(){return customerAllowed&&Date.now()-customerChecked<45000;}
-async function customerOpen(){const request=++customerOpenRequest;document.getElementById('customerMenu').disabled=true;try{if(!await cloudRefresh()||!customerAllowed)return;const result=await cloudApi({action:'customers'});if(request!==customerOpenRequest)return;if(typeof result.html!=='string'||typeof result.operatorId!=='string')throw Error('無法讀取客戶管理');customerApplyPermission(result);if(!customerAllowed)return;document.querySelectorAll('#portalHome,.portalPage,#portalAssessment').forEach(el=>el.hidden=true);document.body.classList.remove('portalHomeMode');document.body.classList.add('customerMode');document.getElementById('portalCustomers').hidden=false;const f=document.getElementById('customerFrame');if(!f.hasAttribute('srcdoc'))f.srcdoc=result.html;f.hidden=false;document.getElementById('customerGate').hidden=true;}catch(e){customerLock(e.message||'無法開啟客戶管理');alert(e.message||'無法開啟客戶管理');}finally{document.getElementById('customerMenu').disabled=!customerAllowed;}}
-setInterval(()=>{if(customerAllowed&&!customerAccessValid())customerLock('連線確認已逾時，請返回首頁重新連線。');},5000);
-window.addEventListener('offline',()=>customerLock('目前離線，客戶管理暫停使用。請連網後重試。'));
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)cloudRefresh();});
-document.getElementById('portalHome').appendChild(document.getElementById('cloudAdmin'));
-
-const cloudParams=new URLSearchParams(location.search);
-const cloudSource={name:cloudParams.get('interviewer')||'',phone:cloudParams.get('phone')||'',shop:(cloudParams.get('shop')||cloudParams.get('d')||'').toUpperCase()};
-if(!cloudSource.name&&!cloudSource.phone&&!cloudSource.shop)Object.assign(cloudSource,{name:'侯博凱',phone:'0936090990',shop:'70A10EF7BDCFC29141D9ED34A1BA8580'});
-let cloudToken='',cloudStarting=null,cloudWorking=false,cloudFlushing=false;
-const cloudNotice=document.getElementById('cloudNotice');
-const outboxKey='nutritionCloud.outbox.'+cloudSource.shop;
-let cloudOutbox=[];try{cloudOutbox=JSON.parse(localStorage.getItem(outboxKey)||'[]');if(!Array.isArray(cloudOutbox))cloudOutbox=[];}catch{cloudOutbox=[];}
-function cloudMessage(text){cloudNotice.textContent=text;}
-async function cloudApi(data,token=cloudToken){const r=await fetch('/api/cloud',{method:'POST',headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:JSON.stringify(data),signal:AbortSignal.timeout(15000)});const d=await r.json();if(!r.ok){const error=Error(d.error||'連線失敗');error.expired=!!d.expired;throw error;}return d;}
-function cloudApply(d){
- customerApplyPermission(d);
- document.getElementById('interviewer').value=d.name;document.getElementById('phone').value=d.phone;
- const link=location.origin+'/go?shop='+encodeURIComponent(cloudSource.shop);
- const el=document.getElementById('orderLink');const changed=el.href!==link;el.href=link;document.getElementById('portalShopLink').href=link;
- document.getElementById('cloudContact').textContent='問卷者：'+d.name+'　電話：'+d.phone;
- if(changed&&typeof updateShopQR==='function')updateShopQR();
- cloudMessage(d.blocked?'目前問卷聯絡資料及商城已改用侯博凱的資料。':'已連接雲端，產生評估圖後會累計張數。');
+// 客戶管理直接內嵌，不再向雲端下載或確認權限。
+const CUSTOMER_PAGE = "\u003c!doctype html>\u003chtml lang=\"zh-Hant\">\u003chead>\u003cmeta charset=\"utf-8\">\u003cmeta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\u003ctitle>客戶管理\u003c/title>\u003cstyle>\n:root{font-family:system-ui,'Microsoft JhengHei',sans-serif;color:#193b3a;background:#f2f6f5}*{box-sizing:border-box}body{margin:0}header{background:#164e49;color:white;padding:26px max(20px,calc((100% - 1050px)/2));}h1{margin:0 0 8px;font-size:27px}header p{margin:0;color:#c8dedb;font-size:14px}main{max-width:1090px;margin:auto;padding:20px}.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}button,.filebtn{font:inherit;border:1px solid #bdcecb;background:white;color:#204944;border-radius:9px;padding:10px 14px;cursor:pointer}button:hover,.filebtn:hover{background:#e6f0ed}button.primary{background:#176b5e;color:white;border-color:#176b5e}button.danger{color:#a02d34}input,select,textarea{font:inherit;width:100%;border:1px solid #bdcecb;border-radius:8px;padding:11px;background:white;color:#173c37;min-width:0}input:focus,select:focus{outline:2px solid #54a795}label{display:block;font-size:14px;font-weight:600}label input,label select,label textarea{margin-top:6px}small,.muted{color:#607772;font-size:13px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}.stat{padding:15px;background:white;border-radius:12px;border:1px solid #dce6e3}.stat strong{display:block;font-size:26px;margin-bottom:3px}.search{flex:1;min-width:180px}.filter{width:170px}.card{background:white;border:1px solid #dce6e3;border-radius:14px;padding:20px;margin-bottom:16px}.top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.top h2{margin:0 0 8px;font-size:21px}.contact{line-height:1.8;overflow-wrap:anywhere}.items{margin-top:15px;border-top:1px solid #e0e8e5}.item{display:grid;grid-template-columns:1.2fr 1fr 1fr auto;align-items:center;gap:12px;padding:15px 0;border-bottom:1px solid #e0e8e5}.badge{display:inline-block;padding:4px 9px;border-radius:20px;font-size:13px;background:#e8f4ed;color:#256847}.late{background:#ffeded;color:#a12b37}.soon{background:#fff4d8;color:#88580b}.actions{display:flex;gap:7px;flex-wrap:wrap}.actions button{font-size:13px;padding:8px 10px}.empty{text-align:center;padding:45px 10px;color:#607772}.notice{padding:12px 15px;border-radius:9px;background:#e6efec;font-size:13px;line-height:1.7;margin-top:20px}.error{background:#ffeded;color:#a12b37}dialog{border:0;border-radius:16px;max-width:780px;width:calc(100% - 24px);max-height:92dvh;padding:22px;color:#193b3a}dialog::backdrop{background:#12332d88}dialog h2{margin-top:0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.wide{grid-column:1/-1}.edititem{padding:15px;background:#f2f6f5;border-radius:10px;margin:12px 0}.row{display:flex;gap:8px;align-items:end}.row input{flex:1}.row button{white-space:nowrap}.footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;position:sticky;bottom:-22px;background:white;padding:15px 0}.itemtitle{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}a{color:#176b5e}#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#153f37;color:white;padding:12px 20px;border-radius:10px;z-index:10;max-width:90%;display:none}@media(max-width:650px){main{padding:14px}.stats{gap:6px}.stat{padding:11px 8px;font-size:12px}.stat strong{font-size:23px}.item{grid-template-columns:1fr 1fr}.item .actions{grid-column:1/-1}.top{flex-wrap:wrap}.grid{grid-template-columns:1fr}.wide{grid-column:auto}.card{padding:16px}.filter{width:100%}}\n\u003c/style>\u003cstyle>html,body{height:100%;overflow:hidden}body{display:flex;flex-direction:column}header{display:none}main{display:flex;flex-direction:column;flex:1;min-height:0;width:100%;box-sizing:border-box;padding:10px;overflow:hidden}main>.bar{flex:0 0 auto;gap:6px;margin-bottom:8px}main>.bar button,main>.bar .filebtn{font-size:14px;padding:8px}main>.stats{flex:0 0 auto;margin-bottom:8px}.stat{padding:7px}.stat strong{font-size:20px}#list{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}main>.notice{flex:0 0 auto;max-height:65px;overflow:auto;margin-top:6px;font-size:11px;padding:6px}main>.bar .filter{width:125px}main>.bar .search{font-size:14px;min-width:130px}dialog{max-height:90dvh;box-sizing:border-box}dialog form{display:flex;flex-direction:column;max-height:calc(90dvh - 44px)}#editScroll{overflow:auto;min-height:0;flex:1}.footer{flex:0 0 auto;position:static;margin-top:8px;padding:8px 0}dialog h2{font-size:20px;margin-bottom:8px}\u003c/style>\u003cstyle>[hidden]{display:none!important}input::placeholder{color:#87938f;opacity:1}\u003c/style>\u003cstyle>.stat{text-align:left;min-width:0;font-size:13px;color:#193b3a;line-height:1.4}.stat[aria-pressed=\"true\"]{background:#dbeee7;border-color:#176b5e;box-shadow:inset 0 0 0 1px #176b5e}.stat strong small{font-size:11px;font-weight:400}.duecard{display:grid;grid-template-columns:minmax(75px,1fr) minmax(0,2fr);gap:12px;padding:14px}.dueName{overflow-wrap:anywhere}.dueName h2{font-size:19px;margin:0 0 10px}.dueName button{font-size:12px;padding:7px}.dueEntry{display:flex;flex-wrap:wrap;align-items:center;gap:7px;padding:8px 0;border-bottom:1px solid #e0e8e5;overflow-wrap:anywhere}.dueEntry small{width:100%}.dueEntry:last-child{border-bottom:0}\u003c/style>\u003c/head>\u003cbody>\u003cheader>\u003ch1>客戶更換提醒\u003c/h1>\u003cp>記錄每一次更換，掌握下一次到期。\u003c/p>\u003c/header>\u003cmain>\u003cdiv id=\"storageError\" class=\"notice error\" hidden>\u003c/div>\u003cdiv class=\"bar\">\u003cbutton class=\"primary\" id=\"add\">＋ 新增客戶\u003c/button>\u003cbutton id=\"backup\">匯出備份\u003c/button>\u003clabel class=\"filebtn\">匯入還原\u003cinput id=\"restore\" type=\"file\" accept=\".json,application/json\" hidden>\u003c/label>\u003c/div>\u003cdiv id=\"stats\" class=\"stats\">\u003c/div>\u003cdiv class=\"bar\">\u003cinput id=\"search\" class=\"search\" placeholder=\"搜尋姓名、電話、地址或更換項目\" aria-label=\"搜尋\">\u003cselect id=\"filter\" class=\"filter\" aria-label=\"到期篩選\">\u003coption value=\"all\">全部項目\u003c/option>\u003coption value=\"late\">已逾期\u003c/option>\u003coption value=\"week\">7天內\u003c/option>\u003coption value=\"soon\">30天內（第8～30天）\u003c/option>\u003c/select>\u003c/div>\u003cdiv id=\"list\">\u003c/div>\u003cdiv class=\"notice\">資料保存在目前手機／電腦的瀏覽器，不會上傳客戶資料。請固定使用同一網址與瀏覽器，並定期匯出備份；清除網站資料、無痕模式或更換裝置可能使資料遺失。\u003cbr>本頁在開啟時顯示到期提示，不會在關閉後自行推播。「行事曆」會下載提醒檔，需匯入手機行事曆並確認通知設定；再次更換後需更新行事曆中的舊提醒。\u003c/div>\u003c/main>\n\u003cdialog id=\"editor\">\u003cform id=\"form\">\u003ch2 id=\"dialogTitle\">新增客戶\u003c/h2>\u003cdiv id=\"editScroll\">\u003cdiv class=\"grid\">\u003clabel>姓名\u003cinput id=\"name\" required maxlength=\"100\" autocomplete=\"name\">\u003c/label>\u003clabel>電話\u003cinput id=\"phone\" type=\"tel\" maxlength=\"100\" autocomplete=\"tel\">\u003c/label>\u003clabel class=\"wide\">地址\u003cinput id=\"address\" maxlength=\"500\" autocomplete=\"street-address\">\u003c/label>\u003clabel class=\"wide\">備註\u003ctextarea id=\"note\" rows=\"2\" maxlength=\"2000\">\u003c/textarea>\u003c/label>\u003c/div>\u003ch3>更換項目\u003c/h3>\u003csmall>項目名稱可自行填寫，每個項目分別計算提醒日期。\u003c/small>\u003cdiv id=\"editItems\">\u003c/div>\u003cbutton type=\"button\" id=\"addItem\">＋ 新增更換項目\u003c/button>\u003c/div>\u003cdiv class=\"footer\">\u003cbutton type=\"button\" id=\"cancel\">取消\u003c/button>\u003cbutton class=\"primary\" type=\"submit\">儲存資料\u003c/button>\u003c/div>\u003c/form>\u003c/dialog>\u003cdiv id=\"toast\" role=\"status\">\u003c/div>\n\u003cscript>\n'use strict';\nfunction allowed(){try{return parent!==window&&parent.customerAccessValid();}catch{return false;}}\nfor(const type of ['click','submit','input','change','keydown'])document.addEventListener(type,e=>{if(!allowed()){e.preventDefault();e.stopImmediatePropagation();}},true);\n\nconst KEY='nutritionCustomers.v1.'+__OPERATOR_ID__, $=id=>document.getElementById(id), periods=[['1','1個月'],['2','2個月'],['3','3個月'],['6','半年'],['12','1年'],['24','2年'],['36','3年'],['days','自訂天數']];\nlet data={version:1,customers:[]},editing=null,dirty=false,blocked=false;\nconst uid=()=>globalThis.crypto?.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2);\nconst esc=s=>String(s??'').replace(/[&\u003c>\"']/g,c=>({'&':'&amp;','\u003c':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[c]));\nconst format=d=>`${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;\nfunction today(){let d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}\nfunction validDate(s){if(typeof s!=='string'||!/^\\d{4}-\\d{2}-\\d{2}$/.test(s))return false;let d=new Date(s+'T00:00:00Z');return !isNaN(d)&&format(d)===s&&s>='1900-01-01'&&s\u003c='9900-12-31'}\nfunction due(i){let d=new Date(i.date+'T00:00:00Z');if(i.period==='days')d.setUTCDate(d.getUTCDate()+Number(i.days));else{let day=d.getUTCDate();d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()+Number(i.period));let end=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate();d.setUTCDate(Math.min(day,end))}return format(d)}\nfunction delta(i){return Math.round((Date.parse(due(i)+'T00:00:00Z')-Date.parse(today()+'T00:00:00Z'))/86400000)}\nfunction status(i){let n=delta(i);return n\u003c0?['late',`逾期 ${-n} 天`]:n===0?['late','今天到期']:n\u003c=30?['soon',`${n} 天後到期`]:['',`${n} 天後到期`]}\nfunction periodLabel(i){return i.period==='days'?i.days+'天':periods.find(p=>p[0]===i.period)[1]}\nfunction validate(x){if(!x||x.version!==1||!Array.isArray(x.customers)||x.customers.length>10000)throw Error('備份格式不正確');const ids=new Set;for(let c of x.customers){if(!c||typeof c.id!=='string'||ids.has(c.id)||typeof c.name!=='string'||!c.name.trim()||c.name.length>100||!Array.isArray(c.items))throw Error('客戶資料格式不正確');ids.add(c.id);for(let k of ['phone','address','note'])if(typeof c[k]!=='string'||c[k].length>2000)throw Error('客戶欄位格式不正確');let itemIds=new Set;for(let i of c.items){if(!i||typeof i.id!=='string'||itemIds.has(i.id)||typeof i.name!=='string'||!i.name.trim()||i.name.length>100||!validDate(i.date)||!periods.some(p=>p[0]===i.period)||(i.period==='days'&&(!Number.isInteger(Number(i.days))||Number(i.days)\u003c1||Number(i.days)>36500)))throw Error('更換項目或日期格式不正確');itemIds.add(i.id)}}return x}\nfunction toast(s){$('toast').textContent=s;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',3200)}\nfunction persist(next){if(!allowed())return false;if(blocked){alert('原有資料無法讀取，為避免覆蓋，請先保留備份並重新整理。');return false}try{validate(next);localStorage.setItem(KEY,JSON.stringify(next));data=next;render();return true}catch(e){alert('儲存失敗，資料未變更。請確認瀏覽器允許儲存且空間足夠。\\n'+e.message);return false}}\nfunction customerGroup(c){const days=c.items.map(delta);if(days.some(n=>n\u003c0))return 'late';if(days.some(n=>n>=0&&n\u003c=7))return 'week';if(days.some(n=>n>7&&n\u003c=30))return 'soon';return 'later'}\nfunction matches(i){let n=delta(i),f=$('filter').value;return f==='all'||(f==='late'&&n\u003c0)||(f==='week'&&n>=0&&n\u003c=7)||(f==='soon'&&n>7&&n\u003c=30)}\nfunction dueCustomers(){const f=$('filter').value,q=$('search').value.trim().toLowerCase();return data.customers.filter(c=>customerGroup(c)===f&&[c.name,c.phone,c.address,...c.items.map(i=>i.name)].join(' ').toLowerCase().includes(q)).sort((a,b)=>Math.min(...a.items.filter(matches).map(delta))-Math.min(...b.items.filter(matches).map(delta)))}\nfunction renderDueList(){const f=$('filter').value,titles={late:'已逾期',week:'7天內（含今天）',soon:'30天內（第8～30天）'},rows=dueCustomers();$('list').innerHTML='\u003cp class=\"muted\">'+titles[f]+' · '+rows.length+' 人\u003c/p>'+ (rows.map(c=>`\u003carticle class=\"card duecard\">\u003cdiv class=\"dueName\">\u003ch2>${esc(c.name)}\u003c/h2>\u003cbutton data-action=\"edit\" data-c=\"${esc(c.id)}\">查看／編輯\u003c/button>\u003c/div>\u003cdiv>${c.items.filter(matches).sort((a,b)=>delta(a)-delta(b)).map(i=>{const s=status(i);return `\u003cdiv class=\"dueEntry\">\u003cb>${esc(i.name)}\u003c/b>\u003cspan class=\"badge ${s[0]}\">${s[1]}\u003c/span>\u003csmall>提醒日期：${due(i)}\u003c/small>\u003c/div>`}).join('')}\u003c/div>\u003c/article>`).join('')||'\u003cdiv class=\"card empty\">沒有符合的資料。\u003c/div>')}\nfunction render(){const f=$('filter').value;$('stats').innerHTML=[['all','客戶',data.customers.length],['late','已逾期',data.customers.filter(c=>customerGroup(c)==='late').length],['week','7天內',data.customers.filter(c=>customerGroup(c)==='week').length],['soon','30天內',data.customers.filter(c=>customerGroup(c)==='soon').length]].map(([key,t,n])=>`\u003cbutton type=\"button\" class=\"stat\" data-filter=\"${key}\" aria-pressed=\"${f===key}\">\u003cstrong>${n}\u003csmall> 人\u003c/small>\u003c/strong>${t}\u003c/button>`).join('');if(f!=='all'){renderDueList();return;}let q=$('search').value.trim().toLowerCase();let customers=data.customers.filter(c=>[c.name,c.phone,c.address,...c.items.map(i=>i.name)].join(' ').toLowerCase().includes(q)&&($('filter').value==='all'||c.items.some(matches)));$('list').innerHTML=customers.map(c=>`\u003carticle class=\"card\">\u003cdiv class=\"top\">\u003cdiv>\u003ch2>${esc(c.name)}\u003c/h2>\u003cdiv class=\"contact\">${esc(c.phone)||'未填電話'}\u003cbr>${esc(c.address)||'未填地址'}${c.note?'\u003cbr>\u003csmall>'+esc(c.note)+'\u003c/small>':''}\u003c/div>\u003c/div>\u003cdiv class=\"actions\">\u003cbutton data-action=\"edit\" data-c=\"${esc(c.id)}\">編輯客戶／項目\u003c/button>\u003cbutton class=\"danger\" data-action=\"delete\" data-c=\"${esc(c.id)}\">刪除客戶\u003c/button>\u003c/div>\u003c/div>\u003cdiv class=\"items\">${[...c.items].filter(matches).sort((a,b)=>due(a).localeCompare(due(b))).map(i=>{let s=status(i);return `\u003cdiv class=\"item\">\u003cdiv>\u003cb>${esc(i.name)}\u003c/b>\u003cbr>\u003cspan class=\"badge ${s[0]}\">${s[1]}\u003c/span>\u003c/div>\u003cdiv>\u003csmall>上次更換\u003c/small>\u003cbr>${esc(i.date)}\u003cbr>\u003csmall>週期：${esc(periodLabel(i))}\u003c/small>\u003c/div>\u003cdiv>\u003csmall>下次提醒\u003c/small>\u003cbr>\u003cb>${due(i)}\u003c/b>\u003c/div>\u003cdiv class=\"actions\">\u003cbutton data-action=\"renew\" data-c=\"${esc(c.id)}\" data-i=\"${esc(i.id)}\">已換裝\u003c/button>\u003cbutton data-action=\"calendar\" data-c=\"${esc(c.id)}\" data-i=\"${esc(i.id)}\">行事曆\u003c/button>\u003c/div>\u003c/div>`}).join('')||'\u003cp class=\"muted\">尚無更換項目，點「編輯客戶／項目」新增。\u003c/p>'}\u003c/div>\u003c/article>`).join('')||'\u003cdiv class=\"card empty\">'+(data.customers.length?'沒有符合的資料。':'尚未建立客戶\u003cbr>點「＋ 新增客戶」開始記錄。')+'\u003c/div>'}\nfunction addRow(i={id:uid(),name:'',date:today(),period:'3',days:''}){let el=document.createElement('div');el.className='edititem';el.dataset.id=i.id;el.innerHTML=`\u003cdiv class=\"itemtitle\">\u003cb>更換項目\u003c/b>\u003cbutton type=\"button\" class=\"danger remove\">刪除此項目\u003c/button>\u003c/div>\u003cdiv class=\"grid\">\u003clabel class=\"wide\">項目名稱\u003cinput class=\"itemname\" required maxlength=\"100\" placeholder=\"例如：濾芯、活性碳、HEPA\" value=\"${esc(i.name)}\">\u003c/label>\u003clabel>更換日期\u003cdiv class=\"row\">\u003cinput class=\"date\" type=\"date\" min=\"1900-01-01\" max=\"9900-12-31\" required value=\"${esc(i.date)}\">\u003cbutton class=\"today\" type=\"button\">今天\u003c/button>\u003c/div>\u003c/label>\u003clabel>更換提醒週期\u003cselect class=\"period\">${periods.map(p=>`\u003coption value=\"${p[0]}\" ${i.period===p[0]?'selected':''}>${p[1]}\u003c/option>`).join('')}\u003c/select>\u003c/label>\u003clabel class=\"dayslabel\" ${i.period==='days'?'':'hidden'}>自訂天數\u003cinput class=\"days\" type=\"number\" min=\"1\" max=\"36500\" step=\"1\" placeholder=\"例如：30\" value=\"${esc(Number(i.days)>0?i.days:'')}\" ${i.period==='days'?'required':'disabled'}>\u003c/label>\u003cdiv class=\"wide muted preview\">\u003c/div>\u003c/div>`;el.querySelector('.remove').onclick=()=>{if(confirm('移除此更換項目？儲存後生效。')){el.remove();dirty=true}};el.querySelector('.today').onclick=()=>{el.querySelector('.date').value=today();dirty=true;preview(el)};el.addEventListener('input',()=>preview(el));el.querySelector('.period').onchange=()=>{let custom=el.querySelector('.period').value==='days';el.querySelector('.dayslabel').hidden=!custom;el.querySelector('.days').disabled=!custom;el.querySelector('.days').required=custom;preview(el)};$('editItems').append(el);preview(el)}\nfunction rowData(el){return {id:el.dataset.id,name:el.querySelector('.itemname').value.trim(),date:el.querySelector('.date').value,period:el.querySelector('.period').value,days:Number(el.querySelector('.days').value)}}\nfunction preview(el){let i=rowData(el);el.querySelector('.preview').textContent=validDate(i.date)&&(i.period!=='days'||Number.isInteger(i.days)&&i.days>0&&i.days\u003c=36500)?'下次提醒日期：'+due(i):'請填寫有效日期與週期'}\nfunction openEditor(c){editing=c?.id||null;$('dialogTitle').textContent=c?'編輯客戶':'新增客戶';for(let k of ['name','phone','address','note'])$(k).value=c?.[k]||'';$('editItems').innerHTML='';(c?.items||[{id:uid(),name:'',date:today(),period:'3',days:''}]).forEach(addRow);dirty=false;$('editor').showModal()}\nfunction closeEditor(){if(!dirty||confirm('尚未儲存，確定放棄修改？'))$('editor').close()}\n$('add').onclick=()=>openEditor();$('addItem').onclick=()=>{addRow();dirty=true};$('cancel').onclick=closeEditor;$('editor').addEventListener('cancel',e=>{e.preventDefault();closeEditor()});$('form').addEventListener('input',()=>dirty=true);$('form').addEventListener('change',()=>dirty=true);\n$('form').onsubmit=e=>{e.preventDefault();let c={id:editing||uid(),name:$('name').value.trim(),phone:$('phone').value.trim(),address:$('address').value.trim(),note:$('note').value.trim(),items:[...$('editItems').children].map(rowData)};if(!c.name||c.items.some(i=>!i.name)){alert('姓名及項目名稱不能只有空白。');return}let next=JSON.parse(JSON.stringify(data)),idx=next.customers.findIndex(x=>x.id===editing);if(idx\u003c0)next.customers.push(c);else next.customers[idx]=c;if(persist(next)){$('editor').close();dirty=false;toast('已儲存在此瀏覽器')}};\nfunction download(text,name,type){let u=URL.createObjectURL(new Blob([text],{type})),a=document.createElement('a');a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),30000)}\nfunction icalEscape(s){return String(s).replace(/\\\\/g,'\\\\\\\\').replace(/\\r?\\n/g,'\\\\n').replace(/;/g,'\\\\;').replace(/,/g,'\\\\,')}\nfunction calendar(c,i){let day=due(i),end=new Date(day+'T00:00:00Z');end.setUTCDate(end.getUTCDate()+1);let lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Replacement Reminder//ZH-TW','CALSCALE:GREGORIAN','BEGIN:VEVENT','UID:'+i.id+'-'+day+'@replacement.local','DTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').replace(/\\.\\d{3}/,''),'DTSTART;VALUE=DATE:'+day.replace(/-/g,''),'DTEND;VALUE=DATE:'+format(end).replace(/-/g,''),'SUMMARY:'+icalEscape(c.name+'：更換'+i.name),'DESCRIPTION:'+icalEscape('更換週期：'+periodLabel(i)+'\\n電話：'+c.phone+'\\n請聯繫客戶確認更換。'),'LOCATION:'+icalEscape(c.address),'BEGIN:VALARM','TRIGGER:-PT15H','ACTION:DISPLAY','DESCRIPTION:更換提醒','END:VALARM','END:VEVENT','END:VCALENDAR'];let folded=lines.map(s=>{let parts=[],line='',size=0;for(let ch of s){let len=new TextEncoder().encode(ch).length;if(size+len>73){parts.push(line);line=' ';size=1}line+=ch;size+=len}parts.push(line);return parts.join('\\r\\n')}).join('\\r\\n')+'\\r\\n';download(folded,'更換提醒_'+day+'.ics','text/calendar;charset=utf-8');toast('請匯入行事曆並確認提醒；預設為前一天上午9點')}\n$('list').onclick=e=>{let b=e.target.closest('button[data-action]');if(!b)return;let c=data.customers.find(c=>c.id===b.dataset.c),i=c.items.find(i=>i.id===b.dataset.i);if(b.dataset.action==='edit')openEditor(c);if(b.dataset.action==='delete'&&confirm('確定刪除「'+c.name+'」及所有更換項目？')){let next=JSON.parse(JSON.stringify(data));next.customers=next.customers.filter(x=>x.id!==c.id);persist(next)}if(b.dataset.action==='calendar')calendar(c,i);if(b.dataset.action==='renew'){let date=prompt('輸入本次更換日期（YYYY-MM-DD），預設今天：',today());if(date===null)return;if(!validDate(date)){alert('日期格式不正確，請填寫 YYYY-MM-DD。');return}let next=JSON.parse(JSON.stringify(data));next.customers.find(x=>x.id===c.id).items.find(x=>x.id===i.id).date=date;if(persist(next))toast('已更新更換日期及下次提醒')}};\n$('search').oninput=render;$('filter').onchange=()=>{render();$('list').scrollTop=0;};$('stats').onclick=e=>{const b=e.target.closest('button[data-filter]');if(!b)return;$('filter').value=b.dataset.filter;render();$('list').scrollTop=0;};\n$('backup').onclick=()=>{let raw=blocked?localStorage.getItem(KEY):JSON.stringify({...data,exportedAt:new Date().toISOString()},null,2);download(raw||'','客戶更換備份_'+today()+'.json','application/json');toast('備份包含個人資料，請妥善保管')};\n$('restore').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{if(f.size>20*1024*1024)throw Error('檔案超過20MB');let incoming=validate(JSON.parse(await f.text()));if(confirm('匯入 '+incoming.customers.length+' 位客戶，將取代此瀏覽器現有全部資料。建議先匯出備份。確定還原？')){if(persist({version:1,customers:incoming.customers}))toast('已還原資料')}}catch(err){alert('無法還原：'+err.message)}finally{e.target.value=''}};\ntry{let raw=localStorage.getItem(KEY);if(raw)data=validate(JSON.parse(raw));localStorage.setItem(KEY,JSON.stringify(data))}catch(e){blocked=true;$('storageError').hidden=false;$('storageError').textContent='目前無法讀取或儲存資料，已停止寫入以保護原資料。請確認瀏覽器儲存設定；若有原資料，請先匯出備份。'}\nwindow.addEventListener('storage',e=>{if(e.key===KEY){blocked=true;$('storageError').hidden=false;$('storageError').textContent='資料已在另一分頁變更。請重新整理後再編輯，以避免覆蓋。'}});window.addEventListener('beforeunload',e=>{if(dirty&&$('editor').open){e.preventDefault();e.returnValue=''}});document.addEventListener('visibilitychange',()=>{if(!document.hidden)render()});setInterval(render,60000);render();\n\u003c/script>\u003c/body>\u003c/html>\n";
+let customerAllowed=false,customerOpenRequest=0,outputWorking=false;
+function customerAccessValid(){return !isShopBlocked();}
+function customerLock(message){
+ customerAllowed=false;
+ const menu=document.getElementById('customerMenu');menu.disabled=true;menu.title=message;
+ const gate=document.getElementById('customerGate');gate.textContent=message;gate.hidden=false;
+ const frame=document.getElementById('customerFrame');frame.hidden=true;frame.removeAttribute('srcdoc');
 }
-async function cloudStart(){if(cloudStarting)return cloudStarting;cloudStarting=cloudApi({action:'start',...cloudSource},'').then(d=>{cloudToken=d.token;cloudApply(d);return d;}).finally(()=>cloudStarting=null);return cloudStarting;}
-async function cloudRefresh(){try{if(!cloudToken)await cloudStart();else{try{cloudApply(await cloudApi({action:'config'}));}catch(e){if(!e.expired)throw e;cloudToken='';await cloudStart();}}return true;}catch(e){customerLock('無法確認使用權限，請連網後重試。');cloudMessage(e.message||'無法連線，請稍後重試。');return false;}}
-function saveCloudOutbox(){try{localStorage.setItem(outboxKey,JSON.stringify(cloudOutbox));}catch{cloudMessage('無法在手機保留待同步張數，請保持頁面開啟並重新連線。');}}
-async function flushCloudOutbox(){if(cloudFlushing||!cloudToken)return;cloudFlushing=true;try{while(cloudOutbox.length){await cloudApi({action:'evaluate',eventId:cloudOutbox[0]});cloudOutbox.shift();saveCloudOutbox();}document.getElementById('cloudSync').textContent='評估張數已同步。';}catch{document.getElementById('cloudSync').textContent='有 '+cloudOutbox.length+' 張待同步，恢復連線後自動重試。';}finally{cloudFlushing=false;}}
-function cloudCountImage(){cloudOutbox.push(typeof crypto.randomUUID==='function'?crypto.randomUUID():'10000000-1000-4000-8000-100000000000'.replace(/[018]/g,c=>(Number(c)^crypto.getRandomValues(new Uint8Array(1))[0]&15>>Number(c)/4).toString(16)));saveCloudOutbox();flushCloudOutbox();}
-async function cloudBeforeOutput(){const ok=await cloudRefresh();if(!ok)alert('目前無法確認雲端設定，請連網後重試。已填寫的資料仍保留。');return ok;}
-document.getElementById('cloudRetry').addEventListener('click',async()=>{if(await cloudRefresh())flushCloudOutbox();});
-window.addEventListener('online',async()=>{if(await cloudRefresh())flushCloudOutbox();});
-window.addEventListener('focus',()=>{cloudRefresh();});
-setInterval(()=>{if(!document.hidden)cloudRefresh().then(ok=>{if(ok&&cloudOutbox.length)flushCloudOutbox();});},30000);
-fetch('/api/cloud',{cache:'no-store'}).then(r=>r.json()).then(d=>{document.getElementById('cloudAdmin').hidden=!d.admin;}).catch(()=>{});
-cloudRefresh().then(ok=>{if(ok)flushCloudOutbox();});
+function applyLocalSettings(){
+ loadInterviewerFromUrl();loadOrderLinkFromUrl();
+ document.getElementById('portalShopLink').href=effectiveShopLink();
+ const contact=effectiveContact();
+ document.getElementById('localContact').textContent='問卷者：'+(contact.name||'未提供')+'　電話：'+(contact.phone||'未提供');
+ if(isShopBlocked())customerLock('此商城代碼已禁止使用客戶管理。');
+ else{customerAllowed=true;document.getElementById('customerMenu').disabled=false;document.getElementById('customerMenu').title='';}
+ updateShopQR();
+}
+async function beforeOutput(){
+ await syncSettings();
+ applyLocalSettings();
+ if(!shopQRCanvas){alert('商城QR碼產生失敗，請重新整理後再試。');return false;}
+ return true;
+}
+async function customerOpen(){
+ const request=++customerOpenRequest;
+ applyLocalSettings();
+ if(!customerAllowed)return;
+ try{
+  // 保留原有商城分組方式，禁止替換不會把不同人的本機資料合併。
+  let operatorId='github.'+originalShop;
+  if(globalThis.crypto?.subtle){
+   const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('shop:'+originalShop));
+   operatorId=Array.from(new Uint8Array(digest),x=>x.toString(16).padStart(2,'0')).join('');
+  }
+  if(request!==customerOpenRequest||!customerAccessValid())return;
+  document.querySelectorAll('#portalHome,.portalPage,#portalAssessment').forEach(el=>el.hidden=true);
+  document.body.classList.remove('portalHomeMode');document.body.classList.add('customerMode');
+  document.getElementById('portalCustomers').hidden=false;
+  const frame=document.getElementById('customerFrame');
+  if(!frame.hasAttribute('srcdoc'))frame.srcdoc=CUSTOMER_PAGE.replace('__OPERATOR_ID__',JSON.stringify(operatorId).replace(/</g,'\\u003c'));
+  frame.hidden=false;document.getElementById('customerGate').hidden=true;
+ }catch(error){alert('無法開啟客戶管理：'+error.message);}
+}
+window.addEventListener('focus',applyLocalSettings);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){applyLocalSettings();void refreshManagement();}});
+applyLocalSettings();
+// GitHub本機功能不依賴此連線；只回報使用量與讀取禁止設定。
+const CLOUD_ENDPOINT='https://hou-nutrition-cloud.flowytrout15.chatgpt.site/api/cloud';
+const CLOUD_ADMIN='https://hou-nutrition-cloud.flowytrout15.chatgpt.site/admin';
+const pendingPrefix='nutritionCloud.events.v1.'+originalShop+'.';
+const volatileEvents=new Set();
+let sessionToken='',settingsPending=null,flushing=false,lastCloudOk=false;
+const syncLabel=document.getElementById('syncState');
+function pendingIds(){
+ const ids=new Set(volatileEvents);
+ try{for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key&&key.startsWith(pendingPrefix))ids.add(key.slice(pendingPrefix.length));}}catch{}
+ return Array.from(ids).filter(id=>/^[a-f0-9-]{36}$/i.test(id));
+}
+function syncMessage(){
+ const n=pendingIds().length;
+ syncLabel.textContent=lastCloudOk?(n?'尚有 '+n+' 張待同步':'已連接管理中心，使用量已同步'):(n?'暫時無法連線，'+n+' 張待同步；仍可評估及存檔':'暫時無法連接管理中心，仍可評估及存檔');
+ if(volatileEvents.size)syncLabel.textContent+='。部分待同步張數無法保存，請保持頁面開啟直到同步完成。';
+}
+async function requestCloud(payload,token=sessionToken){
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),4000);
+ try{
+  const r=await fetch(CLOUD_ENDPOINT,{method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:JSON.stringify(payload),signal:controller.signal});
+  const d=await r.json();if(!r.ok){const error=Error(d.error||'連線失敗');error.expired=!!d.expired;throw error;}return d;
+ }finally{clearTimeout(timer);}
+}
+function acceptCloudConfig(data){
+ if(typeof data.blocked!=='boolean')throw Error('設定格式不正確');
+ remoteBlocked=data.blocked;
+ try{localStorage.setItem(remoteBlockKey,JSON.stringify({shop:originalShop,blocked:remoteBlocked,updatedAt:Date.now()}));}catch{}
+ applyLocalSettings();
+}
+async function syncSettings(){
+ if(settingsPending)return settingsPending;
+ settingsPending=(async()=>{
+  try{
+   if(navigator.onLine===false)throw Error('離線');
+   let data;
+   if(sessionToken){try{data=await requestCloud({action:'config'});}catch(e){if(!e.expired)throw e;sessionToken='';}}
+   if(!sessionToken){
+    data=await requestCloud({action:'start',...originalContact},'');
+    if(typeof data.token!=='string'||data.token.length!==72)throw Error('連線識別碼錯誤');
+    sessionToken=data.token;
+   }
+   acceptCloudConfig(data);lastCloudOk=true;syncMessage();return true;
+  }catch{lastCloudOk=false;syncMessage();return false;}
+ })();
+ try{return await settingsPending;}finally{settingsPending=null;}
+}
+function newEventId(){
+ if(crypto.randomUUID)return crypto.randomUUID();
+ return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g,c=>(Number(c)^crypto.getRandomValues(new Uint8Array(1))[0]&15>>Number(c)/4).toString(16));
+}
+function countLocalEvaluation(){
+ const id=newEventId();
+ try{localStorage.setItem(pendingPrefix+id,'1');}catch{volatileEvents.add(id);}
+ syncMessage();void flushPendingEvaluations();
+}
+async function flushPendingEvaluations(){
+ if(flushing)return;
+ flushing=true;
+ try{
+  if(!pendingIds().length)return;
+  if(!sessionToken&&!await syncSettings())return;
+  for(const id of pendingIds().slice(0,100)){
+   let result;
+   try{result=await requestCloud({action:'evaluate',eventId:id});}
+   catch(error){if(!error.expired)throw error;sessionToken='';if(!await syncSettings())return;result=await requestCloud({action:'evaluate',eventId:id});}
+   acceptCloudConfig(result);
+   // 回應成功才刪除；同一識別碼重送由伺服器去重，不會多計張數。
+   try{localStorage.removeItem(pendingPrefix+id);}catch{}
+   volatileEvents.delete(id);lastCloudOk=true;
+  }
+ }catch{lastCloudOk=false;}finally{flushing=false;syncMessage();}
+}
+async function refreshManagement(){if(await syncSettings())await flushPendingEvaluations();}
+window.addEventListener('online',refreshManagement);
+window.addEventListener('storage',event=>{
+ if(event.key===remoteBlockKey){readCachedBlock();applyLocalSettings();}
+ if(event.key&&event.key.startsWith(pendingPrefix))void flushPendingEvaluations();
+});
+setInterval(()=>{if(!document.hidden)void refreshManagement();},30000);
+void refreshManagement();
 
 </script></body>
 </html>
