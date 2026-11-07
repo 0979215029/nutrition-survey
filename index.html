@@ -6806,5 +6806,33 @@ window.addEventListener('storage',event=>{
 setInterval(()=>{if(!document.hidden)void refreshManagement();},30000);
 void refreshManagement();
 
-</script></body>
+</script><script>
+// 導覽備援：即使原有頁面導覽處理未載入，選單和返回首頁仍可切換畫面。
+document.addEventListener('click', function(event){
+ const target=event.target instanceof Element?event.target.closest('button[onclick*="portalOpen("]'):null;
+ if(!target)return;
+ const match=target.getAttribute('onclick').match(/portalOpen\(\s*['"]([^'"]+)['"]\s*\)/);
+ if(!match)return;
+ event.preventDefault();
+ event.stopImmediatePropagation();
+ const page=match[1];
+ if(typeof window.portalOpen==='function'){
+  window.portalOpen(page);
+  return;
+ }
+ if(page==='customers'){
+  document.querySelectorAll('#portalHome,#portalRecords,#portalAssessment,#portalProducts,#portalTherapy,#portalDietGuide,#portalShopping').forEach(el=>el.hidden=true);
+  const customers=document.getElementById('portalCustomers');
+  if(customers)customers.hidden=false;
+  return;
+ }
+ const pages={home:'portalHome',assessment:'portalAssessment',products:'portalProducts',therapy:'portalTherapy',shopping:'portalShopping',dietGuide:'portalDietGuide',records:'portalRecords'};
+ for(const [key,id] of Object.entries(pages)){
+  const panel=document.getElementById(id);
+  if(panel)panel.hidden=(key!==page);
+ }
+ window.scrollTo(0,0);
+},true);
+</script>
+</body>
 </html>
