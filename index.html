@@ -167,6 +167,7 @@ body>div:first-of-type,#localContact{font-size:12px!important;line-height:1.4!im
 </p>
 <div id="jpgOutputOptions" style="margin:10px 0;padding:0;border:0;background:transparent">
 <p style="margin:8px 0;font-weight:bold;color:#29753d">選擇要下載或分享的內容（可複選）</p>
+<p class="note" style="margin:8px 0">下載 JPG 依勾選項目存檔；分享到 LINE 時，LINE 依勾選項目分享，手機仍會直接存檔兩項 JPG。</p>
 <label><input type="checkbox" id="includeAssessmentOnly" checked> 僅飲食評估表（裁切線以上）</label>
 <label><input type="checkbox" id="includeAssessmentDetails" checked> 飲食評估表和說明</label>
 </div>
@@ -199,15 +200,15 @@ body>div:first-of-type,#localContact{font-size:12px!important;line-height:1.4!im
 <fieldset id="orderSection">
 <legend>安麗商品訂購</legend>
 <a id="orderLink" class="order-bar" href="http://shop.amway.com.tw/?d=70A10EF7BDCFC29141D9ED34A1BA8580" target="_blank" rel="noopener noreferrer">紐崔萊營養品<br>網路商城</a>
-<label>問卷者姓名<input id="interviewer" placeholder="問卷者" readonly aria-readonly="true" title="由問卷網址帶入，無法修改">
-</label>
-<label>聯絡電話<input id="phone" placeholder="電話" readonly aria-readonly="true" title="由問卷網址帶入，無法修改">
-</label>
 <button type="button" id="shareShopButton" style="display:block;width:100%;margin:16px 0;background:#06a747;color:white;border:0;border-radius:10px;padding:16px;font-size:1.3em;font-weight:bold">把網路商城網址分享到LINE</button>
 <div class="order-note">
 <p><strong>400多種安麗優質商品：</strong><br>左上≡是總目錄、中上👤是送貨進度、右上 🛒是結帳<br>首次使用先免費註冊，以後只要手機號碼認證即可宅配、商店取貨、刷卡或貨到付款。</p>
 <p>☆找我辦會員另有優惠</p>
 </div>
+<label>問卷者姓名<input id="interviewer" placeholder="問卷者" readonly aria-readonly="true" title="由問卷網址帶入，無法修改">
+</label>
+<label>聯絡電話<input id="phone" placeholder="電話" readonly aria-readonly="true" title="由問卷網址帶入，無法修改">
+</label>
 </fieldset>
 <div class="assessmentBottomBack"><button class="portalBack" type="button" onclick="portalOpen('home')">← 返回首頁</button></div>
 </main></section>
@@ -6513,6 +6514,12 @@ function downloadFile(file){
  a.href=url;a.download=file.name;document.body.appendChild(a);a.click();a.remove();
  setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
+async function downloadFilesSequentially(files){
+ for(let i=0;i<files.length;i++){
+  downloadFile(files[i]);
+  if(i<files.length-1)await new Promise(resolve=>setTimeout(resolve,700));
+ }
+}
 async function makeSelectedFiles(choices){
  const files=[];
  for(let i=0;i<choices.images.length;i++){
@@ -6521,13 +6528,22 @@ async function makeSelectedFiles(choices){
  }
  return files;
 }
+async function makeSelectedFileEntries(choices){
+ const entries=[];
+ for(let i=0;i<choices.images.length;i++){
+  const choice=choices.images[i];
+  const file=await imageFileFor(choice,i+1);
+  if(file)entries.push({choice,file});
+ }
+ return entries;
+}
 async function downloadJpg(){
  if(!await beforeOutput())return;
  render();
  const choices=selectedOutputChoices();
  if(!choices.images.length){$('downloadNotice').textContent='請至少勾選一項要下載或分享的內容。';return;}
  const files=await makeSelectedFiles(choices);
- files.forEach(downloadFile);
+ await downloadFilesSequentially(files);
  if(files.length){
   $('saveImage').src=URL.createObjectURL(files[0]);$('saveImageArea').hidden=false;
  }
@@ -6545,21 +6561,23 @@ async function shareJpgToLine(){
  try{
   render();
   const choices=selectedOutputChoices();
-  if(!choices.images.length){$('downloadNotice').textContent='請至少勾選一項要下載或分享的內容。';return;}
-  const files=await makeSelectedFiles(choices);
-  files.forEach(downloadFile);
+  const allEntries=await makeSelectedFileEntries({images:['assessment','details']});
+  await downloadFilesSequentially(allEntries.map(({file})=>file));
+  const selected=new Set(choices.images);
+  const files=allEntries.filter(entry=>selected.has(entry.choice)).map(entry=>entry.file);
   const payload={};
   if(files.length)payload.files=files;
   // 不等待下載回呼，保留手機瀏覽器要求的使用者點擊權限。
-  if(navigator.share && (!files.length || (navigator.canShare && navigator.canShare({files})))){
+  if(files.length&&navigator.share && navigator.canShare && navigator.canShare({files})){
    try{await navigator.share(payload);return;}
    catch(error){if(error.name==='AbortError')return;}
   }
-  if(files.length){
-   $('saveImage').src=URL.createObjectURL(files[0]);
+  const previewFile=files[0]||allEntries[0]?.file;
+  if(previewFile){
+   $('saveImage').src=URL.createObjectURL(previewFile);
    $('saveImageArea').hidden=false;
   }
-  $('downloadNotice').textContent='已啟動所選 JPG 下載；若未開啟分享選單，請從手機下載資料夾選取圖片傳到 LINE。';
+  $('downloadNotice').textContent=files.length?'已直接存檔兩項 JPG；若未開啟分享選單，請從下載資料夾選取勾選的圖片傳到 LINE。':'已直接存檔兩項 JPG；目前沒有勾選要傳到 LINE 的圖片。';
  }catch(error){
   $('downloadNotice').textContent='JPG 產生或下載失敗，請重新產生評估圖後再試。';
  }finally{
