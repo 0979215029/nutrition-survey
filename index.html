@@ -164,6 +164,12 @@ body>div:first-of-type,#localContact{font-size:12px!important;line-height:1.4!im
 <div id="imageActions" style="padding:1px 16px 16px">
 <p id="imageStatus" role="status" aria-live="polite">
 </p>
+<fieldset id="jpgOutputOptions" style="margin:10px 0;padding:12px;border:1px solid #cbd8cd;border-radius:10px">
+<legend>選擇要下載或分享的內容（可複選）</legend>
+<label style="display:block;margin:8px 0"><input type="checkbox" id="includeAssessmentOnly" checked> 僅飲食評估表（裁切線以上）</label>
+<label style="display:block;margin:8px 0"><input type="checkbox" id="includeAssessmentDetails" checked> 飲食評估表和說明</label>
+<label style="display:block;margin:8px 0"><input type="checkbox" id="includeShopShare"> 分享購（傳送最後面的分享網址和說明）</label>
+</fieldset>
 <div class="actions">
 <span class="step-hint">請拍螢幕或</span><button type="button" class="secondary" id="downloadButton">下載 JPG 圖片</button>
 </div>
@@ -193,18 +199,10 @@ body>div:first-of-type,#localContact{font-size:12px!important;line-height:1.4!im
 <fieldset id="orderSection">
 <legend>安麗商品訂購</legend>
 <a id="orderLink" class="order-bar" href="http://shop.amway.com.tw/?d=70A10EF7BDCFC29141D9ED34A1BA8580" target="_blank" rel="noopener noreferrer">紐崔萊營養品<br>網路商城</a>
-<button type="button" id="shareShopButton" style="display:block;width:100%;margin:16px 0;background:#06a747;color:white;border:0;border-radius:10px;padding:16px;font-size:1.3em;font-weight:bold">把網路商城網址分享到LINE</button>
-<div class="order-note">
-<p>
-<strong>400多種安麗優質商品：</strong>
-<br>左上≡是總目錄、中上👤是送貨進度、右上 🛒是結帳<br>首次使用先免費註冊，以後只要手機號碼認證即可宅配、商店取貨、刷卡或貨到付款。</p>
-<p>☆找我辦會員另有優惠</p>
-</label>
 <label>問卷者姓名<input id="interviewer" placeholder="問卷者" readonly aria-readonly="true" title="由問卷網址帶入，無法修改">
 </label>
 <label>聯絡電話<input id="phone" placeholder="電話" readonly aria-readonly="true" title="由問卷網址帶入，無法修改">
 </label>
-</div>
 </fieldset>
 <div class="assessmentBottomBack"><button class="portalBack" type="button" onclick="portalOpen('home')">← 返回首頁</button></div>
 </main></section>
@@ -6482,25 +6480,60 @@ function assessmentJpgFilename(){
  return `${name}飲食評估${part('year')}${part('month')}${part('day')}.JPG`;
 }
 
+function selectedOutputChoices(){
+ const choices=[];
+ if($('includeAssessmentOnly').checked)choices.push('assessment');
+ if($('includeAssessmentDetails').checked)choices.push('details');
+ return {images:choices,shop:$('includeShopShare').checked};
+}
+function shopShareText(){
+ const url=$('orderLink').href;
+ return '紐崔萊營養品網路商城\n'+url+'\n\n400多種優質產品：\n左上≡是總目錄、中上👤是送貨進度、右上 🛒是結帳\n首次使用先免費註冊，以後只要手機號碼認證即可宅配、商店取貨、刷卡或貨到付款。\n\n★只有這連結網址能訂貨，請放記事本存好。\n♡ 找我加會員 另有折扣';
+}
+function outputCanvasFor(choice){
+ if(choice==='details')return canvas;
+ const cropped=document.createElement('canvas');
+ cropped.width=canvas.width;
+ cropped.height=Math.min(950,canvas.height);
+ cropped.getContext('2d').drawImage(canvas,0,0,canvas.width,cropped.height,0,0,cropped.width,cropped.height);
+ return cropped;
+}
+function imageFileFor(choice,index){
+ const source=outputCanvasFor(choice);
+ const suffix=choice==='assessment'?'僅飲食評估表':'飲食評估表和說明';
+ const filename=assessmentJpgFilename().replace('.JPG',`${suffix}${index>1?`_${index}`:''}.JPG`);
+ return new Promise(resolve=>source.toBlob(blob=>resolve(blob?new File([blob],filename,{type:'image/jpeg'}):null),'image/jpeg',0.95));
+}
+function downloadFile(file){
+ const url=URL.createObjectURL(file),a=document.createElement('a');
+ a.href=url;a.download=file.name;document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
+async function makeSelectedFiles(choices){
+ const files=[];
+ for(let i=0;i<choices.images.length;i++){
+  const file=await imageFileFor(choices.images[i],i+1);
+  if(file)files.push(file);
+ }
+ return files;
+}
 async function downloadJpg(){
  if(!await beforeOutput())return;
  render();
- const fileName=assessmentJpgFilename();
- // LINE 常會阻止輸出為圖檔，建議用螢幕拍照儲存。
- const inApp=/Line\//i.test(navigator.userAgent)||/\bLIFF\b/i.test(navigator.userAgent);
- if(inApp){showSaveImage();return;}
- canvas.toBlob(blob=>{
-   if(!blob){showSaveImage();return;}
-   const url=URL.createObjectURL(blob),a=document.createElement('a');
-   a.href=url;a.download=fileName;document.body.appendChild(a);a.click();a.remove();
-   setTimeout(()=>URL.revokeObjectURL(url),60000);
-   $('saveImage').src=canvas.toDataURL('image/jpeg',0.95);
-   $('saveImageArea').hidden=false;
- },'image/jpeg',0.95);
+ const choices=selectedOutputChoices();
+ if(!choices.images.length&&!choices.shop){$('downloadNotice').textContent='請至少勾選一項要下載或分享的內容。';return;}
+ const files=await makeSelectedFiles(choices);
+ files.forEach(downloadFile);
+ if(files.length){
+  $('saveImage').src=URL.createObjectURL(files[0]);$('saveImageArea').hidden=false;
+ }
+ if(choices.shop){
+  window.open('https://line.me/R/msg/text/?'+encodeURIComponent(shopShareText()),'_blank','noopener');
+ }
+ $('downloadNotice').textContent=files.length?'已依勾選項目啟動 JPG 下載。': '已開啟商城分享內容，請選擇 LINE 傳送。';
 }
 
-// 先同步啟動下載，再於同一次點擊開啟系統圖片分享。
-// 網頁無法確認手機下載完成，也無法指定系統分享選單中的 LINE。
+// 先啟動所選圖片下載，再將所選內容交給手機分享選單。
 let sharingJpg = false;
 async function shareJpgToLine(){
  if(!await beforeOutput())return;
@@ -6510,45 +6543,34 @@ async function shareJpgToLine(){
  button.disabled=true;
  try{
   render();
-  const filename=assessmentJpgFilename();
-  const dataUrl=canvas.toDataURL('image/jpeg',0.95);
-  const binary=atob(dataUrl.split(',')[1]);
-  const bytes=new Uint8Array(binary.length);
-  for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
-  const file=new File([bytes],filename,{type:'image/jpeg'});
-  const url=URL.createObjectURL(file);
-  const link=document.createElement('a');
-  link.href=url;link.download=filename;
-  document.body.appendChild(link);
-  try{link.click();}finally{
-   link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
-  }
+  const choices=selectedOutputChoices();
+  if(!choices.images.length&&!choices.shop){$('downloadNotice').textContent='請至少勾選一項要下載或分享的內容。';return;}
+  const files=await makeSelectedFiles(choices);
+  files.forEach(downloadFile);
+  const payload={};
+  if(files.length)payload.files=files;
+  if(choices.shop)payload.text=shopShareText();
   // 不等待下載回呼，保留手機瀏覽器要求的使用者點擊權限。
-  if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
-   try{await navigator.share({files:[file]});return;}
+  if(navigator.share && (!files.length || (navigator.canShare && navigator.canShare({files})))){
+   try{await navigator.share(payload);return;}
    catch(error){if(error.name==='AbortError')return;}
   }
-  $('saveImage').src=dataUrl;
-  $('saveImageArea').hidden=false;
-  $('downloadNotice').textContent='已啟動 JPG 下載；此瀏覽器無法開啟圖片分享。請從手機下載資料夾選取圖片傳到 LINE；若未下載成功，請長按下方圖片儲存，或用 Chrome 開啟。';
+  if(files.length){
+   $('saveImage').src=URL.createObjectURL(files[0]);
+   $('saveImageArea').hidden=false;
+  }
+  if(choices.shop)window.open('https://line.me/R/msg/text/?'+encodeURIComponent(shopShareText()),'_blank','noopener');
+  $('downloadNotice').textContent='已啟動所選 JPG 下載；若未開啟分享選單，請從手機下載資料夾選取圖片傳到 LINE。';
  }catch(error){
   $('downloadNotice').textContent='JPG 產生或下載失敗，請重新產生評估圖後再試。';
  }finally{
   sharingJpg=false;button.disabled=false;
  }
 }
-// 商城分享：永遠取商城按鈕目前的 href，不使用問卷網址。
-// 縮網址需外部服務；優先嘗試 is.gd，失敗時使用完整有效網址。
+// 商城分享按鈕（購物頁使用）：取目前商城網址並附上說明。
 async function shareShopToLine(){
  if(!await beforeOutput())return;
- const original=$('orderLink').href;
- let url=original;
- try{
-  const response=await fetch('https://is.gd/create.php?format=json&url='+encodeURIComponent(original),{signal:AbortSignal.timeout(4500)});
-  if(response.ok){const data=await response.json();if(data.shorturl && /^https:\/\//.test(data.shorturl))url=data.shorturl;}
- }catch(e){}
- const line='https://line.me/R/msg/text/?'+encodeURIComponent('紐崔萊營養品網路商城\n'+url+'\n\n400多種優質產品：\n左上≡是總目錄、中上👤是送貨進度、右上 🛒是結帳\n首次使用先免費註冊，以後只要手機號碼認證即可宅配、商店取貨、刷卡或貨到付款。\n\n★只有這連結網址能訂貨，請放記事本存好。\n♡ 找我加會員 另有折扣');
- window.location.href=line;
+ window.location.href='https://line.me/R/msg/text/?'+encodeURIComponent(shopShareText());
 }
 
 // 八、頁面初始化：網址預填、綁定按鈕及欄位變更事件。
@@ -6562,7 +6584,6 @@ function initialize() {
   $('generateButton').addEventListener('click', generateImage);
   $('downloadButton').addEventListener('click', downloadJpg);
   $('shareJpgButton').addEventListener('click', shareJpgToLine);
-  $('shareShopButton').addEventListener('click', shareShopToLine);
   ['weight', 'sex', 'age', 'water', 'fat', 'protein', 'produce', 'grain', 'workload'].forEach(id => {
     $(id).addEventListener('input', () => {
       if (!$('resultSection').hidden) render();
