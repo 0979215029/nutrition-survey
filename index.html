@@ -169,7 +169,6 @@ body>div:first-of-type,#localContact{font-size:12px!important;line-height:1.4!im
 <p style="margin:8px 0;font-weight:bold;color:#29753d">選擇要下載或分享的內容（可複選）</p>
 <label><input type="checkbox" id="includeAssessmentOnly" checked> 僅飲食評估表（裁切線以上）</label>
 <label><input type="checkbox" id="includeAssessmentDetails" checked> 飲食評估表和說明</label>
-<label><input type="checkbox" id="includeShopShare"> 分享購（傳送最後面的分享網址和說明）</label>
 </div>
 <div class="actions">
 <span class="step-hint">請拍螢幕或</span><button type="button" class="secondary" id="downloadButton">下載 JPG 圖片</button>
@@ -204,6 +203,11 @@ body>div:first-of-type,#localContact{font-size:12px!important;line-height:1.4!im
 </label>
 <label>聯絡電話<input id="phone" placeholder="電話" readonly aria-readonly="true" title="由問卷網址帶入，無法修改">
 </label>
+<button type="button" id="shareShopButton" style="display:block;width:100%;margin:16px 0;background:#06a747;color:white;border:0;border-radius:10px;padding:16px;font-size:1.3em;font-weight:bold">把網路商城網址分享到LINE</button>
+<div class="order-note">
+<p><strong>400多種安麗優質商品：</strong><br>左上≡是總目錄、中上👤是送貨進度、右上 🛒是結帳<br>首次使用先免費註冊，以後只要手機號碼認證即可宅配、商店取貨、刷卡或貨到付款。</p>
+<p>☆找我辦會員另有優惠</p>
+</div>
 </fieldset>
 <div class="assessmentBottomBack"><button class="portalBack" type="button" onclick="portalOpen('home')">← 返回首頁</button></div>
 </main></section>
@@ -6485,10 +6489,9 @@ function selectedOutputChoices(){
  const choices=[];
  if($('includeAssessmentOnly').checked)choices.push('assessment');
  if($('includeAssessmentDetails').checked)choices.push('details');
- return {images:choices,shop:$('includeShopShare').checked};
+ return {images:choices};
 }
-function shopShareText(){
- const url=$('orderLink').href;
+function shopShareText(url){
  return '紐崔萊營養品網路商城\n'+url+'\n\n400多種優質產品：\n左上≡是總目錄、中上👤是送貨進度、右上 🛒是結帳\n首次使用先免費註冊，以後只要手機號碼認證即可宅配、商店取貨、刷卡或貨到付款。\n\n★只有這連結網址能訂貨，請放記事本存好。\n♡ 找我加會員 另有折扣';
 }
 function outputCanvasFor(choice){
@@ -6522,16 +6525,13 @@ async function downloadJpg(){
  if(!await beforeOutput())return;
  render();
  const choices=selectedOutputChoices();
- if(!choices.images.length&&!choices.shop){$('downloadNotice').textContent='請至少勾選一項要下載或分享的內容。';return;}
+ if(!choices.images.length){$('downloadNotice').textContent='請至少勾選一項要下載或分享的內容。';return;}
  const files=await makeSelectedFiles(choices);
  files.forEach(downloadFile);
  if(files.length){
   $('saveImage').src=URL.createObjectURL(files[0]);$('saveImageArea').hidden=false;
  }
- if(choices.shop){
-  window.open('https://line.me/R/msg/text/?'+encodeURIComponent(shopShareText()),'_blank','noopener');
- }
- $('downloadNotice').textContent=files.length?'已依勾選項目啟動 JPG 下載。': '已開啟商城分享內容，請選擇 LINE 傳送。';
+ $('downloadNotice').textContent=files.length?'已依勾選項目啟動 JPG 下載。':'JPG 產生失敗，請重試。';
 }
 
 // 先啟動所選圖片下載，再將所選內容交給手機分享選單。
@@ -6545,12 +6545,11 @@ async function shareJpgToLine(){
  try{
   render();
   const choices=selectedOutputChoices();
-  if(!choices.images.length&&!choices.shop){$('downloadNotice').textContent='請至少勾選一項要下載或分享的內容。';return;}
+  if(!choices.images.length){$('downloadNotice').textContent='請至少勾選一項要下載或分享的內容。';return;}
   const files=await makeSelectedFiles(choices);
   files.forEach(downloadFile);
   const payload={};
   if(files.length)payload.files=files;
-  if(choices.shop)payload.text=shopShareText();
   // 不等待下載回呼，保留手機瀏覽器要求的使用者點擊權限。
   if(navigator.share && (!files.length || (navigator.canShare && navigator.canShare({files})))){
    try{await navigator.share(payload);return;}
@@ -6560,7 +6559,6 @@ async function shareJpgToLine(){
    $('saveImage').src=URL.createObjectURL(files[0]);
    $('saveImageArea').hidden=false;
   }
-  if(choices.shop)window.open('https://line.me/R/msg/text/?'+encodeURIComponent(shopShareText()),'_blank','noopener');
   $('downloadNotice').textContent='已啟動所選 JPG 下載；若未開啟分享選單，請從手機下載資料夾選取圖片傳到 LINE。';
  }catch(error){
   $('downloadNotice').textContent='JPG 產生或下載失敗，請重新產生評估圖後再試。';
@@ -6568,10 +6566,16 @@ async function shareJpgToLine(){
   sharingJpg=false;button.disabled=false;
  }
 }
-// 商城分享按鈕（購物頁使用）：取目前商城網址並附上說明。
+// 商城分享：取目前商城連結，縮短後附上原有說明分享至 LINE。
 async function shareShopToLine(){
  if(!await beforeOutput())return;
- window.location.href='https://line.me/R/msg/text/?'+encodeURIComponent(shopShareText());
+ const original=$('orderLink').href;
+ let url=original;
+ try{
+  const response=await fetch('https://is.gd/create.php?format=json&url='+encodeURIComponent(original),{signal:AbortSignal.timeout(4500)});
+  if(response.ok){const data=await response.json();if(data.shorturl && /^https:\/\//.test(data.shorturl))url=data.shorturl;}
+ }catch(e){}
+ window.location.href='https://line.me/R/msg/text/?'+encodeURIComponent(shopShareText(url));
 }
 
 // 八、頁面初始化：網址預填、綁定按鈕及欄位變更事件。
@@ -6585,6 +6589,7 @@ function initialize() {
   $('generateButton').addEventListener('click', generateImage);
   $('downloadButton').addEventListener('click', downloadJpg);
   $('shareJpgButton').addEventListener('click', shareJpgToLine);
+  $('shareShopButton').addEventListener('click', shareShopToLine);
   ['weight', 'sex', 'age', 'water', 'fat', 'protein', 'produce', 'grain', 'workload'].forEach(id => {
     $(id).addEventListener('input', () => {
       if (!$('resultSection').hidden) render();
