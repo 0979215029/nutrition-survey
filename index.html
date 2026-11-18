@@ -69,7 +69,7 @@ body>div:first-of-type,#localContact{font-size:12px!important;line-height:1.4!im
 </section>
 <section id="portalAssessment" hidden><div class="portalPage"><button class="portalBack" type="button" onclick="portalOpen('home')">← 返回首頁</button></div><main>
 <h1>飲食金字塔｜一週飲食問卷</h1>
-<p>這是衛生署建議國人的飲食指南，透過每個人的身高、體重、性別、年齡、工作狀況，與平時最常吃的三餐飲食做出的比較，檢視飲食金字塔並調整飲食，就可以遠離疾病的發生。請填寫過去一週，您三餐最常吃的食物，完成後可產生衛生署的國人建議飲食金字塔的比較圖表和建議，可以下載或截圖為圖檔。</p>
+<p>這是衛生署建議國人的飲食指南，透過每個人的體重、性別、年紀區分、工作狀況，與平時最常吃的三餐飲食做出的比較，檢視飲食金字塔並調整飲食，就可以遠離疾病的發生。請填寫過去一週，您三餐最常吃的食物，完成後可產生衛生署的國人建議飲食金字塔的比較圖表和建議，可以下載或截圖為圖檔。</p>
 <p class="note">
 <strong>最後的飲食評估圖片請回傳給問卷者交作業，也可以一起討論如何便宜的健康飲食。</strong>
 </p>
@@ -83,12 +83,10 @@ body>div:first-of-type,#localContact{font-size:12px!important;line-height:1.4!im
 <option>女</option>
 </select>
 </label>
-<label>年齡<input id="age" type="number" min="1" max="120" step="1" placeholder="例如：42" required>
-</label>
-<label>身高（公分）<input id="height" type="number" placeholder="例如：168" required>
-</label>
-<label>體重（公斤）<input id="weight" type="number" placeholder="例如：70" required>
-<label style="grid-column:1 / -1">工作強度<select id="workload">
+<div id="age" role="group" aria-label="年紀區分" style="grid-column:1 / -1"><strong>年紀區分（計算蔬果需求量）</strong><div class="choice-grid"><label><input type="radio" name="age" value="青">青</label><label><input type="radio" name="age" value="中" checked>中</label><label><input type="radio" name="age" value="高">高</label></div></div>
+
+<label>體重（公斤）（計算蛋白質需求量）<input id="weight" type="number" placeholder="例如：70" required>
+<label style="grid-column:1 / -1">工作強度（計算五穀雜糧需求量）<select id="workload">
 <option value="">請選擇工作強度</option>
 <option value="light">輕（坐著）</option>
 <option value="medium">中（站著）</option>
@@ -273,8 +271,9 @@ function portalOpen(page){
 //
 // 一、共用工具與食物估算資料。
 const $ = id => document.getElementById(id);
-const v = id => $(id).value;
+const v = id => id==='age' ? (document.querySelector('input[name="age"]:checked')?.value || '') : $(id).value;
 const num = id => Math.max(0, Number(v(id)) || 0);
+const getProduceGoal = () => v('age')==='青' ? 5 : (v('sex')==='男' ? 9 : 7);
 const canvas = $('preview');
 const ctx = canvas.getContext('2d');
 // 每筆依序為油脂份、蛋白質份、蔬果份、五穀雜糧碗；沿用原版估算值。
@@ -5497,18 +5496,17 @@ function loadOrderLinkFromUrl(){ $('orderLink').href=effectiveShopLink(); }
 
 // 三、檢查問卷資料並估算飲食份數。
 
-// 必填：姓名、年齡、身高、體重、每日喝水量、工作強度，以及早午晚餐至少一欄。
+// 必填：姓名、年紀區分、體重、每日喝水量、工作強度，以及早午晚餐至少一欄。
 // 缺漏時停止執行並跳到第一個需要補填的欄位。
 function validateRequiredProfile(moveToMissingField){
  const fields=[
   {id:'name',label:'姓名'},
-  {id:'age',label:'年齡'},
-  {id:'height',label:'身高'},
+  {id:'age',label:'年紀區分'},
   {id:'weight',label:'體重'},
   {id:'water',label:'每日喝水量'},
   {id:'workload',label:'工作強度'}
  ];
- const missing=fields.filter(field=>!v(field.id).trim() || (field.id==='age' && (!Number.isInteger(Number(v('age'))) || Number(v('age'))<1 || Number(v('age'))>120)));
+ const missing=fields.filter(field=>!v(field.id).trim());
  const meals=['breakfast','lunch','dinner'];
  const missingMeals=meals.every(id=>!v(id).trim());
  const status=$('requiredProfileStatus');
@@ -5526,7 +5524,8 @@ function validateRequiredProfile(moveToMissingField){
  status.hidden=false;
  status.textContent=`請先完成：${labels.join('、')}。`;
  if(moveToMissingField){
-  const first=$(missing.length?missing[0].id:'breakfast');
+  const firstId=missing.length?missing[0].id:'breakfast';
+  const first=firstId==='age' ? document.querySelector('input[name="age"]') : $(firstId);
   first.focus({preventScroll:true});
   first.scrollIntoView({behavior:'smooth',block:'center'});
  }
@@ -5660,7 +5659,7 @@ function estimate(){
  }
  const source=normalizeFoodQuantities([v('breakfast'),v('lunch'),v('dinner'),v('snack')].join('、'));
  const totals=[0,0,num('fruit'),0], matched=[], pendingLabels=[], estimatedFoods=[];
- const age=num('age'),produceGoal=age<12?5:(v('sex')==='男'?9:7);
+ const produceGoal=getProduceGoal();
  const supplementRules=[
   ['蛋白質粉',[0,1,0,0]],['蛋白粉',[0,1,0,0]],['優質蛋白',[0,1,0,0]],['高蛋白',[0,1,0,0]],['蛋白質',[0,1,0,0]],['蛋白',[0,1,0,0]],['補體素',[0,1,0,0]],
   ['銀寶善存',[0,0,produceGoal/2,0]],['Double X',[0,0,produceGoal/2,0]],['DoubleX',[0,0,produceGoal/2,0]],['DX',[0,0,produceGoal/2,0]],['善存',[0,0,produceGoal/2,0]],['得力',[0,0,produceGoal/4,0]]
@@ -5744,13 +5743,13 @@ function estimate(){
 // 需求量：依工作強度取得五穀雜糧份數。
 function grainGoal(){return {light:3,medium:4,heavy:5}[v('workload')]||3;}
 
-// 營養建議：依年齡、體重及飲食分析計算。
+// 營養建議：依年紀區分、體重及飲食分析計算。
 function calculateNutritionPlan(){
- const age=num('age'), weight=num('weight'), pg=age<12?5:(v('sex')==='男'?9:7);
+ const weight=num('weight'), pg=getProduceGoal();
  const proteinGap=Math.max(0,weight/7-num('protein'));
  const produceGap=Math.max(0,pg-num('produce'));
  // 僅成年問卷使用搭配；未成年不自動建議用量。
- const adult=!v('age').trim() || age>=18; // 年齡未填時仍顯示補充建議；明確未成年則不自動推薦
+ const adult=v('age')!=='青'; // 青組不自動顯示成人補充建議
  const proteinSpoons=adult&&proteinGap>0?Math.ceil(proteinGap/2):0;
  // 保留每日總匙數；早晚各超過3匙時，將總量平均分配到三餐。
  const proteinTotal=proteinSpoons*2;
@@ -5841,7 +5840,7 @@ function polygon(points, color) {
 }
 
 function deficientCategories(){
- const weight=num('weight'),age=num('age'),pg=age<12?5:(v('sex')==='男'?9:7);
+ const weight=num('weight'),pg=getProduceGoal();
  const checks=[
   ['水',Math.round(weight*35),num('water')],
   ['油脂',3,num('fat')],
@@ -5853,7 +5852,7 @@ function deficientCategories(){
 }
 
 function nutritionWarningData(){
- const weight=num('weight'),age=num('age'),produceGoal=age<12?5:(v('sex')==='男'?9:7);
+ const weight=num('weight'),produceGoal=getProduceGoal();
  const proteinGoal=fmt(weight/7),fatActual=num('fat'),proteinActual=num('protein'),produceActual=num('produce');
  const details=[];
  if(fatActual<=3*.75)details.push('油脂長期攝取不足可能影響荷爾蒙調節與腦部功能，建議適量補充橄欖油或魚油。');
@@ -5869,7 +5868,7 @@ factoryImage.src = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/4QAiRXhpZ
 function drawFactorySection(baseHeight,targetCanvas){
  const canvas=targetCanvas||$('preview');
  const c=canvas.getContext('2d'), scale=canvas.width/810, top=baseHeight+25;
- const age=num('age'), produceGoal=age<12?5:(v('sex')==='男'?9:7);
+ const produceGoal=getProduceGoal();
  const proteinGoal=num('weight')/7;
  const signed=(a,b)=>{const d=a-b;return (d>=0?'+':'−')+fmt(Math.abs(d));};
  // 所有文字、線條與人物直接繪製，避免放大低解析 JPG。
@@ -6064,8 +6063,7 @@ function render() {
   const medText=`日常用藥：${selectedValues('medChoice','medOther')}`;
   const symptomText=`不適狀況：${selectedValues('symChoice','symOther')}`;
   const symptomY=healthStartY+rowCount(medText,940,40)*86+14;
-  const bmiY=symptomY+rowCount(symptomText,940,40)*86+14;
-  const headingY=Math.max(bmiY+90,healthStartY+420);
+  const headingY=Math.max(symptomY+rowCount(symptomText,940,40)*86+90,healthStartY+420);
   const supplementHeading='【營養補充建議：再加大燕麥片和橄欖油】';
   // 右側保留 QR 與標題的專用區域。
   const supplementStartY=headingY+rowCount(supplementHeading,1400,40)*86+20;
@@ -6097,9 +6095,8 @@ function render() {
   c.fillRect(0, 0, canvas.width, canvas.height);
 
   const weight = num('weight');
-  const age = num('age');
-  const male = v('sex') === '男';
-  const produceGoal = age < 12 ? 5 : (male ? 9 : 7);
+  const ageGroup = v('age');
+  const produceGoal = getProduceGoal();
   const goals = [3, fmt(weight / 7), produceGoal, grainGoal()];
   const actual = [num('fat'), num('protein'), num('produce'), num('grain')];
   const colors = ['#ffe477', '#f49cc1', '#9dd78d', '#ffc879'];
@@ -6108,7 +6105,7 @@ function render() {
   text('健康飲食金字塔', 45, 75, 44, '#bd302b', true);
   rule(45, 94, 325);
   text(v('name') || '受訪者', 590, 105, 36, '#222', true);
-  text(`${age}歲　${v('sex')}　${num('height')}公分　${weight}公斤`, 490, 155, 25);
+  text(`年紀：${ageGroup}　${v('sex')}　${weight}公斤`, 490, 155, 25);
   text(`評估日期 ${new Date().toLocaleDateString('zh-TW')}`, 590, 200, 20, '#555');
   // 左側四大類：標題、建議說明、攝取比較各佔一行；保留類別間距。
   const labels = ['油脂類', '蛋白質、豆魚蛋肉類', '蔬果類', '五穀雜糧類'];
@@ -6116,7 +6113,7 @@ function render() {
   const explanations = [
     '有補充：' + (selectedOil().join('、') || '未勾選'),
     '體重 ÷ 7',
-    '小孩5份 女生7份 男生9份',
+    '青5份；中、高：女生7份、男生9份',
     '工作：輕3份 中4份 重5份'
   ];
   labels.forEach((label, index) => {
@@ -6359,8 +6356,6 @@ function render() {
   rule(45, sectionDividerY, 1405);
   lines(medText,48,healthStartY,940,40,86,100);
   lines(symptomText,48,symptomY,940,40,86,100);
-  const bmi = num('height') ? fmt(weight / (num('height') / 100) ** 2) : 0;
-  text(`BMI ${bmi}（僅供參考）`,48,bmiY,40,'#555');
   lines(supplementHeading,48,headingY,1400,40,86,100,'#26783a',true);
   supplementLayout.forEach(({title,titleSize,meal,y,mealY})=>{
     text(title,48,y,titleSize);
@@ -6601,7 +6596,7 @@ function initialize() {
   loadInterviewerFromUrl();
   loadOrderLinkFromUrl();
   $('estimateButton').addEventListener('click', estimate);
-  ['name','age','height','weight','water','workload','breakfast','lunch','dinner'].forEach(id=>$(id).addEventListener('input',()=>{
+  ['name','age','weight','water','workload','breakfast','lunch','dinner'].forEach(id=>$(id).addEventListener('input',()=>{
     if(!$('requiredProfileStatus').hidden)validateRequiredProfile(false);
   }));
   $('generateButton').addEventListener('click', generateImage);
