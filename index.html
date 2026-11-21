@@ -51,8 +51,19 @@ body:not(.portalHomeMode):not(.customerMode) #cloudSync,
 body:not(.portalHomeMode):not(.customerMode) #cloudRetry,
 body:not(.portalHomeMode):not(.customerMode)>div:first-of-type details{display:none!important}
 body>div:first-of-type,#localContact{font-size:12px!important;line-height:1.4!important}
-.assessmentBottomBack{position:static!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;transform:none!important;z-index:auto!important;display:block;box-sizing:border-box;width:100%;margin:16px auto 0;padding:10px 18px 24px!important;background:transparent}
+.profile-choice-grid,.workload-choice-grid{display:flex;flex-wrap:nowrap;gap:14px}.profile-choice-grid label,.workload-choice-grid label{flex:1;justify-content:flex-start;white-space:nowrap}.assessmentBottomBack{position:static!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;transform:none!important;z-index:auto!important;display:block;box-sizing:border-box;width:100%;margin:16px auto 0;padding:10px 18px 24px!important;background:transparent}
 .assessmentBottomBack .portalBack{position:static!important;top:auto!important;bottom:auto!important;display:block;width:100%;margin:0}
+</style><style>
+#imageActions{padding:6px 12px calc(8px + env(safe-area-inset-bottom));background:#fff;border-top:2px solid #287944;box-shadow:0 -3px 12px #0003}
+#imageActions #jpgOutputOptions{margin:0;padding:0}
+#imageActions #jpgOutputOptions label{min-height:30px;margin:0;line-height:1.25;font-size:16px}
+#imageActions .actions{display:flex;align-items:center;gap:8px;margin:3px 0}
+#imageActions .actions .step-hint{font-size:16px;margin:0;white-space:nowrap}
+#imageActions button{padding:7px 12px;font-size:17px}
+#imageActions #shareJpgButton{width:100%;font-size:17px!important}
+body.hasGeneratedResult #imageActions{position:fixed;z-index:10000;left:0;right:0;bottom:0;box-sizing:border-box;max-height:45dvh;overflow-y:auto}
+body.hasGeneratedResult #resultSection{padding-bottom:calc(170px + env(safe-area-inset-bottom))}
+@media(max-width:420px){#imageActions #jpgOutputOptions label{font-size:15px}#imageActions .actions .step-hint{font-size:14px}#imageActions button{font-size:16px}}
 </style></head>
 <body class="portalHomeMode">
 <div style="max-width:850px;margin:auto;padding:10px 16px;font-size:12px;line-height:1.6">
@@ -78,21 +89,11 @@ body>div:first-of-type,#localContact{font-size:12px!important;line-height:1.4!im
 <div class="grid">
 <label>姓名或習慣稱呼<input id="name" placeholder="姓名" required>
 </label>
-<label>性別<select id="sex">
-<option>男</option>
-<option>女</option>
-</select>
-</label>
-<div id="age" role="group" aria-label="年紀區分" style="grid-column:1 / -1"><strong>年紀區分（計算蔬果需求量）</strong><div class="choice-grid age-choice-grid"><label><input type="radio" name="age" value="青少">青少</label><label><input type="radio" name="age" value="壯">壯</label><label><input type="radio" name="age" value="中" checked>中</label><label><input type="radio" name="age" value="老">老</label></div></div>
+<div id="sex" role="group" aria-label="性別"><strong>性別</strong><div class="choice-grid profile-choice-grid"><label><input type="radio" name="sex" value="男">男</label><label><input type="radio" name="sex" value="女" checked>女</label></div></div>
+<div id="age" role="group" aria-label="年紀區分" style="grid-column:1 / -1"><strong>年紀區分（計算蔬果需求量）</strong><div class="choice-grid age-choice-grid"><label><input type="radio" name="age" value="學生">學生</label><label><input type="radio" name="age" value="壯年">壯年</label><label><input type="radio" name="age" value="中年" checked>中年</label><label><input type="radio" name="age" value="老年">老年</label></div></div>
 
 <label>體重（公斤）（計算蛋白質需求量）<input id="weight" type="number" placeholder="例如：70" required>
-<label style="grid-column:1 / -1">工作強度（計算五穀雜糧需求量）<select id="workload">
-<option value="">請選擇工作強度</option>
-<option value="light">輕（坐著）</option>
-<option value="medium">中（站著）</option>
-<option value="heavy">重（走動搬運）</option>
-</select>
-</label>
+<div id="workload" role="group" aria-label="工作強度（計算五穀雜糧需求量）" style="grid-column:1 / -1"><strong>工作強度（計算五穀雜糧需求量）</strong><div class="choice-grid workload-choice-grid"><label><input type="radio" name="workload" value="light" checked>輕</label><label><input type="radio" name="workload" value="medium">中</label><label><input type="radio" name="workload" value="heavy">重</label></div></div>
 </div>
 <p id="requiredProfileStatus" class="note" role="status" aria-live="polite" hidden></p>
 <div><strong>慢性用藥（可複選）</strong><div class="choice-grid"><label><input type="checkbox" name="medChoice" value="高血壓">高血壓</label><label><input type="checkbox" name="medChoice" value="高血脂">高血脂</label><label><input type="checkbox" name="medChoice" value="痛風">痛風</label><label><input type="checkbox" name="medChoice" value="心臟病">心臟病</label><label><input type="checkbox" name="medChoice" value="氣喘">氣喘</label><label><input type="checkbox" name="medChoice" value="癲癇">癲癇</label><label><input type="checkbox" name="medChoice" value="糖尿病">糖尿病</label><label><input type="checkbox" name="medChoice" value="甲狀腺">甲狀腺</label><label><input type="checkbox" name="medChoice" value="關節炎">關節炎</label><label><input type="checkbox" name="medChoice" value="攝護腺">攝護腺</label><label><input type="checkbox" name="medChoice" value="癌">癌</label></div><label>其他（自行輸入）<input class="choice-extra" id="medOther" placeholder="請輸入其他狀況"></label></div>
@@ -115,7 +116,7 @@ body>div:first-of-type,#localContact{font-size:12px!important;line-height:1.4!im
 </textarea>
 </label>
 </div>
-<label>水果(不含上方登記的)<br>（份；1份約一個拳頭大小）<input id="fruit" type="number" min="0" step="0.5" placeholder="例如：1（沒有則填 0）">
+<label>水果(不含上方已登記)<br>（份；1份約一個拳頭大小）<input id="fruit" type="number" min="0" step="0.5" placeholder="例如：1（沒有則填 0）">
 </label>
 <label style="grid-column:1 / -1">每日喝水量（水 湯 茶 咖啡 飲料) cc <input id="water" type="number" placeholder="例如：2200">
 </label>
@@ -160,21 +161,15 @@ body>div:first-of-type,#localContact{font-size:12px!important;line-height:1.4!im
 <section id="factorySection" hidden aria-label="人體工廠與營養說明">
 <canvas id="factoryPreview" width="1500" height="1530" style="display:block;width:100%;height:auto" role="img" aria-label="人體工廠圖與說明"></canvas>
 </section>
-<div id="imageActions" style="padding:1px 16px 16px">
-<p id="imageStatus" role="status" aria-live="polite">
-</p>
-<div id="jpgOutputOptions" style="margin:10px 0;padding:0;border:0;background:transparent">
-<p style="margin:8px 0;font-weight:bold;color:#29753d">選擇要下載或分享的內容（可複選）</p>
-<p class="note" style="margin:8px 0">下載 JPG 依勾選項目存檔；分享到 LINE 時，LINE 依勾選項目分享，手機仍會直接存檔兩項 JPG。</p>
-<label><input type="checkbox" id="includeAssessmentOnly" checked> 僅飲食評估表（裁切線以上）</label>
+<div id="imageActions">
+<div id="jpgOutputOptions">
+<label><input type="checkbox" id="includeAssessmentOnly"> 僅飲食評估表（裁切線以上）</label>
 <label><input type="checkbox" id="includeAssessmentDetails" checked> 飲食評估表和說明</label>
 </div>
-<div class="actions">
-<span class="step-hint">請拍螢幕或</span><button type="button" class="secondary" id="downloadButton">下載 JPG 圖片</button>
+<div class="actions"><span class="step-hint">輕拍螢幕或</span><button type="button" class="secondary" id="downloadButton">下載 JPG 圖片</button></div>
+<div class="actions"><button type="button" id="shareJpgButton" style="background:#06a747;color:white;width:100%;padding:10px;border:0;border-radius:10px;font-size:1.1em;font-weight:bold">下載 JPG 圖片並傳給對方</button></div>
 </div>
-<div class="actions"><button type="button" id="shareJpgButton" style="background:#06a747;color:white;width:100%;padding:14px;border:0;border-radius:10px;font-size:1.3em;font-weight:bold">下載 JPG 並分享到 LINE</button></div>
-<p class="note" id="downloadNotice">本程式如果用LINE開啟，可能無法下載JPG，也無法把JPG傳到LINE，請先螢幕截圖再裁JPG圖後再上傳。</p>
-</div>
+<div id="outputMessages"><p id="imageStatus" role="status" aria-live="polite"></p><p class="note" id="downloadNotice">本程式如果用LINE開啟，可能無法下載JPG或分享到LINE，可改用螢幕截圖後再上傳。</p></div>
 <canvas id="detailsPreview" width="1500" height="1180" style="display:block;width:100%;height:auto" role="img" aria-label="飲食評估說明與商城 QR 碼"></canvas>
 </div>
 <div id="saveImageArea" hidden>
@@ -248,7 +243,7 @@ document.getElementById('therapyQuery').addEventListener('keydown',e=>{if(e.key=
 
 function portalOpen(page){
  if(page==='customers'){customerOpen();return;}
- customerOpenRequest++;document.body.classList.toggle('portalHomeMode',page==='home');document.body.classList.remove('customerMode');document.getElementById('portalCustomers').hidden=true;
+ customerOpenRequest++;if(page==='home')document.body.classList.remove('hasGeneratedResult');document.body.classList.toggle('portalHomeMode',page==='home');document.body.classList.remove('customerMode');document.getElementById('portalCustomers').hidden=true;
  const pages={home:'portalHome',assessment:'portalAssessment',products:'portalProducts',therapy:'portalTherapy',shopping:'portalShopping',dietGuide:'portalDietGuide',records:'portalRecords'};
  for(const [key,id] of Object.entries(pages))document.getElementById(id).hidden=(key!==page);
  if(page==='shopping')document.getElementById('portalShopLink').href=document.getElementById('orderLink').href;
@@ -271,9 +266,9 @@ function portalOpen(page){
 //
 // 一、共用工具與食物估算資料。
 const $ = id => document.getElementById(id);
-const v = id => id==='age' ? (document.querySelector('input[name="age"]:checked')?.value || '') : $(id).value;
+const v = id => ['age','sex','workload'].includes(id) ? (document.querySelector('input[name="'+id+'"]:checked')?.value || '') : $(id).value;
 const num = id => Math.max(0, Number(v(id)) || 0);
-const getProduceGoal = () => v('age')==='青少' ? 5 : (v('sex')==='男' ? 9 : 7);
+const getProduceGoal = () => v('age')==='學生' ? 5 : (v('sex')==='男' ? 9 : 7);
 const canvas = $('preview');
 const ctx = canvas.getContext('2d');
 // 每筆依序為油脂份、蛋白質份、蔬果份、五穀雜糧碗；沿用原版估算值。
@@ -5741,7 +5736,7 @@ function estimate(){
 // 四、計算每日需求、營養建議及缺乏提醒。
 
 // 需求量：依工作強度取得五穀雜糧份數。
-function grainGoal(){return {light:3,medium:4,heavy:5}[v('workload')]||3;}
+function grainGoal(){return v('age')==='學生'?3:({light:3,medium:4,heavy:5}[v('workload')]||3);}
 
 // 營養建議：依年紀區分、體重及飲食分析計算。
 function calculateNutritionPlan(){
@@ -5749,7 +5744,7 @@ function calculateNutritionPlan(){
  const proteinGap=Math.max(0,weight/7-num('protein'));
  const produceGap=Math.max(0,pg-num('produce'));
  // 僅成年問卷使用搭配；未成年不自動建議用量。
- const adult=v('age')!=='青少'; // 青少年組不自動顯示成人補充建議
+ const adult=v('age')!=='學生'; // 學生組不自動顯示成人補充建議
  const proteinSpoons=adult&&proteinGap>0?Math.ceil(proteinGap/2):0;
  // 保留每日總匙數；早晚各超過3匙時，將總量平均分配到三餐。
  const proteinTotal=proteinSpoons*2;
@@ -6113,8 +6108,8 @@ function render() {
   const explanations = [
     '有補充：' + (selectedOil().join('、') || '未勾選'),
     '體重 ÷ 7',
-    '青少5份；壯、中、老依性別為7／9份',
-    '工作：輕3份 中4份 重5份'
+    '學生5份；壯年、中年、老年依性別為7／9份',
+    ageGroup==='學生' ? '學生固定3份' : '工作：輕3份 中4份 重5份'
   ];
   labels.forEach((label, index) => {
     const goal = Number(goals[index]);
@@ -6261,7 +6256,7 @@ function render() {
     ['中', v('lunch')],
     ['晚', v('dinner')],
     ['下午茶／宵夜', v('snack')],
-    ['水果(不含上方登記的)', `${num('fruit')} 份`]
+    ['水果(不含上方已登記)', `${num('fruit')} 份`]
   ];
   const statLabels = ['油脂類', '蛋白質類', '蔬果類', '五穀雜糧類'];
   const statSplit = rightX + 245;
@@ -6295,10 +6290,17 @@ function render() {
     const row = index + 1;
     const y = rowBaseline(row);
     if (index === 4) {
+      const fruitLabel = '水果：';
+      const note = '(不含上方已登記)';
+      const standardSize = Math.round(rightFont * 1.65);
       c.save();
-      c.font = `bold 26px Arial, 'Noto Sans TC', sans-serif`;
       c.fillStyle = '#222';
-      c.fillText(`${label}：${content}`, rightX + 10, y, rightWidth - 20);
+      c.font = `bold ${standardSize}px Arial, 'Noto Sans TC', sans-serif`;
+      c.fillText(fruitLabel, rightX + 10, y - 13, rightWidth - 20);
+      const labelWidth = c.measureText(fruitLabel).width;
+      c.font = `${standardSize}px Arial, 'Noto Sans TC', sans-serif`;
+      c.fillText(`${num('fruit')} 份`, rightX + 10 + labelWidth, y - 13, rightWidth - 20 - labelWidth);
+      c.fillText(note, rightX + 10, y + 22, rightWidth - 20);
       c.restore();
       return;
     }
@@ -6454,7 +6456,7 @@ async function generateImage(){
  }
  const status=$('imageStatus');
  if(!v('name').trim()){status.textContent='請先填寫受訪者姓名。';return}
- render();$('resultSection').hidden=false;
+ render();$('resultSection').hidden=false;document.body.classList.add('hasGeneratedResult');
  $('recommendationsSection').hidden=false;
  $('saveImageArea').hidden=true;
  $('assessmentPage').scrollIntoView({behavior:'smooth',block:'start'});
