@@ -62,7 +62,7 @@ body>div:first-of-type,#localContact{font-size:12px!important;line-height:1.4!im
 #imageActions button{padding:7px 12px;font-size:17px}
 #imageActions #shareJpgButton{width:100%;font-size:17px!important}
 body.hasGeneratedResult #imageActions{position:fixed;z-index:10000;left:0;right:0;bottom:0;box-sizing:border-box;max-height:45dvh;overflow-y:auto}
-body.hasGeneratedResult #resultSection{padding-bottom:calc(170px + env(safe-area-inset-bottom))}
+body.hasGeneratedResult #resultSection{padding-bottom:16px}
 @media(max-width:420px){#imageActions #jpgOutputOptions label{font-size:15px}#imageActions .actions .step-hint{font-size:14px}#imageActions button{font-size:16px}}
 </style></head>
 <body class="portalHomeMode">
@@ -6108,7 +6108,7 @@ function render() {
   const explanations = [
     '有補充：' + (selectedOil().join('、') || '未勾選'),
     '體重 ÷ 7',
-    '學生5份；壯年、中年、老年依性別為7／9份',
+    '學生5份；女生7份；男生9份',
     ageGroup==='學生' ? '學生固定3份' : '工作：輕3份 中4份 重5份'
   ];
   labels.forEach((label, index) => {
