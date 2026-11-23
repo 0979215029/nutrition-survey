@@ -79,7 +79,7 @@ body.portalHomeMode #portalHome .portalBtn:nth-child(5){width:95%;grid-column:1/
 body.portalHomeMode>footer{font-size:18px!important;line-height:1.4}
 body.portalHomeMode #portalHome #cloudAdmin{font-size:21px!important}
 /* LINE 內建瀏覽器依使用者要求縮小整頁；寬度與首頁高度同步補償，避免只縮成左上角小畫面。 */
-html.lineInApp{zoom:.5;width:200%;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html.lineInApp body{zoom:.5;width:200%;max-width:none!important;margin-left:0!important;margin-right:0!important;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 html.lineInApp body.portalHomeMode{height:200dvh}
 </style>
 </head>
