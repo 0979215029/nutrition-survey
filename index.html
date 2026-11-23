@@ -64,7 +64,15 @@ body>div:first-of-type,#localContact{font-size:12px!important;line-height:1.4!im
 body.hasGeneratedResult #imageActions{position:fixed;z-index:10000;left:0;right:0;bottom:0;box-sizing:border-box;max-height:45dvh;overflow-y:auto}
 body.hasGeneratedResult #resultSection{padding-bottom:16px}
 @media(max-width:420px){#imageActions #jpgOutputOptions label{font-size:15px}#imageActions .actions .step-hint{font-size:14px}#imageActions button{font-size:16px}}
-</style></head>
+</style><style id="home-readable-fonts">
+body.portalHomeMode>div:first-of-type{font-size:17px!important;line-height:1.35}
+body.portalHomeMode #portalHome h1{font-size:clamp(30px,4.2dvh,38px);line-height:1.2}
+body.portalHomeMode #portalHome p{font-size:clamp(19px,2.5dvh,23px);line-height:1.3}
+body.portalHomeMode #portalHome .portalBtn{font-size:clamp(24px,3.5dvh,30px)!important;line-height:1.2;padding:8px 12px!important}
+body.portalHomeMode>footer{font-size:16px!important;line-height:1.4}
+body.portalHomeMode #portalHome #cloudAdmin{font-size:19px!important}
+</style>
+</head>
 <body class="portalHomeMode">
 <div style="max-width:850px;margin:auto;padding:10px 16px;font-size:12px;line-height:1.6">
 <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><span id="localContact">正在讀取問卷資料…</span></div>
