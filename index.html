@@ -122,16 +122,16 @@ html.lineInApp body.portalHomeMode #portalHome .portalBtn:nth-child(5){font-size
 <legend>二、一週內每天最常吃的飲食</legend>
 <p class="note"><strong>份量換算基準：</strong>油脂 1 份＝1 茶匙（5 mL）；蛋白質 1 份＝約三根手指的長、寬、厚，約 1 兩；蔬菜 1 份＝煮熟半碗；五穀雜糧 1 份＝泡開的 1 碗；大燕麥片 1 平匙＝10 公克（紐崔萊優質蛋白湯匙）；如果用一般奶粉湯匙，請記 0.5 匙＝5 公克。</p>
 <div class="grid">
-<label>早餐<textarea id="breakfast" placeholder="例如：蛋餅一份、無糖豆漿一杯、大燕麥片三匙">
+<label>早餐<textarea id="breakfast" placeholder="例如：水餃1顆、小籠包1顆、無糖豆漿1杯、大燕麥片3匙">
 </textarea>
 </label>
-<label>午餐<textarea id="lunch" placeholder="例如：白飯1碗、雞肉3份、青菜1碗">
+<label>午餐<textarea id="lunch" placeholder="例如：扁食8顆、白飯1碗、雞肉3份、青菜1碗">
 </textarea>
 </label>
-<label>晚餐<textarea id="dinner" placeholder="例如：魚肉2份、豆腐1塊、青菜1碗">
+<label>晚餐<textarea id="dinner" placeholder="例如：餛飩6顆、豆腐1塊、魚肉2份、青菜1碗">
 </textarea>
 </label>
-<label>下午茶／宵夜<textarea id="snack" placeholder="例如：花生十三公克、腰果五顆、開心果10公克（沒有則填無）">
+<label>下午茶／宵夜<textarea id="snack" placeholder="例如：水餃1顆、小籠包1顆、花生13公克、腰果5顆">
 </textarea>
 </label>
 </div>
@@ -5515,6 +5515,27 @@ const singleFoodRules = [
 for (const [name, portions] of singleFoodRules) {
   if (!mealRules.some(([existing]) => existing === name)) mealRules.push([name, portions]);
 }
+// 點心餃類以「每顆」估算；輸入顆數時直接逐顆累加。
+// 一份、 一籠或一碗僅作輸入便利換算，重量及內餡不同時請依實際情況調整。
+const pieceFoodRules = [
+  ["高麗菜水餃",[0.23,0.22,0.07,0.16]], ["韭菜水餃",[0.23,0.22,0.07,0.16]], ["水餃",[0.23,0.22,0.07,0.16]], ["餃子",[0.23,0.22,0.07,0.16]],
+  ["小籠包",[0.20,0.20,0.05,0.10]], ["小籠湯包",[0.20,0.20,0.05,0.10]], ["湯包",[0.20,0.20,0.05,0.10]],
+  ["日式煎餃",[0.20,0.20,0.05,0.10]], ["鍋貼",[0.20,0.20,0.05,0.10]], ["蒸餃",[0.20,0.20,0.05,0.10]],
+  ["扁食湯",[0.12,0.15,0.03,0.08]], ["餛飩湯",[0.12,0.15,0.03,0.08]], ["鮮肉扁食",[0.12,0.15,0.03,0.08]], ["鮮肉餛飩",[0.12,0.15,0.03,0.08]], ["菜肉餛飩",[0.12,0.15,0.03,0.08]], ["扁食",[0.12,0.15,0.03,0.08]], ["餛飩",[0.12,0.15,0.03,0.08]], ["雲吞",[0.12,0.15,0.03,0.08]],
+  ["燒賣",[0.15,0.18,0.03,0.07]], ["蝦餃",[0.10,0.13,0.03,0.07]], ["魚餃",[0.10,0.15,0.03,0.06]], ["蛋餃",[0.10,0.15,0,0.03]]
+];
+for (const [name, portions] of pieceFoodRules) {
+  const index = mealRules.findIndex(([existing]) => existing === name);
+  if (index < 0) mealRules.push([name, portions]);
+  else mealRules[index] = [name, portions];
+}
+const pieceFoodNames = new Set(pieceFoodRules.map(([name]) => name));
+const pieceFoodServingCounts = {
+  '水餃':10,'高麗菜水餃':10,'韭菜水餃':10,'餃子':10,'日式煎餃':10,'鍋貼':10,'蒸餃':10,
+  '小籠包':8,'小籠湯包':8,'湯包':8,
+  '扁食':8,'餛飩':8,'雲吞':8,'鮮肉扁食':8,'鮮肉餛飩':8,'菜肉餛飩':8,'扁食湯':6,'餛飩湯':6,
+  '燒賣':6,'蝦餃':4,'魚餃':6,'蛋餃':6
+};
 const bakeryNames = new Set(["巧克力夾心餅乾","奶油夾心餅乾","夾心餅乾","消化餅乾","蘇打餅乾","全麥餅乾","奶油餅乾","曲奇餅乾","巧克力餅乾","蛋捲","米餅","仙貝","洋芋片","餅乾","菠蘿麵包","奶酥麵包","肉鬆麵包","紅豆麵包","克林姆麵包","奶油麵包","起司麵包","火腿麵包","可頌","牛角麵包","甜甜圈","丹麥麵包","全麥吐司","白吐司","厚片吐司","吐司","土司","法國麵包","全麥麵包","雜糧麵包","餐包","貝果","麵包"]);
 const sashimiNames = new Set(["鮭魚生魚片","鮪魚生魚片","旗魚生魚片","鯛魚生魚片","綜合生魚片","生魚片"]);
 const nigiriNames = new Set(["炙燒鮭魚握壽司","鮭魚握壽司","鮪魚握壽司","蝦握壽司","玉子握壽司","握壽司","鮭魚壽司"]);
@@ -5679,7 +5700,7 @@ function normalizeFoodQuantities(input){
    let sum=0,n=0;for(const ch of raw){const unit={十:10,拾:10,百:100,佰:100,千:1000,仟:1000}[ch];if(unit){sum+=(n||1)*unit;n=0;}else n=digits[ch];}return sum+n;
  }
  return String(input).replace(/[０-９]/g,ch=>String(ch.charCodeAt(0)-0xff10))
-  .replace(/[零〇一壹二兩两貳贰三參叁四肆五伍六陸陆七柒八捌九玖十拾百佰千仟半]+(?=\s*(?:公斤|台斤|斤|台兩|兩|公克|克|尾|隻|毫升|毫公升|公升|ml|cc|瓶|罐|盒|平匙|湯匙|茶匙|匙|粒|片|個|顆|包|份|條|塊|貫|串|支|碗|杯|根))/g,(ch,offset,text)=>text.startsWith('三杯',offset)||mealRules.some(([name])=>name.startsWith(ch)&&text.startsWith(name,offset))?ch:String(chineseNumber(ch)));
+  .replace(/[零〇一壹二兩两貳贰三參叁四肆五伍六陸陆七柒八捌九玖十拾百佰千仟半]+(?=\s*(?:公斤|台斤|斤|台兩|兩|公克|克|尾|隻|毫升|毫公升|公升|ml|cc|瓶|罐|盒|平匙|湯匙|茶匙|匙|粒|片|個|顆|包|份|條|塊|貫|串|支|碗|杯|籠|根))/g,(ch,offset,text)=>text.startsWith('三杯',offset)||mealRules.some(([name])=>name.startsWith(ch)&&text.startsWith(name,offset))?ch:String(chineseNumber(ch)));
 }
 
 // 飲食分析：辨識輸入餐點並計算四類食物份數。
@@ -5707,7 +5728,7 @@ function estimate(){
  const pieceBase=name=>name.includes('餅乾')||['蛋捲','米餅','仙貝','洋芋片'].includes(name)?3:1;
  const toQuantity=value=>{if(!value)return 0;const parts=String(value).replace(/\s/g,'').split('/');if(parts.length===1)return Number(parts[0])||0;const numerator=Number(parts[0]),denominator=Number(parts[1]);return Number.isFinite(numerator)&&Number.isFinite(denominator)&&denominator!==0?numerator/denominator:0;};
  const amountPattern='(?:[0-9]+\\s*\\/\\s*[0-9]+|[0-9]+(?:\\.[0-9]+)?)';
- const unitPattern='毫升|毫公升|公升|ml|cc|瓶|罐|盒|平匙|公斤|台斤|斤|台兩|兩|公克|克|湯匙|茶匙|匙|粒|片|個|顆|包|份|條|塊|貫|串|支|碗|杯|根|尾|隻|粒|g';
+ const unitPattern='毫升|毫公升|公升|ml|cc|瓶|罐|盒|平匙|公斤|台斤|斤|台兩|兩|公克|克|湯匙|茶匙|匙|粒|片|個|顆|包|份|條|塊|貫|串|支|碗|杯|籠|根|尾|隻|粒|g';
  const names=[...estimateRules].sort((a,b)=>b[0].length-a[0].length).map(([n])=>n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|');
  const quantityRegex=new RegExp('(?:('+amountPattern+')\\s*('+unitPattern+')\\s*)?('+names+')(?:\\s*('+amountPattern+')\\s*('+unitPattern+')?)?','gi');
  const remaining=source.replace(quantityRegex,(full,before,unitBefore,name,after,unitAfter)=>{
@@ -5726,6 +5747,10 @@ function estimate(){
      else if(['','份'].includes(unit)){multiplier=qty*(m.kind==='yogurt'?100:240)/m.base;}
      else {pendingLabels.push(name+'（請填公克或毫升）');servings=[0,0,0,0];}
      estimatedFoods.push(name);
+   }else if(pieceFoodNames.has(name)){
+     if(['份','籠'].includes(unit))multiplier=qty*(pieceFoodServingCounts[name]||1);
+     else if(unit==='碗'&&['扁食湯','餛飩湯'].includes(name))multiplier=qty*pieceFoodServingCounts[name];
+     else multiplier=qty;
    }else if(directServingIndex.has(name)&&['','份'].includes(unit)){
      servings=[0,0,0,0];servings[directServingIndex.get(name)]=1;multiplier=qty;
    }else if(chestnutNames.has(name)){
